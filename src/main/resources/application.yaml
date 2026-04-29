@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: ctrlgym
+  datasource:
+    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:5432/postgres
+    username: postgres.nkwsihnvnyduumdbopuf
+    password: Kc8gnoKGdPRgMepl
+    driver-class-name: org.postgresql.Driver
+
+
+server:
+  port: 8080

@@ -1,7 +1,7 @@
 # ===============================
 # Etapa 1: Build con Maven + Java 26
 # ===============================
-FROM maven:3.9-eclipse-temurin-26 AS build
+FROM maven:3.9-eclipse-temurin-25 AS build
 
 WORKDIR /app
 

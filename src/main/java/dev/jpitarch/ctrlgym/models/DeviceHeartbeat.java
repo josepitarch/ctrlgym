@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,17 +23,16 @@ public class DeviceHeartbeat {
   private Long id;
 
   @Column(name = "device_id", nullable = false, length = 100)
+  @JsonProperty("device_id")
   private String deviceId;
 
-  @Column(name = "event_ts", nullable = false)
-  private OffsetDateTime eventTs;
+  @Column(name = "created_at", nullable = false)
+  @JsonProperty("created_at")
+  private OffsetDateTime createdAt;
 
-  @ColumnDefault("now()")
-  @Column(name = "received_ts", nullable = false)
-  private OffsetDateTime receivedTs;
-
-  @Column(name = "status", nullable = false, length = 20)
-  private String status;
+  @Column(name = "received_at")
+  @JsonProperty("received_at")
+  private OffsetDateTime receivedAt;
 
   @Column(name = "hostname")
   private String hostname;
@@ -44,36 +44,35 @@ public class DeviceHeartbeat {
   private String platform;
 
   @Column(name = "python_version", length = 50)
+  @JsonProperty("python_version")
   private String pythonVersion;
 
   @Column(name = "app_version", length = 50)
+  @JsonProperty("app_version")
   private String appVersion;
 
-  @Column(name = "uptime_seconds")
-  private Long uptimeSeconds;
-
   @Column(name = "cpu_percent")
+  @JsonProperty("cpu_percent")
   private Double cpuPercent;
 
   @Column(name = "memory_percent")
+  @JsonProperty("memory_percent")
   private Double memoryPercent;
 
   @Column(name = "disk_percent")
+  @JsonProperty("disk_percent")
   private Double diskPercent;
 
   @Column(name = "temperature_c", precision = 5, scale = 2)
+  @JsonProperty("temperature_c")
   private BigDecimal temperatureC;
 
   @Column(name = "sqlite_ok")
+  @JsonProperty("sqlite_ok")
   private Boolean sqliteOk;
 
-  @ColumnDefault("0")
   @Column(name = "pending_events")
+  @JsonProperty("pending_events")
   private Integer pendingEvents;
-
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "raw_payload")
-  private Map<String, Object> rawPayload;
-
 
 }

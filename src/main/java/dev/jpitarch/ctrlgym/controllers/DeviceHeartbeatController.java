@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 @RestController
@@ -18,6 +19,7 @@ public class DeviceHeartbeatController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void saveHeartbeat(@PathVariable String deviceId, @RequestBody DeviceHeartbeat heartbeat) {
     heartbeat.setDeviceId(deviceId);
+    heartbeat.setReceivedAt(OffsetDateTime.now());
     jpaRepository.save(heartbeat);
   }
 

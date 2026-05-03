@@ -19,7 +19,7 @@ import java.util.Map;
 public class DeviceHeartbeat {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", nullable = false)
+  @Column(name = "id")
   private Long id;
 
   @Column(name = "device_id", nullable = false, length = 100)

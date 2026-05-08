@@ -16,7 +16,7 @@ public class GymHeartbeatController {
 
   @PostMapping("/{deviceId}/heartbeat")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void saveHeartbeat(@PathVariable String deviceId, @RequestBody GymHeartbeat heartbeat) {
+  public void saveHeartbeat(@PathVariable Integer deviceId, @RequestBody GymHeartbeat heartbeat) {
     heartbeat.setDeviceId(deviceId);
     heartbeat.setReceivedAt(OffsetDateTime.now());
     jpaRepository.save(heartbeat);

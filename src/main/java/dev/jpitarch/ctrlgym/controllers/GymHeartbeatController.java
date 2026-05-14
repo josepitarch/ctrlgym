@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.controllers;
 
 import dev.jpitarch.ctrlgym.models.GymHeartbeat;
-import dev.jpitarch.ctrlgym.repositories.GymHeartbeatJpaRepository;
+import dev.jpitarch.ctrlgym.repositories.jpa.GymHeartbeatJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

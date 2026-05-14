@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.repositories;
+package dev.jpitarch.ctrlgym.repositories.jpa;
 
 import dev.jpitarch.ctrlgym.models.GymHeartbeat;
 import org.springframework.data.jpa.repository.JpaRepository;

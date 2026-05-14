@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.controllers;
 
 import dev.jpitarch.ctrlgym.models.AccessEvent;
-import dev.jpitarch.ctrlgym.repositories.AccessEventJpaRepository;
+import dev.jpitarch.ctrlgym.repositories.jpa.AccessEventJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

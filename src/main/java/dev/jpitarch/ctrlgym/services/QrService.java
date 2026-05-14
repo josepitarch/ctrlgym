@@ -13,12 +13,11 @@ import java.io.IOException;
 @Service
 public class QrService {
 
-  private static final String QR_DATA = "jpitarch";
   private static final int QR_SIZE = 300;
 
-  public byte[] generateQrCode() throws WriterException, IOException {
+  public byte[] generateQrCode(String data) throws WriterException, IOException {
     QRCodeWriter qrCodeWriter = new QRCodeWriter();
-    BitMatrix bitMatrix = qrCodeWriter.encode(QR_DATA, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
+    BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
 
     ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
     MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);

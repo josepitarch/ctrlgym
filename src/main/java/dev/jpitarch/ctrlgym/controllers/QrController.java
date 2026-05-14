@@ -5,6 +5,8 @@ import dev.jpitarch.ctrlgym.services.QrService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,8 +19,8 @@ public class QrController {
   private final QrService qrService;
 
   @PostMapping(value = "/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
-  public ResponseEntity<byte[]> generateQr() throws WriterException, IOException {
-    byte[] qrImage = qrService.generateQrCode();
+  public ResponseEntity<byte[]> generateQr(@AuthenticationPrincipal Jwt jwt) throws WriterException, IOException {
+    byte[] qrImage = qrService.generateQrCode(jwt.getClaims().get("email").toString());
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
 }

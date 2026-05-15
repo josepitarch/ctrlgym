@@ -11,8 +11,8 @@ import java.time.OffsetDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "gym_heartbeat")
-public class GymHeartbeat {
+@Table(name = "gym_branch_heartbeat")
+public class GymBranchHeartbeat {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")

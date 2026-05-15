@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.controllers;
 
-import dev.jpitarch.ctrlgym.models.AccessEvent;
+import dev.jpitarch.ctrlgym.models.MemberAccess;
 import dev.jpitarch.ctrlgym.repositories.jpa.AccessEventJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,10 +17,10 @@ public class UploadAccessEventController {
   private final AccessEventJpaRepository jpaRepository;
 
   @PostMapping("/{deviceId}/access-events")
-  public void uploadAccessEvent(@PathVariable String deviceId, @RequestBody AccessEvent accessEvent) {
-    accessEvent.setDeviceId(deviceId);
-    accessEvent.setReceivedAt(LocalDateTime.now());
-    jpaRepository.save(accessEvent);
+  public void uploadAccessEvent(@PathVariable String deviceId, @RequestBody MemberAccess memberAccess) {
+    memberAccess.setDeviceId(deviceId);
+    memberAccess.setReceivedAt(LocalDateTime.now());
+    jpaRepository.save(memberAccess);
   }
 
 }

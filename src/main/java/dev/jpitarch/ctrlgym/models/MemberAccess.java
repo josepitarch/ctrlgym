@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "access_events")
-public class AccessEvent {
+@Table(name = "member_accesses")
+public class MemberAccess {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

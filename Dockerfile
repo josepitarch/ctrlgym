@@ -20,7 +20,7 @@ RUN mvn clean package -DskipTests
 # ===============================
 # Etapa 2: Runtime liviano
 # ===============================
-FROM eclipse-temurin:26-jre
+FROM eclipse-temurin:25-jre
 
 WORKDIR /app
 

@@ -18,9 +18,9 @@ public class GymBranchHeartbeat {
   @Column(name = "id")
   private Long id;
 
-  @Column(name = "gym_id", nullable = false, length = 100)
+  @Column(name = "gym_branch_id", nullable = false, length = 100)
   @JsonProperty("device_id")
-  private Integer gymId;
+  private Integer gymBranchId;
 
   @Column(name = "created_at", nullable = false)
   @JsonProperty("created_at")

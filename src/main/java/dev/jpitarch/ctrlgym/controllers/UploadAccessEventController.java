@@ -18,7 +18,7 @@ public class UploadAccessEventController {
 
   @PostMapping("/{deviceId}/access-events")
   public void uploadAccessEvent(@PathVariable String deviceId, @RequestBody MemberAccess memberAccess) {
-    memberAccess.setDeviceId(deviceId);
+    memberAccess.setGymBranchId(deviceId);
     memberAccess.setReceivedAt(LocalDateTime.now());
     jpaRepository.save(memberAccess);
   }

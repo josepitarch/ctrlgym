@@ -17,12 +17,12 @@ public class MemberAccess {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "device_id")
-  private String deviceId;
+  @Column(name = "gym_branch_id")
+  private String gymBranchId;
 
-  @Column(name = "user_id")
+  @Column(name = "member_id")
   @JsonProperty("user_id")
-  private String userId;
+  private String memberId;
 
   @Column(name = "direction")
   @JsonProperty("direction")

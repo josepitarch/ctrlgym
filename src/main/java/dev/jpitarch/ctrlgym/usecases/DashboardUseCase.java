@@ -25,9 +25,18 @@ public class DashboardUseCase {
 
   public List<String[]> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {
     return switch (flow) {
-      case ACTIVE -> membershipRepository.getMembershipsCounter(gymBranchId, datePeriod);
-      case NEW -> membershipRepository.getNewsMembershipsCounter(gymBranchId, datePeriod);
-      case CANCELLED -> membershipRepository.getFinishedMembershipsCounter(gymBranchId, datePeriod);
+      case ACTIVE -> membershipRepository.getCurrentCount(gymBranchId, datePeriod);
+      case NEW -> membershipRepository.getNewsCount(gymBranchId, datePeriod);
+      case CANCELLED -> membershipRepository.getCancelledCount(gymBranchId, datePeriod);
     };
   }
+
+  public Integer getMembershipSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
+    return membershipRepository.getSeniorityAverage(gymBranchId, datePeriod);
+  }
+
+  public List<String[]> getCohorts(GymBranchId gymBranchId) {
+    return membershipRepository.getCohorts(gymBranchId);
+  }
+
 }

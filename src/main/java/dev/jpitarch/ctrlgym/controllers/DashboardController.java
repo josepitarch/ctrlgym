@@ -30,4 +30,14 @@ public class DashboardController {
     return useCase.getMemberships(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to), flow);
   }
 
+  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships/seniority-avg")
+  public Integer getMembershipSeniorityAverage(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
+    return useCase.getMembershipSeniorityAverage(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to));
+  }
+
+  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships/cohorts")
+  public List<String[]> getCohorts(@PathVariable int gymId, @PathVariable int branchId) {
+    return useCase.getCohorts(GymBranchId.of(gymId, branchId));
+  }
+
 }

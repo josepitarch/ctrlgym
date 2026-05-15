@@ -1,8 +1,11 @@
 package dev.jpitarch.ctrlgym.usecases;
 
+import dev.jpitarch.ctrlgym.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.domain.enums.RangePeriod;
+import dev.jpitarch.ctrlgym.domain.enums.Granularity;
+import dev.jpitarch.ctrlgym.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.repositories.GymBranchOccupancyRepository;
+import dev.jpitarch.ctrlgym.repositories.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +17,17 @@ public class DashboardUseCase {
 
   private final GymBranchOccupancyRepository gymBranchOccupancyRepository;
 
-  public List<String[]> getDailyOccupancies(GymBranchId gymBranchId, RangePeriod rangePeriod) {
-    return switch (rangePeriod) {
-      case DAILY -> gymBranchOccupancyRepository.getDailyOccupancies(gymBranchId);
-      case WEEKLY -> gymBranchOccupancyRepository.getWeeklyOccupancies(gymBranchId);
-      case MONTHLY -> gymBranchOccupancyRepository.getMonthlyOccupancies(gymBranchId);
+  private final MembershipRepository membershipRepository;
+
+  public List<String[]> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
+    return gymBranchOccupancyRepository.getOccupancies(gymBranchId, datePeriod, granularity);
+  }
+
+  public List<String[]> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {
+    return switch (flow) {
+      case ACTIVE -> membershipRepository.getMembershipsCounter(gymBranchId, datePeriod);
+      case NEW -> membershipRepository.getNewsMembershipsCounter(gymBranchId, datePeriod);
+      case CANCELLED -> membershipRepository.getFinishedMembershipsCounter(gymBranchId, datePeriod);
     };
   }
 }

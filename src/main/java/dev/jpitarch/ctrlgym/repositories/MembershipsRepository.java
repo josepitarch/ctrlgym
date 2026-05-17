@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
-public class MembershipRepository {
+public class MembershipsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
@@ -26,7 +26,7 @@ public class MembershipRepository {
           :to::date,
           INTERVAL '1 month'
       ) month
-      LEFT JOIN membership m
+      LEFT JOIN memberships m
           ON m.gym_id = :gymId
          AND m.start_date <= month
          AND (m.end_date IS NULL OR m.end_date >= month)
@@ -53,7 +53,7 @@ public class MembershipRepository {
       SELECT
           DATE_TRUNC('month', start_date)::date AS month,
           COUNT(*) AS new_memberships
-      FROM membership
+      FROM memberships
       WHERE gym_id = :gymId
       AND start_date >= :from AND start_date <= :to
       GROUP BY 1
@@ -78,7 +78,7 @@ public class MembershipRepository {
       SELECT
           DATE_TRUNC('month', end_date)::date AS month,
           COUNT(*) AS cancellations
-      FROM membership
+      FROM memberships
       WHERE gym_id = :gymId
       AND start_date >= :from AND start_date <= :to
       AND end_date IS NOT NULL AND end_date <= CURRENT_DATE
@@ -104,7 +104,7 @@ public class MembershipRepository {
     var sql = """
       SELECT
       AVG(CURRENT_DATE - start_date) AS avg_days
-      FROM membership
+      FROM memberships
       WHERE gym_id = :gymId
         AND start_date <= CURRENT_DATE
         AND (end_date IS NULL OR end_date >= CURRENT_DATE);
@@ -125,26 +125,21 @@ public class MembershipRepository {
               DATE_TRUNC('month', start_date)::date AS cohort_month,
               start_date,
               end_date
-          FROM membership
+          FROM memberships
           WHERE gym_id = :gymId
       ),
       
       cohort_activity AS (
           SELECT
               c.cohort_month,
-      
               gs.month_offset,
-      
               COUNT(*) FILTER (
                   WHERE c.end_date IS NULL
                      OR c.end_date >= c.cohort_month
                           + (gs.month_offset || ' month')::interval
               ) AS active_members
-      
           FROM cohorts c
-      
           CROSS JOIN generate_series(0, :currentMonth) AS gs(month_offset)
-      
           GROUP BY 1, 2
       ),
       
@@ -159,20 +154,14 @@ public class MembershipRepository {
       SELECT
           ca.cohort_month,
           ca.month_offset,
-      
           ca.active_members,
-      
           cs.cohort_size,
-      
           ROUND(
               ca.active_members * 100.0 / cs.cohort_size,
               2
           ) AS retention_rate
-      
       FROM cohort_activity ca
-      JOIN cohort_sizes cs
-          ON cs.cohort_month = ca.cohort_month
-      
+      JOIN cohort_sizes cs ON cs.cohort_month = ca.cohort_month
       ORDER BY 1, 2;
       """;
 
@@ -189,6 +178,26 @@ public class MembershipRepository {
       return new String[]{ cohortMonth.toString(), String.valueOf(monthOffset), String.valueOf(activeMembers), String.valueOf(cohortSize), String.valueOf(retentionRate) };
     });
 
+  }
+
+  public List<String[]> getCancellationReasons(GymBranchId gymBranchId, DatePeriod datePeriod) {
+    var sql = """
+      SELECT cancellation_reason_id, COUNT(1) as count
+      FROM memberships
+      WHERE gym_id = :gymId
+      AND end_date <= CURRENT_DATE
+      GROUP BY cancellation_reason_id
+      """;
+
+    var params = Map.of(
+      "gymId", gymBranchId.gymId()
+    );
+
+    return jdbc.query(sql, params, (row, _) -> {
+      var reasonId = row.getInt("cancellation_reason_id");
+      var count = row.getInt("count");
+      return new String[]{ String.valueOf(reasonId), String.valueOf(count) };
+    });
   }
 
 }

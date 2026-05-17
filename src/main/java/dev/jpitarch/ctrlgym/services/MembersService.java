@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @Service
-public class QrService {
+public class MembersService {
 
   private static final int QR_SIZE = 300;
 

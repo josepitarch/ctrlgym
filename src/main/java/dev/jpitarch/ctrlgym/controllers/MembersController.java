@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.controllers;
 
 import com.google.zxing.WriterException;
-import dev.jpitarch.ctrlgym.services.QrService;
+import dev.jpitarch.ctrlgym.services.MembersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +14,13 @@ import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
-public class QrController {
+public class MembersController {
 
-  private final QrService qrService;
+  private final MembersService membersService;
 
   @PostMapping(value = "/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
   public ResponseEntity<byte[]> generateQr(@AuthenticationPrincipal Jwt jwt) throws WriterException, IOException {
-    byte[] qrImage = qrService.generateQrCode(jwt.getClaims().get("email").toString());
+    byte[] qrImage = membersService.generateQrCode(jwt.getClaims().get("email").toString());
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
 }

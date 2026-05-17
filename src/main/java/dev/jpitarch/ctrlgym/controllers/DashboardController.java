@@ -40,4 +40,16 @@ public class DashboardController {
     return useCase.getCohorts(GymBranchId.of(gymId, branchId));
   }
 
+
+  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships/cancellation-reasons")
+  public List<String[]> getCancellationReasons(@PathVariable int gymId, @PathVariable int branchId) {
+    return useCase.getCancellationReasons(GymBranchId.of(gymId, branchId));
+  }
+
+  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/expenses")
+  public List<String[]> getExpenses(@PathVariable int gymId, @PathVariable int branchId) {
+    return useCase.getExpenses(GymBranchId.of(gymId, branchId));
+  }
+
+
 }

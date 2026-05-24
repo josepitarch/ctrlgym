@@ -16,30 +16,29 @@ public class GymBranchOccupancyRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public List<String[]> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
+  public List<Map<String, Integer>> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
     var sql = """
-            SELECT
-            DATE_TRUNC(:granularity, snapshot_time) AS bucket,
-            AVG(count) AS avg_occupancy
-            FROM gym_branch_occupancy_snapshot
-            WHERE gym_branch_id = :gymBranchId
-              AND snapshot_time >= :from
-              AND snapshot_time <= :to
-            GROUP BY 1
-            ORDER BY 1;
-            """;
+      SELECT
+      DATE_TRUNC(:granularity, snapshot_time) AS bucket,
+      AVG(count) AS avg_occupancy
+      FROM gym_branch_occupancy_snapshot
+      WHERE gym_branch_id = :gymBranchId
+      AND snapshot_time BETWEEN :from AND :to
+      GROUP BY 1
+      ORDER BY 1;
+      """;
 
     var params = Map.of(
-            "gymBranchId", gymBranchId.branchId(),
-            "from", datePeriod.from(),
-            "to", datePeriod.to(),
-            "granularity", convertGranularity(granularity)
+      "gymBranchId", gymBranchId.branchId(),
+      "from", datePeriod.from(),
+      "to", datePeriod.to(),
+      "granularity", convertGranularity(granularity)
     );
 
     return jdbc.query(sql, params, (row, _) -> {
       var bucket = row.getTimestamp("bucket").toLocalDateTime();
       var avgOccupancy = row.getInt("avg_occupancy");
-      return new String[]{ bucket.toString(), String.valueOf(avgOccupancy) };
+      return Map.of(bucket.toString(), avgOccupancy);
     });
   }
 

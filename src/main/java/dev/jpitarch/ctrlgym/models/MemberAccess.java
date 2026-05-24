@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -18,11 +20,11 @@ public class MemberAccess {
   private Long id;
 
   @Column(name = "gym_branch_id")
-  private String gymBranchId;
+  private Integer gymBranchId;
 
   @Column(name = "member_id")
   @JsonProperty("user_id")
-  private String memberId;
+  private UUID memberId;
 
   @Column(name = "direction")
   @JsonProperty("direction")
@@ -30,9 +32,9 @@ public class MemberAccess {
 
   @Column(name = "created_at")
   @JsonProperty("created_at")
-  private LocalDateTime createdAt;
+  private OffsetDateTime createdAt;
 
   @Column(name = "received_at")
   @JsonProperty("received_at")
-  private LocalDateTime receivedAt;
+  private OffsetDateTime receivedAt;
 }

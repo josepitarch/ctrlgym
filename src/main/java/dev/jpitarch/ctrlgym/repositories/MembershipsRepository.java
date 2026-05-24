@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.repositories;
 
+import dev.jpitarch.ctrlgym.domain.Cohort;
 import dev.jpitarch.ctrlgym.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.domain.GymBranchId;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +18,7 @@ public class MembershipsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public List<String[]> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public List<Map<YearMonth, Integer>> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       SELECT
           month::date,
@@ -43,21 +45,36 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var activeMemberships = row.getInt("active_memberships");
-      return new String[]{ month.toString(), String.valueOf(activeMemberships) };
+      return Map.of(YearMonth.from(month), activeMemberships);
     });
 
   }
 
-  public List<String[]> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public List<Map<YearMonth, Integer>> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
+      WITH months AS (
+          SELECT generate_series(
+              DATE_TRUNC('month', CAST(:from AS date)),
+              DATE_TRUNC('month', CAST(:to AS date)),
+              INTERVAL '1 month'
+          )::date AS month
+      ),
+      memberships_by_month AS (
+          SELECT
+              DATE_TRUNC('month', start_date)::date AS month,
+              COUNT(*) AS new_memberships
+          FROM memberships
+          WHERE gym_id = :gymId
+            AND start_date >= :from
+            AND start_date <= :to
+          GROUP BY 1
+      )
       SELECT
-          DATE_TRUNC('month', start_date)::date AS month,
-          COUNT(*) AS new_memberships
-      FROM memberships
-      WHERE gym_id = :gymId
-      AND start_date >= :from AND start_date <= :to
-      GROUP BY 1
-      ORDER BY 1;
+          m.month,
+          COALESCE(mbm.new_memberships, 0) AS new_memberships
+      FROM months m
+      LEFT JOIN memberships_by_month mbm ON mbm.month = m.month
+      ORDER BY m.month;
       """;
 
     var params = Map.of(
@@ -69,13 +86,20 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var newMemberships = row.getInt("new_memberships");
-      return new String[]{ month.toString(), String.valueOf(newMemberships) };
+      return Map.of(YearMonth.from(month), newMemberships);
     });
   }
 
-  public List<String[]> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public List<Map<YearMonth, Integer>> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      SELECT
+            WITH months AS (
+          SELECT generate_series(
+              DATE_TRUNC('month', CAST(:from AS date)),
+              DATE_TRUNC('month', CAST(:to AS date)),
+              INTERVAL '1 month'
+          )::date AS month
+      ),
+      memberships_by_month AS (SELECT
           DATE_TRUNC('month', end_date)::date AS month,
           COUNT(*) AS cancellations
       FROM memberships
@@ -83,7 +107,13 @@ public class MembershipsRepository {
       AND start_date >= :from AND start_date <= :to
       AND end_date IS NOT NULL AND end_date <= CURRENT_DATE
       GROUP BY 1
-      ORDER BY 1;
+      ORDER BY 1
+      )
+      SELECT m.month, COALESCE(mbm.cancellations, 0) AS cancellations
+      FROM months m
+      LEFT JOIN memberships_by_month mbm ON mbm.month = m.month
+      ORDER BY m.month;
+      
       """;
 
     var params = Map.of(
@@ -95,7 +125,7 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var cancellations = row.getInt("cancellations");
-      return new String[]{ month.toString(), String.valueOf(cancellations) };
+      return Map.of(YearMonth.from(month), cancellations);
     });
 
   }
@@ -117,7 +147,7 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> row.getInt("avg_days")).stream().findFirst().orElse(0);
   }
 
-  public List<String[]> getCohorts(GymBranchId gymBranchId) {
+  public List<Cohort> getCohorts(GymBranchId gymBranchId) {
     var sql = """
       WITH cohorts AS (
           SELECT
@@ -169,18 +199,18 @@ public class MembershipsRepository {
       "gymId", gymBranchId.gymId(),
       "currentMonth", LocalDate.now().getMonthValue()
     );
-    return jdbc.query(sql, params, (row, _) -> {
+   return jdbc.query(sql, params, (row, _) -> {
       var cohortMonth = row.getDate("cohort_month").toLocalDate();
       var monthOffset = row.getInt("month_offset");
       var activeMembers = row.getInt("active_members");
       var cohortSize = row.getInt("cohort_size");
       var retentionRate = row.getDouble("retention_rate");
-      return new String[]{ cohortMonth.toString(), String.valueOf(monthOffset), String.valueOf(activeMembers), String.valueOf(cohortSize), String.valueOf(retentionRate) };
+      return new Cohort(YearMonth.from(cohortMonth), monthOffset, activeMembers, cohortSize, retentionRate);
     });
 
   }
 
-  public List<String[]> getCancellationReasons(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       SELECT cancellation_reason_id, COUNT(1) as count
       FROM memberships
@@ -196,7 +226,10 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var reasonId = row.getInt("cancellation_reason_id");
       var count = row.getInt("count");
-      return new String[]{ String.valueOf(reasonId), String.valueOf(count) };
+      return Map.of(
+        "id", reasonId,
+        "count", count
+      );
     });
   }
 

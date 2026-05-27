@@ -1,0 +1,3570 @@
+openapi: 3.0.3
+servers:
+  - url: https://api.verifacti.com/
+info:
+  version: 1.0.0
+  title: Documentación de la API Verifactu
+  contact:
+    email: info@verifacti.com
+    name: Contacto
+    url: https://www.verifacti.com
+  description: >
+
+    &nbsp;
+
+
+    Aquí encontrarás la documentación técnica de nuestra API para enviar
+    facturas a la Agencia Estatal de Administración Tributaria (AEAT) de acuerdo
+
+    al sistema Verifactu.
+
+
+    &nbsp;
+
+
+    También disponemos de una API para cumplir con los requisitos de TicketBai,
+    el análogo a Verifactu en el País Vasco. Se trata de una API
+
+    separada pero con una estructura completamente análoga. La documentación se
+    puede encontrar en <a href="https://www.verifacti.com/tb-docs">aquí</a>.
+
+
+    &nbsp;
+
+
+    Asimismo, hemos creado una tercera API para poder gestionar los diferentes
+    NIFs de manera programática. Para usuarios que solo deben gestionar
+
+    unos pocos NIFs, esto se puede hacer de manera cómoda a través de nuestra
+    interfaz. Sin embargo, en ocasiones esto no es práctico y hace falta tener 
+
+    una manera programática de dar de alta y de baja diferentes NIFs. Para ello,
+    se puede utilizar nuestra API de gestión de NIFs, cuya documentación se
+
+    puede consultar <a href="https://www.verifacti.com/nifs-docs">aquí</a>. Esta
+    API está incluida en el precio y se puede usar por cualquier usuario
+
+    con una suscripción activa.
+
+
+    &nbsp;
+
+
+    <div style="display: flex; justify-content: start;">
+
+
+    <a
+      href="https://storage.googleapis.com/verifacti_non_sensitive/postman_verifactu.json"
+      download="docs.json"
+      style="
+      display: inline-block;
+      padding: 6px 12px;
+      background-color: #FF6C37;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">
+      Colección de Postman
+    </a>
+
+
+    <a
+      href="https://storage.googleapis.com/verifacti_non_sensitive/ejecutables.zip"
+      download="ejecutables.zip"
+      style="
+      margin-left: 10px;
+      color: #333333;
+      display: inline-block;
+      padding: 6px 12px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">
+      Ejecutables Windows
+    </a>
+
+
+    </div>
+
+
+    # Comparativa entre la API de la AEAT y la API de Verifacti
+
+
+    La API que la Agencia Estatal de Administración Tributaria (AEAT) ha puesto
+    a disposición de los contribuyentes para enviar las facturas
+
+    requiere seguir los siguientes pasos:
+
+
+    &nbsp;
+
+
+    <ol style="list-style: decimal;">
+      <li>Crear una huella digital usando los datos de la factura y el NIF del contribuyente.</li>
+      <li>Componer un fichero XML con los datos de la factura, la huella y la huella del envío anterior.</li>
+      <li>Enviar dicho fichero XML a la AEAT mediante una llamada autenticada usando un certificado electrónico cualificado reconocido.</li>
+      <li>Gestionar los envíos de acuerdo al protocolo establecido por la AEAT. Es decir, no más de una llamada al minuto, salvo que se acumulen más de 1000 envíos.</li>
+      <li>En paralelo, se ha de generar un código QR que contiene la url de verificación de la factura para incluir en la factura que se entrega al destinatario.</li>
+      <li>Guardar los datos de cada factura.</li>
+    </ol>
+
+
+    &nbsp;
+
+
+    Usando nuestra API de Verifactu, todos estos pasos se simplifican en un solo
+    paso:
+
+
+    &nbsp;
+
+
+    <ol style="list-style: decimal;">
+      <li>Hacer una llamada (sin certificado) con los datos de la factura en formato JSON.</li>
+    </ol>
+
+
+    &nbsp;
+
+
+    Nuestra API te responde de inmediato con el código QR para que lo añadas
+    directamente en la factura. Nosotros nos encargamos de
+
+    la huella, los ficheros XML, el código QR, la llamada autenticada, las colas
+    y los tiempos de espera, y el almacenaje de las facturas.
+
+
+    &nbsp;
+
+
+    En cualquier momento puedes comprobar el estado de todos tus envíos y
+    facturas via API. Además, dispondrás de un sencillo dashboard
+
+    para hacerlo de forma más cómoda. Esto puede resultar especialmente útil en
+    el momento de hacer las primeras pruebas e integración. Ahí
+
+    también encontrarás ejemplos de las distintas llamadas e incluso una
+    terminal para que puedas hacer pruebas sin necesidad de usar
+
+    POSTMAN, por ejemplo.
+
+
+
+    # Funcionamiento básico
+
+
+    La AEAT dispone de un entorno de pruebas, y desde julio de 2025 está
+    disponible el entorno de producción.
+
+    La API de Verifacti dispone, de la misma forma, de un entorno de pruebas y
+    de un entorno de producción.
+
+    Por lo tanto, en ambos casos, la API de Verifacti se comunica con la AEAT en
+    el entorno que corresponda para realizar los envíos.
+
+
+    &nbsp;
+
+
+    Al registrar un NIF en nuestro dashboard, se generará una API key (de test o
+    de producción), que deberás incluir en el header `Authorization` para
+
+    cualquier llamada. De esa forma, el NIF del emisor de la factura y el
+    entorno vienen determinados por la API key que se esté usando.
+
+
+    &nbsp;    
+
+
+    Para crear una factura, se hace una llamada al endpoint POST `/create` con
+    los datos de la factura en el cuerpo de la llamada, en formato JSON.
+
+    La respuesta a dicha llamada consiste en el código QR, la huella y un
+    identificador único para poder consultar el estado del registro de la
+    factura.
+
+
+    &nbsp;
+
+
+    Debido a que la AEAT no permite enviar facturas en tiempo real, el registro
+    de facturación se encola y se procesa en un tiempo de aproximadamente un
+    minuto.
+
+    El procesado de la factura consiste en enviar el XML generado a la AEAT y,
+    si no hay errores, se actualiza el estado de la factura en nuestro sistema.
+
+    En cualquier momento, se puede consultar tanto el estado del registro de
+    facturación como el estado de la factura en nuestro sistema.
+
+
+    Los registros de modificación y anulación de facturas siguen el mismo
+    funcionamiento de encolamiento.
+
+
+    &nbsp;
+
+
+    Al crear tu cuenta gratuita, se te proporcionará un NIF de prueba y ejemplos
+    para poder realizar las diferentes llamadas a la API.
+
+
+    # Idempotencia
+
+
+    Los endpoints de mutación (`/create`, `/create_bulk`, `/modify` y `/cancel`)
+    aceptan una cabecera
+
+    opcional `Idempotency-Key` para hacer reintentos seguros tras fallos de red.
+    La clave es una cadena
+
+    ASCII imprimible de 1 a 255 caracteres y se recuerda 24 horas por NIF. Los
+    detalles completos y códigos de error (`400`, `409`, `422`) se documentan en
+
+    cada endpoint afectado.
+paths:
+  /verifactu/health:
+    get:
+      summary: Estado API
+      description: >
+        Este endpoint devuelve el estado de la API key. Sirve principalmente
+        para comprobar que la API está activa y para saber a qué NIF y entorno
+        hace referencia.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X GET 'https://api.verifacti.com/verifactu/health' \
+              -H 'Authorization: Bearer <API_KEY>'
+      responses:
+        '200':
+          description: Estado de la API
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    description: Estado de la API.
+                    type: string
+                    example: OK
+                  nif:
+                    description: NIF del contribuyente.
+                    type: string
+                    example: B75777847
+                  entorno:
+                    description: Entorno de la API key.
+                    type: string
+                    example: test
+  /verifactu/status:
+    post:
+      summary: Estado factura
+      description: >
+        Este endpoint permite consultar el estado de una factura en el sistema
+        de la AEAT.
+
+
+        &nbsp;
+
+
+        Las facturas no registradas en la AEAT no aparecerán aquí.
+
+        Para comprobar el estado de registros de facturación no procesados aún o
+        rechazados por la AEAT, se debe consultar el endpoint GET `/status`.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/status' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "234634",
+                   "fecha_expedicion": "25-05-2026"
+                 }'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serie
+                - numero
+                - fecha_expedicion
+              properties:
+                serie:
+                  type: string
+                  example: A
+                  description: Serie de la factura.
+                numero:
+                  type: string
+                  example: '234634'
+                  description: Número de la factura.
+                fecha_expedicion:
+                  type: string
+                  pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                  example: 25-05-2026
+                  description: >-
+                    Fecha de emisión de la factura. No puede ser una fecha
+                    posterior a la actual.
+                fecha_operacion:
+                  type: string
+                  pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                  description: >
+                    Fecha de operación de la factura. Es obligatorio incluir la
+                    fecha de la operación si ésta se incluyó en el registro de 
+
+                    facturación original y es diferente de la fecha de
+                    expedición.
+      responses:
+        '200':
+          description: Estado factura
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/estadoFactura'
+        '500':
+          description: Error de servidor
+    get:
+      summary: Estado registro
+      description: >
+        Este endpoint permite conocer el estado actual de un registro de
+        facturación efectuado anteriormente. Inmediatamente después de enviar un
+        registro, éste se
+
+        encuentra siempre en estado `Pendiente`, se encola y se procesará
+        típicamente en menos de un minuto. Esto es debido a que, en general, la
+        AEAT no permite enviar registros
+
+        de facturación en tiempo real si no que obliga a esperar un tiempo entre
+        los diferentes envíos.
+
+
+        &nbsp;
+
+
+        Es importante entender que, aunque no es lo normal, pueden existir
+        múltiples registros de facturación para una misma factura. Por ejemplo,
+        una factura creada
+
+        y anulada posteriormente tendría dos registros de facturación diferentes
+        (uno para la creación y otro para la anulación). Este endpoint devuelve
+        el estado del
+
+        registro de facturación, que no corresponde necesariamente con el estado
+        de la factura.
+
+
+        &nbsp;
+
+
+        En el entorno de test, los datos relativos a los registros de
+        facturación se guardarán un máximo de 90 días.
+
+        Sin embargo, los endpoints de consulta de facturas tendrán los datos
+        históricos ya que consultan a la AEAT.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: >-
+            curl -X GET
+            'https://api.verifacti.com/verifactu/status?uuid=b018ced3-b362-4494-8776-9eefff1c160c'
+            \
+              -H 'Authorization: Bearer <API_KEY>'
+      parameters:
+        - in: query
+          name: uuid
+          required: true
+          schema:
+            type: string
+          example: b018ced3-b362-4494-8776-9eefff1c160c
+          description: >-
+            Identificador único del registro recibido como respuesta en el
+            momento del envío.
+      responses:
+        '200':
+          description: Estado registro
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nif:
+                    description: NIF del emisor de la factura.
+                    type: string
+                  serie:
+                    description: Serie de la factura.
+                    type: string
+                  numero:
+                    description: Número de la factura.
+                    type: string
+                  fecha_expedicion:
+                    description: Fecha de emisión de la factura.
+                    type: string
+                  operacion:
+                    description: >
+                      Hay tres tipos de operaciones de registro habituales:
+
+                      <ol style="list-style: disc;">
+                        <li>Alta: envío normal de una factura. Endpoint: <code>/create</code>.</li>
+                        <li>Subsanacion: modificación normal de una factura. Endpoint: <code>/modify</code>.</li>
+                        <li>Anulacion: anulación normal de una factura. Endpoint: <code>/cancel</code>.</li>
+                      </ol>
+
+
+                      Existen otras 5 operaciones especiales:
+
+                      <ol style="list-style: disc;">
+                        <li>Alta (rechazo previo): modificación tras rechazo previo. Endpoint: <code>/modify</code> con <code>rechazo_previo=X</code>.</li>
+                        <li>Alta (rechazo previo de subsanacion): modificación tras rechazo de subsanación. Endpoint: <code>/modify</code> con <code>rechazo_previo=S</code>.</li>
+                        <li>Anulación (rechazo previo): anulación tras rechazo previo. Endpoint: <code>/cancel</code> con <code>rechazo_previo=S</code> y <code>sin_registro_previo=N</code>.</li>
+                        <li>Anulación (sin registro): anulación sin registro en la AEAT. Endpoint: <code>/cancel</code> con <code>rechazo_previo=N</code> y <code>sin_registro_previo=S</code>.</li>
+                        <li>Anulación (rechazo previo sin registro): envío tras rechazo sin registro. Endpoint: <code>/cancel</code> con <code>rechazo_previo=S</code> y <code>sin_registro_previo=S</code>.</li>
+                      </ol>
+
+
+                      Para más información, consultar la <a
+                      href='https://www.agenciatributaria.es/AEAT.desarrolladores/Desarrolladores/_menu_/Documentacion/Sistemas_Informaticos_de_Facturacion_y_Sistemas_VERI_FACTU/Sistemas_Informaticos_de_Facturacion_y_Sistemas_VERI_FACTU.html'
+                      target='_blank'>documentación AEAT</a>.
+                    type: string
+                  estado:
+                    description: |
+                      Estado del registro de facturación:
+                      <ol style="list-style: disc;">
+                        <li>Pendiente: Registro encolado y no procesado aún.</li>
+                        <li>Correcto: Registro procesado correctamente por la AEAT.</li>
+                        <li>Aceptado con errores: Registro aceptado con errores por la AEAT. Se requiere enviar un registro de subsanación o emitir una rectificativa.</li>
+                        <li>Incorrecto: Registro considerado incorrecto por la AEAT. Se requiere enviar un registro de subsanación con <code>rechazo_previo=S</code> o <code>rechazo_previo=X</code> o emitir una rectificativa.</li>
+                        <li>Duplicado: Registro no aceptado por la AEAT por existir un registro con el mismo (serie, numero, fecha_expedicion).</li>
+                        <li>Anulado: Registro de anulación procesado correctamente por la AEAT.</li>
+                        <li>Factura inexistente: Registro de anulación no aceptado por la AEAT por no existir la factura.</li>
+                        <li>No registrado: Registro rechazado por la AEAT.</li>
+                        <li>Error servidor AEAT: Error en el servidor de la AEAT. Se intentará reenviar el registro de facturación de nuevo.</li>
+                      </ol>
+                    type: string
+                  url:
+                    description: URL de verificación del código QR.
+                    type: string
+                  qr:
+                    description: Código QR en base 64 que contiene la url.
+                    type: string
+                  codigo_error:
+                    description: >-
+                      Código de error tal y como aparece en el sistema de la
+                      AEAT.
+                    type: string
+                  mensaje_error:
+                    description: >-
+                      Descripcion del error tal y como aparece en el sistema de
+                      la AEAT.
+                    type: string
+                  estado_registro_duplicado:
+                    description: >-
+                      El estado del registro en caso de que el estado del
+                      registro sea `Duplicado`.
+                    type: string
+                example:
+                  nif: A15022510
+                  serie: A
+                  numero: '34547'
+                  fecha_expedicion: 25-05-2026
+                  operacion: Alta
+                  url: >-
+                    https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=A234634&fecha=25-05-2026&importe=242
+                  qr: jBBWRw0KGgoABAANSUhEAH0CAIAAABE...
+                  estado: Correcto
+        '404':
+          description: Registro no encontrado
+        '500':
+          description: Error de servidor
+  /verifactu/create:
+    post:
+      summary: Crear factura nueva
+      description: >
+        Mediante este endpoint se crea un registro de facturación nuevo. Existen
+        tres estados de respuesta y es importante entender qué ocurre en cada
+        caso:
+
+        <br><br>
+
+        <ol style="list-style: disc;">
+          <li>
+            <strong>200</strong>: Nuestra API acepta la petición y la encola para ser procesada. En este caso, la respuesta contiene el código QR en base 64 y la URL de verificación
+            que contiene el código QR. Además, se devuelve el estado del registro, que siempre será <code style="color: black;">Pendiente</code>, lo que indica que ha sido encolado
+            pero aún no procesado.
+            <br>
+            Es importante entender que este estado únicamente indica que el registro de facturación se generará y se enviará a la AEAT, lo cual no significa que necesariamente
+            la AEAT lo acepte. Nuestra API realiza numerosas validaciones para minimizar el riesgo de que esto ocurra pero puede ocurrir.
+            <br>
+            El estado del envío se puede consultar con el endpoint GET <code style="color: black;">/status</code> usando el <code style="color: black;">uuid</code> devuelto. También disponemos de webhooks para recibir notificaciones acerca
+            de los estados de los registros de facturación. La documentación de estos webhooks se puede
+            consultar <a href='https://www.verifacti.com/nifs-docs#tag/Webhooks' target='_blank'>aquí</a>.
+            <br><br>
+          </li>
+          <li>
+            <strong>400</strong>: Nuestra API rechaza la llamada por algún error en el JSON enviado. El registro de facturación no se genera y no se producirá ninguna comunicación con la AEAT.
+            <br>
+            Realizamos numerosas comprobaciones para minimizar el riesgo de que la AEAT rechace el envío. En la respuesta se indicará un mensaje con la descripción del error.
+            Las validaciones van desde comprobaciones simples como que no falte ningún campo requerido hasta más complejas como que el NIF del destinatario esté censado en la AEAT.
+            <br><br>
+          </li>
+          <li>
+            <strong>500</strong>: Error del servidor. Este es un error genérico que no debería ocurrir. En caso de que ocurra, el registro de facturación no se genera y,
+            por lo tanto, no se produce ningún envío a la AEAT. El cliente deberá reintentar la llamada más tarde.  
+          </li>
+        </ol>
+
+
+        &nbsp;
+
+
+        La documentación completa del endpoint correspondiente para la API de la
+        AEAT se puede consultar
+
+        <a
+        href='https://www.agenciatributaria.es/static_files/AEAT_Desarrolladores/EEDD/IVA/VERI-FACTU/Validaciones_Errores_Veri-Factu.pdf'
+        target='_blank'>aquí</a>.
+
+
+        &nbsp;
+
+
+        Este endpoint admite además una cabecera opcional `Idempotency-Key`. Si
+        se incluye, los reintentos de la
+
+        misma petición lógica con la misma clave
+
+        replican la respuesta original (incluyendo la cabecera de respuesta
+        `Idempotent-Replayed: true` y el
+
+        eco de `Idempotency-Key`). Las claves se vinculan al NIF y se recuerdan
+        durante 24 horas.
+
+        Reusar la misma clave con un cuerpo diferente devuelve 422; un reintento
+        concurrente mientras el
+
+        primero sigue en curso devuelve 409.
+      x-codeSamples:
+        - lang: cURL
+          label: Factura normal
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Factura normal",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     }
+                   ],
+                   "importe_total": "242"
+                 }'
+        - lang: cURL
+          label: Factura simplificada
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F2",
+                   "descripcion": "Factura simplificada",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     }
+                   ],
+                   "importe_total": "242"
+                 }'
+        - lang: cURL
+          label: Múltiples IVAs
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Factura con múltiples IVAs",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     },
+                     {
+                       "base_imponible": "100",
+                       "tipo_impositivo": "10",
+                       "cuota_repercutida": "10"
+                     }
+                   ],
+                   "importe_total": "352"
+                 }'
+        - lang: cURL
+          label: B2B intracomunitaria - Venta de bienes
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                  "serie": "A",
+                  "numero": "1",
+                  "fecha_expedicion": "25-05-2026",
+                  "tipo_factura": "F1",
+                  "descripcion": "B2B intracomunitaria - Venta de bienes",
+                  "id_otro": {
+                    "codigo_pais": "BE",
+                    "id_type": "02",
+                    "id": "BE0404621642"
+                  },
+                  "nombre": "Nombre cliente",
+                  "lineas": [
+                    {
+                      "base_imponible": "200",
+                      "operacion_exenta": "E5"
+                    }
+                  ],
+                  "importe_total": "200"
+                }'
+        - lang: cURL
+          label: B2B intracomunitaria - Prestacion de servicios
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                  "serie": "A",
+                  "numero": "1",
+                  "fecha_expedicion": "25-05-2026",
+                  "tipo_factura": "F1",
+                  "descripcion": "B2B intracomunitaria - Prestacion de servicios",
+                  "id_otro": {
+                    "codigo_pais": "BE",
+                    "id_type": "02",
+                    "id": "BE0404621642"
+                  },
+                  "nombre": "Nombre cliente",
+                  "lineas": [
+                    {
+                      "base_imponible": "200",
+                      "calificacion_operacion": "N2"
+                    }
+                  ],
+                  "importe_total": "200"
+                }'
+        - lang: cURL
+          label: B2C intracomunitaria - Debajo umbral
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                  "serie": "A",
+                  "numero": "1",
+                  "fecha_expedicion": "25-05-2026",
+                  "tipo_factura": "F1",
+                  "descripcion": "B2C intracomunitaria - Debajo umbral"
+                  "id_otro": {
+                    "codigo_pais": "DE",
+                    "id_type": "03",
+                    "id": "F8624KW3J6"
+                  },
+                  "nombre": "Nombre cliente",
+                  "lineas": [
+                    {
+                      "base_imponible": "200",
+                      "tipo_impositivo": "21",
+                      "cuota_repercutida": "42"
+                    }
+                  ],
+                  "importe_total": "242"
+                }'
+        - lang: cURL
+          label: B2C intracomunitaria - Encima umbral
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                  "serie": "A",
+                  "numero": "1",
+                  "fecha_expedicion": "25-05-2026",
+                  "tipo_factura": "F1",
+                  "descripcion": "B2C intracomunitaria - Encima umbral"
+                  "id_otro": {
+                    "codigo_pais": "DE",
+                    "id_type": "03",
+                    "id": "F8624KW3J6"
+                  },
+                  "nombre": "Nombre cliente",
+                  "lineas": [
+                    {
+                      "base_imponible": "200",
+                      "clave_regimen": "17",
+                      "calificacion_operacion": "N2"
+                    }
+                  ],
+                  "importe_total": "200"
+                }'
+        - lang: cURL
+          label: Extracomunitaria - Exportacion de bienes
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                  "serie": "A",
+                  "numero": "1",
+                  "fecha_expedicion": "25-05-2026",
+                  "tipo_factura": "F1",
+                  "descripcion": "Extracomunitaria - Exportacion de bienes"
+                  "id_otro": {
+                    "codigo_pais": "US",
+                    "id_type": "03",
+                    "id": "M76543210"
+                  },
+                  "nombre": "Nombre cliente",
+                  "lineas": [
+                    {
+                      "base_imponible": "200",
+                      "clave_regimen": "02",
+                      "operacion_exenta": "E2"
+                    }
+                  ],
+                  "importe_total": "200"
+                }'
+        - lang: cURL
+          label: Extracomunitaria - Prestacion de servicios
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                  "serie": "A",
+                  "numero": "1",
+                  "fecha_expedicion": "25-05-2026",
+                  "tipo_factura": "F1",
+                  "descripcion": "Extracomunitaria - Prestacion de servicios"
+                  "id_otro": {
+                    "codigo_pais": "US",
+                    "id_type": "03",
+                    "id": "M76543210"
+                  },
+                  "nombre": "Nombre cliente",
+                  "lineas": [
+                    {
+                      "base_imponible": "200",
+                      "calificacion_operacion": "N2"
+                    }
+                  ],
+                  "importe_total": "200"
+                }'
+        - lang: cURL
+          label: Exenta de IVA
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Operación exenta",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "operacion_exenta": "E1"
+                     }
+                   ],
+                   "importe_total": "200"
+                 }'
+        - lang: cURL
+          label: Operación no sujeta
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "Ejemplos",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Operación no sujeta",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "calificacion_operacion": "N1"
+                     }
+                   ],
+                   "importe_total": "200"
+                 }'
+        - lang: cURL
+          label: Factura con IGIC
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Operacion con IGIC",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "impuesto": "03",
+                       "base_imponible": "200",
+                       "tipo_impositivo": "7",
+                       "cuota_repercutida": "14"
+                     }
+                   ],
+                   "importe_total": "214"
+                 }'
+        - lang: cURL
+          label: Factura con IPSI
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Operacion con IPSI",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "impuesto": "02",
+                       "base_imponible": "200",
+                       "tipo_impositivo": "4",
+                       "cuota_repercutida": "8"
+                     }
+                   ],
+                   "importe_total": "208"
+                 }'
+        - lang: cURL
+          label: Factura de abono
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Factura de abono",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "-200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "-42"
+                     }
+                   ],
+                   "importe_total": "-242"
+                 }'
+        - lang: cURL
+          label: Inversión del sujeto pasivo
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "Ejemplos",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Inversión del sujeto pasivo",
+                   "nif": "B12345678",
+                   "nombre": "Empresa Destinataria SL",
+                   "lineas": [
+                     {
+                       "base_imponible": "1000",
+                       "tipo_impositivo": "0",
+                       "cuota_repercutida": "0",
+                       "calificacion_operacion": "S2"
+                     }
+                   ],
+                   "importe_total": "1000"
+                 }'
+        - lang: cURL
+          label: Factura de canje
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F3",
+                   "descripcion": "Descripcion de la operacion",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     }
+                   ],
+                   "facturas_sustituidas": [
+                     {
+                       "serie": "SIMPLE",
+                       "numero": "1",
+                       "fecha_expedicion": "19-06-2025"
+                     }
+                   ],
+                   "importe_total": "242"
+                 }'
+        - lang: cURL
+          label: Rectificativa por sustitución
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "R",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "fecha_operacion": "01-04-2025",
+                   "tipo_factura": "R1",
+                   "tipo_rectificativa": "S",
+                   "descripcion": "Rectificacion por sustitucion en un paso",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "800",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "168"
+                     }
+                   ],
+                   "importe_total": "968",
+                   "importe_rectificativa": {
+                     "base_rectificada": "1000",
+                     "cuota_rectificada": "210"
+                   },
+                   "facturas_rectificadas": [
+                     {
+                       "serie": "A",
+                       "numero": "1",
+                       "fecha_expedicion": "07-04-2025"
+                     }
+                   ]
+                 }'
+        - lang: cURL
+          label: Rectificativa por diferencias
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "R",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "R1",
+                   "tipo_rectificativa": "I",
+                   "descripcion": "Descripcion de la operacion: rectificacion por diferencias",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "-500",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "-105"
+                     }
+                   ],
+                   "importe_total": "-605",
+                   "facturas_rectificadas": [
+                     {
+                       "serie": "A",
+                       "numero": "1",
+                       "fecha_expedicion": "07-04-2025"
+                     }
+                   ]
+                 }'
+        - lang: cURL
+          label: Recargo de equivalencia
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "RECARGO",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Descripcion de la operacion",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42",
+                       "clave_regimen": "18",
+                       "tipo_recargo_equivalencia": "5.2",
+                       "cuota_recargo_equivalencia": "10.4"
+                     }
+                   ],
+                   "importe_total": "252.4"
+                 }'
+        - lang: cURL
+          label: Emitida por terceros
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Factura emitida por terceros",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     }
+                   ],
+                   "especial": {
+                     "emitida_por_tercero_o_destinatario": "T",
+                     "nombre_tercero": "Nombre tercero",
+                     "nif_tercero": "B86561412"
+                   },
+                   "importe_total": "242"
+                 }'
+        - lang: cURL
+          label: Emitida por destinatario
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Factura emitida por destinatario",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     }
+                   ],
+                   "especial": {
+                     "emitida_por_tercero_o_destinatario": "D"
+                   },
+                   "importe_total": "242"
+                 }'
+        - lang: cURL
+          label: Régimen de bienes usados
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "Ejemplos",
+                   "numero": "1",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Factura en regimen especial de bienes usados (REBU)",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "826.45",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "173.55",
+                       "clave_regimen": "03"
+                     }
+                   ],
+                   "importe_total": "3000"
+                 }'
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          description: >-
+            Clave única opcional para garantizar que reintentos de la misma
+            petición no creen duplicados. Cadena ASCII imprimible de 1 a 255
+            caracteres. Se recuerda durante 24 horas por NIF.
+          schema:
+            type: string
+            pattern: ^[\x20-\x7E]{1,255}$
+            minLength: 1
+            maxLength: 255
+            example: 8e1b9c2a-3f4d-4a6b-9c2e-1d2f3e4a5b6c
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serie
+                - numero
+                - fecha_expedicion
+                - tipo_factura
+                - descripcion
+                - lineas
+                - importe_total
+              properties:
+                serie:
+                  type: string
+                  example: A
+                  description: >
+                    Serie de la factura. Si no se quiere incluir una serie, se
+                    puede enviar una string vacía. No debe comenzar por un
+                    espacio en blanco. La concatenación de los campos serie y
+                    número no puede tener más de 60 caracteres.
+                numero:
+                  type: string
+                  example: '234634'
+                  description: >-
+                    Número de la factura. La concatenación de los campos serie y
+                    número no puede tener más de 60 caracteres.
+                fecha_expedicion:
+                  type: string
+                  example: 25-05-2026
+                  pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                  description: >
+                    Fecha de emisión de la factura que <span style="color:
+                    red">debe ser la fecha actual</span>. En caso de querer
+                    emitir una factura por una operación que ocurrió en una
+                    fecha pasada se debe usar el campo `fecha_operacion`.
+                fecha_operacion:
+                  type: string
+                  pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                  description: >-
+                    Fecha de la operación. Puede ser una fecha anterior a la
+                    actual.
+                tipo_factura:
+                  type: string
+                  example: F1
+                  enum:
+                    - F1
+                    - F2
+                    - R1
+                    - R2
+                    - R3
+                    - R4
+                    - R5
+                    - F3
+                  description: |
+                    Los diferentes tipos de factura son:
+                    <ol style="list-style: disc;">
+                      <li>F1: Factura (Art. 6, 7.2 Y 7.3 del RD 1619/2012)</li>
+                      <li>F2: Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D RD 1619/2012)</li>
+                      <li>R1: Factura rectificativa (Art 80.1 y 80.2 y error fundado en derecho)</li>
+                      <li>R2: Factura rectificativa (Art. 80.3)</li>
+                      <li>R3: Factura rectificativa (Art. 80.4)</li>
+                      <li>R4: Factura rectificativa (Resto)</li>
+                      <li>R5: Factura rectificativa en facturas simplificadas (Art. 80.3)</li>
+                      <li>F3: Factura emitida en sustitución de facturas simplificadas facturadas y declaradas</li>
+                    </ol>
+                descripcion:
+                  type: string
+                  example: Descripcion de la operacion
+                  minLength: 1
+                  maxLength: 500
+                  description: Descripcion de la operacion.
+                lineas:
+                  type: array
+                  minItems: 1
+                  maxItems: 12
+                  description: >
+                    Líneas de la factura. Admite hasta un máximo de 12 líneas,
+                    restricción impuesta por la API de la Agencia Tributaria.
+
+                    Cada línea puede tener un tipo de IVA diferente, por lo
+                    tanto, se espera que se agrupen los diferentes elementos de
+
+                    una factura con el mismo tipo de IVA en una sola línea. De
+                    lo contrario, sería frecuente exceder el límite de 12
+                    líneas.
+                  items:
+                    $ref: '#/components/schemas/lineas'
+                importe_total:
+                  type: string
+                  pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                  description: >
+                    Importe total de la factura. Se validará que sea igual a la
+                    suma de (`base_imponible` + `cuota_repercutida` + 
+
+                    `cuota_recargo_equivalencia`) de todas las líneas
+                    admitiéndose un margen de error de +/- 10,00€. Esta
+                    validación no
+
+                    se aplicará cuando `clave_regimen` sea 03, 05, 06, 08 o 09.
+                  example: '242.00'
+                nif:
+                  type: string
+                  example: A15022510
+                  description: >
+                    NIF del cliente al que se le emite la factura. Necesario
+                    salvo para facturas simplificadas (F2, R5) o cuando se
+                    incluya el campo `id_otro`.
+
+                    En caso de incluir tanto `nif` como `id_otro`, se utilizará
+                    `nif`.
+
+
+                    &nbsp;
+
+
+                    Si se incluye el campo `nif` validamos por defecto que está
+                    censado en la AEAT ya que si no lo está, la AEAT rechazará
+                    el envío. En caso de
+
+                    no estar censado, se devolverá un error 400, lo que
+                    significa que el registro de facturación no se ha generado y
+                    no se producirá envío a la AEAT.
+
+
+                    &nbsp;
+
+
+                    Para personas jurídicas es suficiente con que el NIF esté
+                    censado. Para personas físicas, es necesario que el NIF esté
+                    censado y que el `nombre` sea
+
+                    suficientemente parecido al nombre que aparece en el censo.
+
+
+                    &nbsp;
+
+
+                    Disponemos de un endpoint para validar el NIF de personas
+                    fisicas y jurídicas en la API de gestión de NIFs. Se puede
+                    consultar la documentación
+
+                    <a
+                    href="https://www.verifacti.com/nifs-docs#tag/NIFs/paths/~1nifs~1validar/post"
+                    target="_blank">aquí</a>.
+                id_otro:
+                  type: object
+                  description: >
+                    Identificador de persona física o jurídica distinto del NIF.
+                    Necesario salvo para facturas simplificadas (F2, R5) o
+                    cuando
+
+                    se incluya el campo `nif`. En caso de incluir tanto `nif`
+                    como `id_otro`, se utilizará `nif`.
+
+
+                    &nbsp;
+
+
+                    Si es campo `codigo_pais` es igual a ES, se validará que el
+                    campo `id_type` sea 03 o 07. Si el campo `id_type` es 07, se
+
+                    validará que el campo `codigo_pais` sea ES.
+                  properties:
+                    codigo_pais:
+                      type: string
+                      description: >-
+                        Código del país de la persona física o jurídica en
+                        formato ISO 3166-1 alpha-2. Obligatorio salvo cuando
+                        `id_type` sea 02.
+                    id_type:
+                      type: string
+                      enum:
+                        - '02'
+                        - '03'
+                        - '04'
+                        - '05'
+                        - '06'
+                        - '07'
+                      description: >
+                        Tipo de identificador de la persona física o jurídica.
+                        Los diferentes tipos de identificador son:
+
+                        <ol style="list-style: disc;">
+                          <li>02: NIF-IVA</li>
+                          <li>03: Pasaporte</li>
+                          <li>04: IDEnPaisResidencia</li>
+                          <li>05: Certificado Residencia</li>
+                          <li>06: Otro documento Probatorio</li>
+                          <li>07: No Censado</li>
+                        </ol>
+                    id:
+                      type: string
+                      maxLength: 20
+                      description: >
+                        Identificador de la persona física o jurídica. Se
+                        permite hasta un máximo de 20 caracteres.
+
+
+                        &nbsp;
+
+
+                        Cuando el país es intracomunitario y el `id_type` es
+                        igual a `02`, es decir, corresponde a un número de IVA
+                        se validará por defecto
+
+                        que esté en el censo VIES. Si no lo está, la AEAT
+                        rechazará el envío.
+
+
+                        &nbsp;
+
+
+                        Disponemos de un endpoint para validación de IVAs en el
+                        censo VIES en la API de gestión de NIFs. Se
+
+                        puede consultar la documentación <a
+                        href="https://www.verifacti.com/nifs-docs#tag/NIFs/paths/~1nifs~1validar~1vies/post"
+                        target="_blank">aquí</a>.
+                nombre:
+                  type: string
+                  maxLength: 120
+                  example: Nombre cliente
+                  description: >-
+                    Nombre y apellidos o razón social del cliente al que se le
+                    emite la factura. Necesario salvo para facturas
+                    simplificadas (F2, R5).
+                validar_destinatario:
+                  type: boolean
+                  default: true
+                  description: >
+                    Si se incluye el campo `nif` validamos por defecto que está
+                    censado en la AEAT ya que si no lo está, la AEAT rechazará
+                    el envío. Esto requiere una
+
+                    llamada adicional por nuestro lado. Puedes desactivar esta
+                    validación en el entorno de test poniendo este campo a
+                    `false`.
+
+
+                    &nbsp;
+
+
+                    De manera similar, si se incluye el campo `id_otro` con
+                    `id_type` igual a `02` validamos por defecto que el IVA esté
+                    en el censo VIES. Se puede
+
+                    desactivar esta validación en el entorno de test poniendo
+                    este campo a `false`.
+                tipo_rectificativa:
+                  type: string
+                  enum:
+                    - S
+                    - I
+                  description: >
+                    Requerido y permitido únicamente para facturas
+                    rectificativas (R1, R2, R3, R4, R5). Indica si la
+                    rectificativa
+
+                    es por sustitución (`S`) o por diferencia (`I`).
+                importe_rectificativa:
+                  type: object
+                  description: >-
+                    Requerido y permitido únicamente si `tipo_rectificativa` es
+                    igual a `S`.
+                  properties:
+                    base_rectificada:
+                      type: string
+                      pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                      description: Base imponible de la rectificada.
+                    cuota_rectificada:
+                      type: string
+                      pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                      description: Cuota repercutida de la rectificada.
+                    cuota_recargo_rectificada:
+                      type: string
+                      pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                      description: Cuota recargo de equivalencia de la rectificada.
+                facturas_rectificadas:
+                  type: array
+                  description: >-
+                    Facturas rectificadas. Permitido (aunque no obligatorio)
+                    para facturas rectificativas (R1, R2, R3, R4, R5).
+                  items:
+                    type: object
+                    properties:
+                      serie:
+                        type: string
+                        description: Serie de la factura rectificada.
+                      numero:
+                        type: string
+                        description: Número de la factura rectificada.
+                      fecha_expedicion:
+                        type: string
+                        pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                        description: Fecha de expedición de la factura rectificada.
+                facturas_sustituidas:
+                  type: array
+                  description: >-
+                    Facturas sustituidas. Permitido (aunque no obligatorio) para
+                    facturas de tipo `F3`.
+                  items:
+                    type: object
+                    properties:
+                      serie:
+                        type: string
+                        description: Serie de la factura sustituida.
+                      numero:
+                        type: string
+                        description: Número de la factura sustituida.
+                      fecha_expedicion:
+                        type: string
+                        pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                        description: Fecha de expedición de la factura sustituida.
+                incidencia:
+                  type: string
+                  description: >-
+                    Indicador de incidencia. Debe indicarse el valor `S` en caso
+                    de que haya ocurrido alguna incidencia.
+                especial:
+                  type: object
+                  description: Se recogen datos adicionales para facturas.
+                  properties:
+                    cupon:
+                      type: string
+                      enum:
+                        - S
+                      description: >-
+                        Sólo se podrá rellenar con `S` si el tipo de factura es
+                        R1 o R5. No es obligatorio.
+                    factura_simplificada_art_7273:
+                      type: string
+                      enum:
+                        - S
+                      description: >-
+                        Sólo se podrá rellenar con `S` si el tipo de factura es
+                        F1, F3, R1, R2, R3 o R4.
+                    factura_sin_identif_destinatario_art_61d:
+                      type: string
+                      enum:
+                        - S
+                      description: >-
+                        Sólo se podrá rellenar con `S` si el tipo de factura es
+                        F2 o R5.
+                    emitida_por_tercero_o_destinatario:
+                      type: string
+                      enum:
+                        - T
+                        - D
+                      description: >-
+                        Indica si la factura ha sido emitida por un tercero o
+                        por el destinatario.
+                    nombre_tercero:
+                      type: string
+                      maxLength: 120
+                      description: >-
+                        Requerido y permitido únicamente si
+                        `emitida_por_tercero_o_destinatario` es igual a T.
+                    nif_tercero:
+                      type: string
+                      description: >-
+                        Permitido únicamente si
+                        `emitida_por_tercero_o_destinatario` es igual a `T`.
+                        Tiene prevalencia sobre `id_otro_tercero`.
+                    id_otro_tercero:
+                      type: object
+                      description: >-
+                        Permitido únicamente si
+                        `emitida_por_tercero_o_destinatario` es igual a `T`.
+                      properties:
+                        id_type:
+                          type: string
+                          enum:
+                            - '02'
+                            - '03'
+                            - '04'
+                            - '05'
+                            - '06'
+                          description: >
+                            Tipo de identificador de la persona física o
+                            jurídica. Los diferentes tipos de identificador son:
+
+                            <ol style="list-style: disc;">
+                              <li>02: NIF-IVA</li>
+                              <li>03: Pasaporte</li>
+                              <li>04: IDEnPaisResidencia</li>
+                              <li>05: Certificado Residencia</li>
+                              <li>06: Otro documento Probatorio</li>
+                            </ol>
+                        codigo_pais:
+                          type: string
+                          description: >-
+                            Código del país de la persona física o jurídica en
+                            formato ISO 3166-1 alpha-2. Obligatorio salvo cuando
+                            `id_type` sea 02.
+                        id:
+                          type: string
+                          description: >-
+                            Identificador de persona física o jurídica distinto
+                            del NIF.
+              example:
+                serie: A
+                numero: '234634'
+                fecha_expedicion: 25-05-2026
+                tipo_factura: F1
+                descripcion: Descripcion de la operacion
+                nif: A15022510
+                nombre: Nombre cliente
+                lineas:
+                  - base_imponible: '200'
+                    tipo_impositivo: '21'
+                    cuota_repercutida: '42'
+                importe_total: '242.00'
+            examples:
+              factura_normal:
+                summary: Factura normal
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura normal
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  importe_total: '242'
+              factura_simplificada:
+                summary: Factura simplificada
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F2
+                  descripcion: Factura simplificada
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  importe_total: '242'
+              mltiples_ivas:
+                summary: Múltiples IVAs
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura con múltiples IVAs
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                    - base_imponible: '100'
+                      tipo_impositivo: '10'
+                      cuota_repercutida: '10'
+                  importe_total: '352'
+              a_ciudadano_extranjero:
+                summary: A ciudadano extranjero
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura normal pasaporte
+                  id_otro:
+                    codigo_pais: DE
+                    id_type: '03'
+                    id: F8624KW3J6
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  importe_total: '242'
+              a_empresa_intracomunitaria:
+                summary: A empresa intracomunitaria
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura a empresa VIES
+                  id_otro:
+                    codigo_pais: BE
+                    id_type: '02'
+                    id: BE0404621642
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      operacion_exenta: E5
+                  importe_total: '200'
+              exenta_de_iva:
+                summary: Exenta de IVA
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Operación exenta
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      operacion_exenta: E1
+                  importe_total: '200'
+              operacin_no_sujeta:
+                summary: Operación no sujeta
+                value:
+                  serie: Ejemplos
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Operación no sujeta
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      calificacion_operacion: N1
+                  importe_total: '200'
+              factura_con_igic:
+                summary: Factura con IGIC
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Operacion con IGIC
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - impuesto: '03'
+                      base_imponible: '200'
+                      tipo_impositivo: '7'
+                      cuota_repercutida: '14'
+                  importe_total: '214'
+              factura_con_ipsi:
+                summary: Factura con IPSI
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Operacion con IPSI
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - impuesto: '02'
+                      base_imponible: '200'
+                      tipo_impositivo: '4'
+                      cuota_repercutida: '8'
+                  importe_total: '208'
+              factura_de_abono:
+                summary: Factura de abono
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura de abono
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '-200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '-42'
+                  importe_total: '-242'
+              factura_de_canje:
+                summary: Factura de canje
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F3
+                  descripcion: Descripcion de la operacion
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  facturas_sustituidas:
+                    - serie: SIMPLE
+                      numero: '1'
+                      fecha_expedicion: 19-06-2025
+                  importe_total: '242'
+              rectificativa_por_sustitucin:
+                summary: Rectificativa por sustitución
+                value:
+                  serie: R
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  fecha_operacion: 01-04-2025
+                  tipo_factura: R1
+                  tipo_rectificativa: S
+                  descripcion: Rectificacion por sustitucion en un paso
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '800'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '168'
+                  importe_total: '968'
+                  importe_rectificativa:
+                    base_rectificada: '1000'
+                    cuota_rectificada: '210'
+                  facturas_rectificadas:
+                    - serie: A
+                      numero: '1'
+                      fecha_expedicion: 07-04-2025
+              rectificativa_por_diferencias:
+                summary: Rectificativa por diferencias
+                value:
+                  serie: R
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: R1
+                  tipo_rectificativa: I
+                  descripcion: 'Descripcion de la operacion: rectificacion por diferencias'
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '-500'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '-105'
+                  importe_total: '-605'
+                  facturas_rectificadas:
+                    - serie: A
+                      numero: '1'
+                      fecha_expedicion: 07-04-2025
+              recargo_de_equivalencia:
+                summary: Recargo de equivalencia
+                value:
+                  serie: RECARGO
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Descripcion de la operacion
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                      clave_regimen: '18'
+                      tipo_recargo_equivalencia: '5.2'
+                      cuota_recargo_equivalencia: '10.4'
+                  importe_total: '252.4'
+              emitida_por_terceros:
+                summary: Emitida por terceros
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura emitida por terceros
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  especial:
+                    emitida_por_tercero_o_destinatario: T
+                    nombre_tercero: Nombre tercero
+                    nif_tercero: B86561412
+                  importe_total: '242'
+              emitida_por_destinatario:
+                summary: Emitida por destinatario
+                value:
+                  serie: A
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura emitida por destinatario
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  especial:
+                    emitida_por_tercero_o_destinatario: D
+                  importe_total: '242'
+              rgimen_de_bienes_usados:
+                summary: Régimen de bienes usados
+                value:
+                  serie: Ejemplos
+                  numero: '1'
+                  fecha_expedicion: 25-05-2026
+                  tipo_factura: F1
+                  descripcion: Factura en regimen especial de bienes usados (REBU)
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '826.45'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '173.55'
+                      clave_regimen: '03'
+                  importe_total: '3000'
+      responses:
+        '200':
+          description: >-
+            Registro de facturación creado. En los próximos segundos se enviará
+            a la AEAT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uuid:
+                    description: >-
+                      Identificador único del registro para poder consultar su
+                      estado.
+                    type: string
+                    example: b018ced3-b362-4494-8776-9eefff1c160c
+                  estado:
+                    description: >-
+                      Estado del registro. Siempre será igual a "Pendiente" como
+                      respuesta a una creación. Dicho estado se puede consultar
+                      posteriormente con el endpoint `/status`.
+                    type: string
+                    example: Pendiente
+                  url:
+                    description: URL de verificación del código QR.
+                    type: string
+                    example: >-
+                      https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=A234634&fecha=25-05-2026&importe=242
+                  qr:
+                    description: Código QR en base 64 que contiene la url.
+                    type: string
+                    example: jBBWRw0KGgoABAANSUhEAH0CAIAAABE...
+                  huella:
+                    description: Huella o hash del registro.
+                    type: string
+                    example: >-
+                      B11F3A015173AD99075E2720F61E2DE1FF08CBFEDD85C6F73C77AD835301B2A3
+        '400':
+          description: >
+            Error en los datos de la petición. El registro de facturación no se
+            crea y por lo tanto no se envía a la AEAT.
+
+            También se devuelve este código con `error: invalid_idempotency_key`
+            si la cabecera `Idempotency-Key` está presente pero no es una cadena
+            ASCII imprimible de 1 a 255 caracteres.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: Descripción del error
+                    type: string
+                    example: >-
+                      El campo tipo_factura debe ser F1, F2, R1, R2, R3, R4, R5
+                      o F3.
+        '409':
+          description: Otra petición con la misma Idempotency-Key se está procesando.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: idempotent_request_in_progress
+                  message:
+                    type: string
+              example:
+                error: idempotent_request_in_progress
+                message: >-
+                  Otra petición con esta Idempotency-Key se está procesando.
+                  Reintente en unos segundos.
+        '422':
+          description: Idempotency-Key reutilizada con un payload distinto.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: idempotency_key_reused_with_different_payload
+                  message:
+                    type: string
+              example:
+                error: idempotency_key_reused_with_different_payload
+                message: >-
+                  Esta Idempotency-Key ya se usó con un payload distinto. Use
+                  una clave nueva.
+        '500':
+          description: Error de servidor
+  /verifactu/create_bulk:
+    post:
+      summary: Crear facturas en lote
+      description: >
+        Mediante este endpoint se crean hasta 50 registros de facturación
+        nuevos. El cuerpo de la llamada es simplemente un array de facturas,
+
+        tal y como se envían en el endpoint `verifactu/create`. De la misma
+        forma, la respuesta es un array de objectos con los identificadores
+
+        de los registros creados junto con el qr, url y el estado de cada uno de
+        ellos.
+
+
+        &nbsp;
+
+
+        Es importante entender que se validarán los campos de cada factura y, en
+        caso de encontrar algún error, se devolverá un error 400 con el mensaje
+
+        de error de la factura que ha fallado. En ese caso, no se generará
+        ningún registro de facturación y, por lo tanto, no se realizara ninguna
+
+        comunicación con la AEAT.
+
+
+        &nbsp;
+
+
+        Este endpoint admite además una cabecera opcional `Idempotency-Key`. Si
+        se incluye, los reintentos del mismo lote con la misma clave replican la
+
+        respuesta original (incluyendo la cabecera de respuesta
+        `Idempotent-Replayed: true` y el eco de
+
+        `Idempotency-Key`). La clave cubre el lote completo: el mismo array de
+        facturas devuelve el mismo
+
+        array de resultados. Las claves se vinculan al NIF y se recuerdan
+        durante 24 horas.
+
+        Reusar la misma clave con un cuerpo diferente devuelve 422; un reintento
+        concurrente mientras el
+
+        primero sigue en curso devuelve 409.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/create_bulk' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '[
+                   {
+                     "serie": "B",
+                     "numero": "1",
+                     "fecha_expedicion": "25-05-2026",
+                     "tipo_factura": "F1",
+                     "descripcion": "Prestación de servicios",
+                     "nif": "A15022510",
+                     "nombre": "Nombre cliente",
+                     "lineas": [
+                       {
+                         "base_imponible": "200",
+                         "tipo_impositivo": "21",
+                         "cuota_repercutida": "42"
+                       }
+                     ],
+                     "importe_total": "242.00"
+                   },
+                   {
+                     "serie": "B",
+                     "numero": "2",
+                     "fecha_expedicion": "25-05-2026",
+                     "tipo_factura": "F2",
+                     "descripcion": "Venta de bienes",
+                     "lineas": [
+                       {
+                         "base_imponible": "300",
+                         "tipo_impositivo": "21",
+                         "cuota_repercutida": "63"
+                       }
+                     ],
+                     "importe_total": "363.00"
+                   }
+                 ]'
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          description: >-
+            Clave única opcional para garantizar que reintentos de la misma
+            petición no creen duplicados. Cadena ASCII imprimible de 1 a 255
+            caracteres. Se recuerda durante 24 horas por NIF.
+          schema:
+            type: string
+            pattern: ^[\x20-\x7E]{1,255}$
+            minLength: 1
+            maxLength: 255
+            example: 8e1b9c2a-3f4d-4a6b-9c2e-1d2f3e4a5b6c
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 50
+              items:
+                type: object
+                description: >-
+                  Cada elemento del array tiene el formato descrito en el
+                  endpoint de creación de facturas.
+              example:
+                - serie: B
+                  numero: '1'
+                  fecha_expedicion: 02-06-2025
+                  tipo_factura: F1
+                  descripcion: Prestación de servicios
+                  nif: A15022510
+                  nombre: Nombre cliente
+                  lineas:
+                    - base_imponible: '200'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '42'
+                  importe_total: '242.00'
+                - serie: B
+                  numero: '2'
+                  fecha_expedicion: 02-06-2025
+                  tipo_factura: F2
+                  descripcion: Venta de bienes
+                  lineas:
+                    - base_imponible: '300'
+                      tipo_impositivo: '21'
+                      cuota_repercutida: '63'
+                  importe_total: '363.00'
+      responses:
+        '200':
+          description: >-
+            Registros de facturación creados. En los próximos segundos se
+            enviarán a la AEAT.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    uuid:
+                      description: >-
+                        Identificador único del registro para poder consultar su
+                        estado.
+                      type: string
+                    estado:
+                      description: >-
+                        Estado del registro. Siempre será igual a "Pendiente"
+                        como respuesta a una creación. Dicho estado se puede
+                        consultar posteriormente con el endpoint `/status`.
+                      type: string
+                    url:
+                      description: URL de verificación del código QR.
+                      type: string
+                    qr:
+                      description: Código QR en base 64 que contiene la url.
+                      type: string
+                    huella:
+                      description: Huella o hash del registro.
+                      type: string
+                      example: >-
+                        B11F3A015173AD99075E2720F61E2DE1FF08CBFEDD85C6F73C77AD835301B2A3
+                example:
+                  - uuid: 6c7e5d2c-6c7e-5d2c-6c7e-5d2c6c7e5d2c
+                    estado: Pendiente
+                    url: >-
+                      https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=B1&fecha=02-06-2025&importe=242
+                    qr: iVBORw0KGgoAAAANSUhEUgAAA...
+                  - uuid: 4cdfe3d2d-4d5f-fd2c-7c72-2d4c5d3e5d1d
+                    estado: Pendiente
+                    url: >-
+                      https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=B2&fecha=02-06-2025&importe=363
+                    qr: iVBORw0KGgoAAAANSUhEUgAAA...
+        '400':
+          description: >
+            Error en los datos de la petición. No se genera ningún registro de
+            facturación y por lo tanto no se envían a la AEAT.
+
+            También se devuelve este código con `error: invalid_idempotency_key`
+            si la cabecera `Idempotency-Key` está presente pero no es una cadena
+            ASCII imprimible de 1 a 255 caracteres.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: Descripción del error
+                    type: string
+                    example: >-
+                      Error en factura 2: El campo tipo_factura debe ser F1, F2,
+                      R1, R2, R3, R4, R5 o F3.
+        '500':
+          description: Error de servidor
+  /verifactu/modify:
+    put:
+      summary: Subsanar factura
+      description: >
+        Mediante este endpoint se puede enviar un registro de facturación para
+        modificar o subsanar una factura existentes cuando
+
+        no se exige la emisión de una factura rectificativa (u otro mecanismo
+        contemplado en el Reglamento de Facturación).
+
+        Al hacerlo, el registro se encola para ser enviado a la AEAT.
+
+
+        &nbsp;
+
+
+        Para crear una factura rectificativa se debe usar el endpoint POST
+        `/create` con el `tipo_factura` apropiado.
+
+
+        &nbsp;
+
+
+        Este endpoint admite además una cabecera opcional `Idempotency-Key`. Si
+        se incluye, los reintentos de la misma petición lógica con la misma
+        clave
+
+        replican la respuesta original (incluyendo la cabecera de respuesta
+        `Idempotent-Replayed: true` y el
+
+        eco de `Idempotency-Key`). Las claves se vinculan al NIF y se recuerdan
+        durante 24 horas.
+
+        Reusar la misma clave con un cuerpo diferente devuelve 422; un reintento
+        concurrente mientras el
+
+        primero sigue en curso devuelve 409.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X PUT 'https://api.verifacti.com/verifactu/modify' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "rechazo_previo": "N",
+                   "serie": "A",
+                   "numero": "234634",
+                   "fecha_expedicion": "25-05-2026",
+                   "tipo_factura": "F1",
+                   "descripcion": "Descripcion de la operacion",
+                   "nif": "A15022510",
+                   "nombre": "Nombre cliente",
+                   "lineas": [
+                     {
+                       "base_imponible": "200",
+                       "tipo_impositivo": "21",
+                       "cuota_repercutida": "42"
+                     }
+                   ],
+                   "importe_total": "242"
+                 }'
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          description: >-
+            Clave única opcional para garantizar que reintentos de la misma
+            petición no creen duplicados. Cadena ASCII imprimible de 1 a 255
+            caracteres. Se recuerda durante 24 horas por NIF.
+          schema:
+            type: string
+            pattern: ^[\x20-\x7E]{1,255}$
+            minLength: 1
+            maxLength: 255
+            example: 8e1b9c2a-3f4d-4a6b-9c2e-1d2f3e4a5b6c
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serie
+                - numero
+                - fecha_expedicion
+                - tipo_factura
+                - descripcion
+                - lineas
+                - importe_total
+              properties:
+                serie:
+                  type: string
+                  example: A
+                  description: >-
+                    Serie de la factura. Si no se quiere incluir una serie, se
+                    puede enviar una string vacía. No debe comenzar por un
+                    espacio en blanco. La concatenación de los campos serie y
+                    número no puede tener más de 60 caracteres.
+                numero:
+                  type: string
+                  example: '234634'
+                  description: >-
+                    Número de la factura. La concatenación de los campos serie y
+                    número no puede tener más de 60 caracteres.
+                fecha_expedicion:
+                  type: string
+                  pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                  example: 25-05-2026
+                  description: >-
+                    Fecha de emisión de la factura. No puede ser una fecha
+                    posterior a la actual.
+                rechazo_previo:
+                  type: string
+                  enum:
+                    - 'N'
+                    - S
+                    - X
+                  example: 'N'
+                  default: 'N'
+                  description: >
+                    Este campo sirve para indicar si la factura que se quiere
+                    subsanar fue rechazada previamente por la AEAT.
+
+
+                    En el caso más habitual de una subsanación de una factura
+                    que fue aceptada por la AEAT, se debe poner a `N`. Si, por
+                    el contrario, el
+
+                    alta inicial fue rechazada, este campo se debe poner a `X`.
+                    Finalmente, si lo que fue rechazado es la subsanación de la
+                    factura, se debe poner a `S`.
+                tipo_factura:
+                  type: string
+                  example: F1
+                  enum:
+                    - F1
+                    - F2
+                    - R1
+                    - R2
+                    - R3
+                    - R4
+                    - R5
+                    - F3
+                  description: |
+                    Los diferentes tipos de factura son:
+                    <ol style="list-style: disc;">
+                      <li>F1: Factura (Art. 6, 7.2 Y 7.3 del RD 1619/2012)</li>
+                      <li>F2: Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D RD 1619/2012)</li>
+                      <li>R1: Factura rectificativa (Art 80.1 y 80.2 y error fundado en derecho)</li>
+                      <li>R2: Factura rectificativa (Art. 80.3)</li>
+                      <li>R3: Factura rectificativa (Art. 80.4)</li>
+                      <li>R4: Factura rectificativa (Resto)</li>
+                      <li>R5: Factura rectificativa en facturas simplificadas (Art. 80.3)</li>
+                      <li>F3: Factura emitida en sustitución de facturas simplificadas facturadas y declaradas</li>
+                    </ol>
+                descripcion:
+                  type: string
+                  example: Descripcion de la operacion
+                  minLength: 1
+                  maxLength: 500
+                  description: Descripcion de la operacion.
+                lineas:
+                  type: array
+                  minItems: 1
+                  maxItems: 12
+                  description: >
+                    Líneas de la factura. Admite hasta un máximo de 12 líneas,
+                    restricción impuesta por la API de la Agencia Tributaria.
+
+                    Cada línea puede tener un tipo de IVA diferente, por lo
+                    tanto, se espera que se agrupen los diferentes elementos de
+
+                    una factura con el mismo tipo de IVA en una sola línea. De
+                    lo contrario, sería frecuente exceder el límite de 12
+                    líneas.
+                  items:
+                    $ref: '#/components/schemas/lineas'
+                importe_total:
+                  type: string
+                  pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                  description: >
+                    Importe total de la factura. Se validará que sea igual a la
+                    suma de (`base_imponible` + `cuota_repercutida` + 
+
+                    `cuota_recargo_equivalencia`) de todas las líneas
+                    admitiéndose un margen de error de +/- 10,00€. Esta
+                    validación no
+
+                    se aplicará cuando `clave_regimen` sea 03, 05, 06, 08 o 09.
+                  example: '242.00'
+                fecha_operacion:
+                  type: string
+                  pattern: \d{2,2}-\d{2,2}-\d{4,4}
+                  description: Fecha de la operación.
+                nif:
+                  type: string
+                  example: A15022510
+                  description: >
+                    NIF del cliente al que se le emite la factura. Necesario
+                    salvo para facturas simplificadas (F2, R5) o cuando se
+                    incluya el campo `id_otro`.
+
+                    En caso de incluir tanto `nif` como `id_otro`, se utilizará
+                    `nif`.
+
+
+                    &nbsp;
+
+
+                    Si se incluye el campo `nif` validamos por defecto que está
+                    censado en la AEAT ya que si no lo está, la AEAT rechazará
+                    el envío. En caso de
+
+                    no estar censado, se devolverá un error 400, lo que
+                    significa que el registro de facturación no se ha generado y
+                    no se producirá envío a la AEAT.
+
+
+                    &nbsp;
+
+
+                    Para personas jurídicas es suficiente con que el NIF esté
+                    censado. Para personas físicas, es necesario que el NIF esté
+                    censado y que el `nombre` sea
+
+                    suficientemente parecido al nombre que aparece en el censo.
+
+
+                    &nbsp;
+
+
+                    Disponemos de un endpoint para validar el NIF de personas
+                    fisicas y jurídicas en la API de gestión de NIFs. Se puede
+                    consultar la documentación
+
+                    <a
+                    href="https://www.verifacti.com/nifs-docs#tag/NIFs/paths/~1nifs~1validar/post"
+                    target="_blank">aquí</a>.
+                id_otro:
+                  type: object
+                  description: >
+                    Identificador de persona física o jurídica distinto del NIF.
+                    Necesario salvo para facturas simplificadas (F2, R5) o
+                    cuando
+
+                    se incluya el campo `nif`. En caso de incluir tanto `nif`
+                    como `id_otro`, se utilizará `nif`.
+
+
+                    &nbsp;
+
+
+                    Si es campo `codigo_pais` es igual a ES, se validará que el
+                    campo `id_type` sea 03 o 07. Si el campo `id_type` es 07, se
+
+                    validará que el campo `codigo_pais` sea ES.
+                  properties:
+                    codigo_pais:
+                      type: string
+                      description: >-
+                        Código del país de la persona física o jurídica en
+                        formato ISO 3166-1 alpha-2. Obligatorio salvo cuando
+                        `id_type` sea 02.
+                    id_type:
+                      type: string
+                      enum:
+                        - '02'
+                        - '03'
+                        - '04'
+                        - '05'
+                        - '06'
+                        - '07'
+                      description: >
+                        Tipo de identificador de la persona física o jurídica.
+                        Los diferentes tipos de identificador son:
+
+                        <ol style="list-style: disc;">
+                          <li>02: NIF-IVA</li>
+                          <li>03: Pasaporte</li>
+                          <li>04: IDEnPaisResidencia</li>
+                          <li>05: Certificado Residencia</li>
+                          <li>06: Otro documento Probatorio</li>
+                          <li>07: No Censado</li>
+                        </ol>
+                    id:
+                      type: string
+                      maxLength: 20
+                      description: >
+                        Identificador de la persona física o jurídica. Se
+                        permite hasta un máximo de 20 caracteres.
+
+
+                        &nbsp;
+
+
+                        Cuando el país es intracomunitario y el `id_type` es
+                        igual a `02`, es decir, corresponde a un número de IVA,
+                        se validará por defecto
+
+                        que esté en el censo VIES. Si no lo está, la AEAT
+                        rechazará el envío.
+
+
+                        &nbsp;
+
+
+                        Disponemos de un endpoint para validación de IVAs en el
+                        censo VIES en la API de gestión de NIFs. Se
+
+                        puede consultar la documentación <a
+                        href="https://www.verifacti.com/nifs-docs#tag/NIFs/paths/~1nifs~1validar~1vies/post"
+                        target="_blank">aquí</a>.
+                nombre:
+                  type: string
+                  example: Nombre cliente
+                  description: >-
+                    Nombre y apellidos o razón social del cliente al que se le
+                    emite la factura. Necesario salvo para facturas
+                    simplificadas (F2, R5).
+                validar_destinatario:
+                  type: boolean
+                  default: true
+                  description: >
+                    Si se incluye el campo `nif` validamos por defecto que está
+                    censado en la AEAT ya que si no lo está, la AEAT rechazará
+                    el envío. Esto requiere una
+
+                    llamada adicional por nuestro lado. Puedes desactivar esta
+                    validación en el entorno de test poniendo este campo a
+                    `false`.
+
+
+                    &nbsp;
+
+
+                    De manera similar, si se incluye el campo `id_otro` con
+                    `id_type` igual a `02` y `codigo_pais` de un país
+                    intracomunitario, validamos por defecto que
+
+                    el IVA esté en el censo VIES. Se puede desactivar esta
+                    validación en el entorno de test poniendo este campo a
+                    `false`.
+                tipo_rectificativa:
+                  type: string
+                  enum:
+                    - S
+                    - I
+                  description: >
+                    Requerido y permitido únicamente para facturas
+                    rectificativas (R1, R2, R3, R4, R5). Indica si la
+                    rectificativa
+
+                    es por sustitución (`S`) o por diferencia (`I`).
+                importe_rectificativa:
+                  type: object
+                  description: >-
+                    Requerido y permitido únicamente si `tipo_rectificativa` es
+                    igual a `S`.
+                  properties:
+                    base_rectificada:
+                      type: string
+                      pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                      description: Base imponible de la rectificada.
+                    cuota_rectificada:
+                      type: string
+                      pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                      description: Cuota repercutida de la rectificada.
+                    cuota_recargo_rectificada:
+                      type: string
+                      pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+                      description: Cuota recargo de equivalencia de la rectificada.
+                facturas_rectificadas:
+                  type: array
+                  description: >-
+                    Facturas rectificadas. Permitido (aunque no obligatorio)
+                    para facturas rectificativas (R1, R2, R3, R4, R5).
+                  items:
+                    type: object
+                    properties:
+                      serie:
+                        type: string
+                        description: Serie de la factura rectificada.
+                      numero:
+                        type: string
+                        description: Número de la factura rectificada.
+                      fecha_expedicion:
+                        type: string
+                        description: Fecha de expedición de la factura rectificada.
+                facturas_sustituidas:
+                  type: array
+                  description: >-
+                    Facturas sustituidas. Permitido (aunque no obligatorio) para
+                    facturas de tipo `F3`.
+                  items:
+                    type: object
+                    properties:
+                      serie:
+                        type: string
+                        description: Serie de la factura sustituida.
+                      numero:
+                        type: string
+                        description: Número de la factura sustituida.
+                      fecha_expedicion:
+                        type: string
+                        description: Fecha de expedición de la factura sustituida.
+                incidencia:
+                  type: string
+                  description: >-
+                    Indicador de incidencia. Debe indicarse el valor `S` en caso
+                    de que haya ocurrido alguna incidencia.
+                especial:
+                  type: object
+                  description: Se recogen datos adicionales para facturas.
+                  properties:
+                    cupon:
+                      type: string
+                      enum:
+                        - S
+                      description: >-
+                        Sólo se podrá rellenar con `S` si el tipo de factura es
+                        R1 o R5. No es obligatorio.
+                    factura_simplificada_art_7273:
+                      type: string
+                      enum:
+                        - S
+                      description: >-
+                        Sólo se podrá rellenar con `S` si el tipo de factura es
+                        "F1”, "F3”, "R1”, "R2”, "R3” o "R4".
+                    factura_sin_identif_destinatario_art_61d:
+                      type: string
+                      enum:
+                        - S
+                      description: >-
+                        Sólo se podrá rellenar con `S` si el tipo de factura es
+                        "F2” o "R5".
+                    emitida_por_tercero_o_destinatario:
+                      type: string
+                      enum:
+                        - T
+                        - D
+                      description: >-
+                        Indica si la factura ha sido emitida por un tercero o
+                        por el destinatario.
+                    nombre_tercero:
+                      type: string
+                      maxLength: 120
+                      description: >-
+                        Requerido y permitido únicamente si
+                        `emitida_por_tercero_o_destinatario` es igual a `T`.
+                    nif_tercero:
+                      type: string
+                      description: >-
+                        Permitido únicamente si
+                        `emitida_por_tercero_o_destinatario` es igual a `T`.
+                        Tiene prevalencia sobre `id_otro_tercero`.
+                    id_otro_tercero:
+                      type: object
+                      description: >-
+                        Permitido únicamente si
+                        `emitida_por_tercero_o_destinatario` es igual a `T`.
+                      properties:
+                        id_type:
+                          type: string
+                          enum:
+                            - '02'
+                            - '03'
+                            - '04'
+                            - '05'
+                            - '06'
+                          description: >
+                            Tipo de identificador de la persona física o
+                            jurídica. Los diferentes tipos de identificador son:
+
+                            <ol style="list-style: disc;">
+                              <li>02: NIF-IVA</li>
+                              <li>03: Pasaporte</li>
+                              <li>04: IDEnPaisResidencia</li>
+                              <li>05: Certificado Residencia</li>
+                              <li>06: Otro documento Probatorio</li>
+                            </ol>
+                        codigo_pais:
+                          type: string
+                          description: >-
+                            Código del país de la persona física o jurídica en
+                            formato ISO 3166-1 alpha-2. Obligatorio salvo cuando
+                            `id_type` sea 02.
+                        id:
+                          type: string
+                          description: >-
+                            Identificador de persona física o jurídica distinto
+                            del NIF.
+              example:
+                serie: A
+                numero: '234634'
+                fecha_expedicion: 25-05-2026
+                tipo_factura: F1
+                descripcion: Descripcion de la operacion
+                nif: A15022510
+                nombre: Nombre cliente
+                lineas:
+                  - base_imponible: '200'
+                    tipo_impositivo: '21'
+                    cuota_repercutida: '42'
+                importe_total: '242.00'
+      responses:
+        '200':
+          description: >-
+            Registro de facturación creado. En los próximos segundos se enviará
+            a la AEAT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uuid:
+                    description: >-
+                      Identificador único del registro para poder consultar su
+                      estado.
+                    type: string
+                    example: b018ced3-b362-4494-8776-9eefff1c160c
+                  estado:
+                    description: >-
+                      Estado del registro. Siempre será igual a "Pendiente" como
+                      respuesta a una creación. Dicho estado se puede consultar
+                      posteriormente con el endpoint `/status`.
+                    type: string
+                    example: Pendiente
+                  url:
+                    description: URL de verificación del código QR.
+                    type: string
+                    example: >-
+                      https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=A234634&fecha=25-05-2026&importe=242
+                  qr:
+                    description: Código QR en base 64 que contiene la url.
+                    type: string
+                    example: jBBWRw0KGgoABAANSUhEAH0CAIAAABE...
+        '400':
+          description: >-
+            Error en los datos de la petición. El registro de facturación no se
+            crea y por lo tanto no se envía a la AEAT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: Descripción del error
+                    type: string
+                    example: >-
+                      El campo tipo_factura debe ser F1, F2, R1, R2, R3, R4, R5
+                      o F3.
+        '500':
+          description: Error de servidor
+  /verifactu/cancel:
+    post:
+      summary: Anular factura
+      description: >
+        Este endpoint permite anular facturas existentes. Al hacerlo, se envia
+        la nueva información de la misma a la AEAT. Una vez una factura está
+        anulada, no se
+
+        puede crear una nueva con el mismo (`serie`, `numero`,
+        `fecha_expedicion`).
+
+
+        &nbsp;
+
+
+        Este endpoint admite además una cabecera opcional `Idempotency-Key`. Si
+        se incluye, los reintentos de la misma petición lógica con la misma
+        clave
+
+        replican la respuesta original (incluyendo la cabecera de respuesta
+        `Idempotent-Replayed: true` y el
+
+        eco de `Idempotency-Key`). Las claves se vinculan al NIF y se recuerdan
+        durante 24 horas.
+
+        Reusar la misma clave con un cuerpo diferente devuelve 422; un reintento
+        concurrente mientras el
+
+        primero sigue en curso devuelve 409.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/cancel' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "234634",
+                   "fecha_expedicion": "25-05-2026"
+                 }'
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          description: >-
+            Clave única opcional para garantizar que reintentos de la misma
+            petición no creen duplicados. Cadena ASCII imprimible de 1 a 255
+            caracteres. Se recuerda durante 24 horas por NIF.
+          schema:
+            type: string
+            pattern: ^[\x20-\x7E]{1,255}$
+            minLength: 1
+            maxLength: 255
+            example: 8e1b9c2a-3f4d-4a6b-9c2e-1d2f3e4a5b6c
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serie
+                - numero
+                - fecha_expedicion
+              properties:
+                serie:
+                  type: string
+                  description: >-
+                    Serie de la factura. Si no se quiere incluir una serie, se
+                    puede enviar una string vacía. No debe comenzar por un
+                    espacio en blanco. La concatenación de los campos serie y
+                    número no puede tener más de 60 caracteres.
+                numero:
+                  type: string
+                  description: >-
+                    Número de la factura. La concatenación de los campos serie y
+                    número no puede tener más de 60 caracteres.
+                fecha_expedicion:
+                  type: string
+                  pattern: ^\d{2}-\d{2}-\d{4}$
+                  description: >-
+                    Fecha de emisión de la factura. No puede ser una fecha
+                    posterior a la actual.
+                rechazo_previo:
+                  type: string
+                  enum:
+                    - 'N'
+                    - S
+                  default: 'N'
+                  description: >
+                    Este campo sirve para indicar si la factura que se quiere
+                    anular fue rechazada previamente por la AEAT.
+
+
+                    En el caso habitual de una anulación de una factura que fue
+                    aceptada por la AEAT, se debe poner a `N`. Si, por el
+                    contrario, la anulación
+
+                    fue rechazada, este campo se debe poner a `S`.
+                sin_registro_previo:
+                  type: string
+                  enum:
+                    - 'N'
+                    - S
+                  default: 'N'
+                  description: >
+                    Este campo sirve para indicar si la factura que se quiere
+                    anular existe en la AEAT.
+
+
+                    En el caso más habitual de una anulación de una factura que
+                    está registrada en la AEAT se debe poner a `N`. Si, por el
+                    contrario, la factura
+
+                    que se quiere anular no se encuentra registrada en la AEAT,
+                    se debe poner `S`.
+                incidencia:
+                  type: string
+                  description: >-
+                    Indicador de incidencia. Debe indicarse el valor `S` en caso
+                    de que haya ocurrido alguna incidencia.
+              example:
+                serie: A
+                numero: '234634'
+                fecha_expedicion: 25-05-2026
+      responses:
+        '200':
+          description: Factura anulada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uuid:
+                    description: >-
+                      Identificador único del registro para poder consultar su
+                      estado.
+                    type: string
+                    example: b018ced3-b362-4494-8776-9eefff1c160c
+                  huella:
+                    description: Huella o hash del registro.
+                    type: string
+                    example: >-
+                      B11F3A015173AD99075E2720F61E2DE1FF08CBFEDD85C6F73C77AD835301B2A3
+                  estado:
+                    description: Estado del registro.
+                    type: string
+                    example: Pendiente
+              example:
+                estado: Pendiente
+                huella: >-
+                  B11F3A015173AD99075E2720F61E2DE1FF08CBFEDD85C6F73C77AD835301B2A3
+                uuid: b018ced3-b362-4494-8776-9eefff1c160c
+        '500':
+          description: Error de servidor
+  /verifactu/list:
+    post:
+      summary: Listar facturas
+      description: >
+        Mediante este endpoint se pueden consultar todas las facturas
+        presentadas en la AEAT. Se devuelve un registro
+
+        único por factura (`serie`, `numero` y `fecha_expedicion`) con el estado
+        último de la misma en el sistema de la agencia
+
+        tributaria.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/list' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "ejercicio": "2024",
+                   "periodo": "12",
+                   "rango_fecha_expedicion": {
+                     "desde": "01-12-2024",
+                     "hasta": "04-12-2024"
+                   }
+                 }'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                ejercicio: '2024'
+                periodo: '12'
+                rango_fecha_expedicion:
+                  desde: 01-12-2024
+                  hasta: 04-12-2024
+              required:
+                - ejercicio
+                - periodo
+              properties:
+                ejercicio:
+                  type: string
+                  description: >-
+                    Ejercicio de la fecha de operación o en su defecto de la
+                    fecha de expedición.
+                periodo:
+                  type: string
+                  description: >-
+                    Periodo de la fecha de operación o en su defecto de la fecha
+                    de expedición.
+                serie:
+                  type: string
+                  description: Serie de la factura. Obligatorio si se incluye `numero`.
+                numero:
+                  type: string
+                  description: Número de la factura. Obligatorio si se incluye `serie`.
+                rango_fecha_expedicion:
+                  type: object
+                  description: >
+                    Rango de fechas de expedición de las facturas que se desean
+                    consultar.
+
+                    Tiene prioridad sobre `fecha_expedicion`.
+                  properties:
+                    desde:
+                      type: string
+                      pattern: ^\d{2}-\d{2}-\d{4}$
+                      description: >-
+                        Fecha de inicio del rango de fechas de expedición de las
+                        facturas que se desean consultar.
+                    hasta:
+                      type: string
+                      pattern: ^\d{2}-\d{2}-\d{4}$
+                      description: >
+                        Fecha de fin del rango de fechas de expedición de las
+                        facturas que se desean consultar.
+
+                        Debe ser necesariamente mayor que `desde`.
+                fecha_expedicion:
+                  type: string
+                  pattern: ^\d{2}-\d{2}-\d{4}$
+                  description: Fecha de expedición de las facturas que se desean consultar.
+                paginacion:
+                  type: object
+                  description: >
+                    En caso de que la cantidad de facturas a consultar supere
+                    los 10.000 registros, se deberán incluir
+
+                    los datos de la última factura consultada para obtener la
+                    siguiente página.
+                  properties:
+                    num_serie:
+                      type: string
+                      description: >-
+                        Concatenación de la serie y el número de la última
+                        factura obtenida.
+                    fecha_expedicion:
+                      type: string
+                      pattern: ^\d{2}-\d{2}-\d{4}$
+                      description: Fecha de expedición de la última factura obtenida.
+      responses:
+        '200':
+          description: Listado facturas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paginacion:
+                    type: string
+                    enum:
+                      - 'N'
+                      - S
+                    description: >
+                      Indica si la cantidad de facturas a consultar supera los
+                      10.000 registros (`S`).
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/estadoFactura'
+  /verifactu/export:
+    post:
+      summary: Exportar XMLs
+      description: >
+        Este endpoint permite exportar los ficheros XML en lotes, tanto de
+        petición como de respuesta, de las facturas presentadas en la AEAT.
+
+        Este endpoint contiene los XMLs que se han enviado a la AEAT y sus
+        respuestas sin ningún tipo de procesamiento. Por lo tanto, cada fichero
+
+        XML de respuesta puede contener la respuesta de más de un registro de
+        facturación.
+
+
+        &nbsp;
+
+
+        La manera de descargar los ficheros es especificando el ejercicio y el
+        periodo en que se generaron dichos registros.
+
+        La respuesta de nuestra API consiste en una lista de URLs que contienen
+        los ficheros XML de las facturas. Dichas URLs tienen una
+
+        caducidad de 15 minutos. Cada llamada retorna un máximo de 500 URLs y,
+        en caso de que existan más, se devuelve un token de paginación.
+
+        Este token debe ser utilizado en la siguiente llamada para obtener las
+        URLs restantes.
+
+
+        &nbsp;
+
+
+        En el entorno de test, los XMLs se guardarán un máximo de 90 días.
+
+        Sin embargo, los endpoints de consulta de facturas tendrán los datos
+        históricos ya que consultan a la AEAT.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/export' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "ejercicio": "2024",
+                   "periodo": "12",
+                   "token": "CkJ0ZXN0L0I3NTc3Nzg0Ny8yMD..."
+                 }'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                ejercicio: '2024'
+                periodo: '12'
+                token: CkJ0ZXN0L0I3NTc3Nzg0Ny8yMD...
+              required:
+                - ejercicio
+                - periodo
+              properties:
+                ejercicio:
+                  type: string
+                  description: >-
+                    Ejercicio de la fecha en que se generó el registro de
+                    facturación. No tiene por qué coincidir con la fecha de
+                    expedición y ni de operación.
+                periodo:
+                  type: string
+                  description: >-
+                    Período de la fecha en que se generó el registro de
+                    facturación. No tiene por qué coincidir con la fecha de
+                    expedición y ni de operación.
+                token:
+                  type: string
+                  description: Token de paginación.
+      responses:
+        '200':
+          description: Listado de ficheros XML.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  urls:
+                    type: array
+                    description: >
+                      Array con las URLs de los ficheros XML de las facturas.
+                      Estas URLs tienen una caducidad de 15 minutos.
+                    maxItems: 500
+                    items:
+                      type: string
+                      format: uri
+                      description: URL de los ficheros XML de las facturas.
+                    example:
+                      - https://bucket/url_1_req.xml
+                      - https://bucket/url_1_res.xml
+                      - ...
+                  token:
+                    type: string
+                    description: Token de paginación para obtener la página siguiente.
+                    example: BkJ1ZXH0L5I3HTc7Nzg0Ny8ynH...
+  /verifactu/downloadXML:
+    post:
+      summary: Descargar XML
+      description: >
+        Mediante este endpoint se pueden descargar los ficheros XML de las
+        facturas presentadas en la AEAT.
+
+
+        &nbsp;
+
+
+        La manera de acceder a los ficheros XML es mediante la serie y el número
+        de la factura. Debido a que es posible que
+
+        para una misma serie y número existan varios registros diferentes (de
+        alta y anulación, por ejemplo), la respuesta
+
+        es, en general, un array de ficheros XML como se puede ver en el
+        ejemplo.
+
+
+        &nbsp;
+
+
+        Por otro lado, debido a las restricciones que impone la API de la AEAT,
+        es posible que varios registros de facturación
+
+        diferentes se envíen en un mismo fichero XML. Este endpoint devuelve el
+        fichero XML de petición y respuesta tal cual se envía
+
+        o recibe de la AEAT. Esto significa que podría incluir registros de
+        facturación relativos a otra serie o número de factura.
+
+
+        &nbsp;
+
+
+        En el entorno de test, los XMLs se guardarán un máximo de 90 días.
+
+        Sin embargo, los endpoints de consulta de facturas tendrán los datos
+        históricos ya que consultan a la AEAT.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X POST 'https://api.verifacti.com/verifactu/downloadXML' \
+              -H 'Authorization: Bearer <API_KEY>' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                   "serie": "A",
+                   "numero": "234634"
+                 }'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serie
+                - numero
+              properties:
+                serie:
+                  type: string
+                  example: A
+                  description: Serie de la factura.
+                numero:
+                  type: string
+                  example: '234634'
+                  description: Número de la factura.
+      responses:
+        '200':
+          description: Ficheros XML
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    uuid:
+                      description: Identificador único del registro.
+                      type: string
+                      example: b018ced3-b362-4494-8776-9eefff1c160c
+                    operacion:
+                      description: Tipo de operación.
+                      type: string
+                      example: Alta inicial
+                    xml_req:
+                      description: Fichero XML de petición enviado a la AEAT.
+                      type: string
+                      example: >-
+                        <?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope
+                        ...
+                    xml_res:
+                      description: Fichero XML de respuesta de la AEAT.
+                      type: string
+                      example: >-
+                        <?xml version="1.0" encoding="UTF-8"?><env:Envelope
+                        xmlns:env=...
+                example:
+                  - uuid: b018ced3-b362-4494-8776-9eefff1c160c
+                    operacion: Alta inicial
+                    xml_req: >-
+                      <?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope
+                      ...
+                    xml_res: >-
+                      <?xml version="1.0" encoding="UTF-8"?><env:Envelope
+                      xmlns:env=...
+        '500':
+          description: Error de servidor
+  /verifactu/declaracion:
+    get:
+      summary: Declaración responsable
+      description: >
+        Mediante este endpoint se puede obtener la declaración responsable de
+        Verifacti. También está disponible <a
+        href="https://storage.googleapis.com/verifacti_non_sensitive/declaracion/1.0.0.pdf"
+        target="_blank">aquí</a>.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl -X GET 'https://api.verifacti.com/verifactu/declaracion' \
+              -H 'Authorization: Bearer <API_KEY>'
+      responses:
+        '200':
+          description: Declaración responsable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: >-
+                      URL donde se encuentra alojada la declaración responsable
+                      correspondiente a la versión actual del software.
+                    example: >-
+                      https://storage.googleapis.com/verifacti_non_sensitive/declaracion/1.0.0.pdf
+                  sistema_informatico:
+                    type: object
+                    properties:
+                      nombre:
+                        type: string
+                        description: Nombre del sistema informático.
+                        example: bilbabit
+                      id:
+                        type: string
+                        description: Identificador del sistema informático.
+                        example: A1
+                      version:
+                        type: string
+                        description: Versión del sistema informático.
+                        example: 1.0.0
+components:
+  schemas:
+    estadoFactura:
+      type: object
+      properties:
+        uuid:
+          description: Identificador único del último registro aceptado para esta factura.
+          type: string
+          example: b018ced3-b362-4494-8776-9eefff1c160c
+        nif_emisor:
+          description: NIF del emisor de la factura.
+          type: string
+          example: A15022510
+        num_serie:
+          description: Serie y número de la factura.
+          type: string
+          example: A34547
+        fecha_expedicion:
+          description: Fecha de emisión de la factura.
+          type: string
+          example: 25-05-2026
+        subsanacion:
+          description: Indica si la factura se ha subsanado (S) o no (N).
+          enum:
+            - 'N'
+            - S
+          type: string
+          example: 'N'
+        rechazo_previo:
+          type: string
+          enum:
+            - 'N'
+            - S
+            - X
+          example: 'N'
+          description: >
+            Este campo sirve para indicar si la factura que se quiere subsanar
+            fue rechazada previamente por la AEAT.
+        tipo_factura:
+          type: string
+          example: F1
+          description: |
+            Los diferentes tipos de factura son:
+            <ol style="list-style: disc;">
+              <li>F1: Factura (Art. 6, 7.2 Y 7.3 del RD 1619/2012)</li>
+              <li>F2: Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D RD 1619/2012)</li>
+              <li>R1: Factura rectificativa (Art 80.1 y 80.2 y error fundado en derecho)</li>
+              <li>R2: Factura rectificativa (Art. 80.3)</li>
+              <li>R3: Factura rectificativa (Art. 80.4)</li>
+              <li>R4: Factura rectificativa (Resto)</li>
+              <li>R5: Factura rectificativa en facturas simplificadas (Art. 80.3)</li>
+              <li>F3: Factura emitida en sustitución de facturas simplificadas facturadas y declaradas</li>
+            </ol>
+        descripcion:
+          type: string
+          description: Descripción de la operación.
+          example: Descripcion de la operacion
+        lineas:
+          type: array
+          description: Líneas de la factura.
+          items:
+            type: object
+            properties:
+              base_imponible:
+                type: string
+                description: Base imponible de la línea.
+                example: 200
+              tipo_impositivo:
+                type: string
+                description: >
+                  Tipo impositivo de la línea. Si `impuesto` = 01 (IVA) entonces
+                  los valores permitidos son: 0, 2, 4, 5, 7.5, 10, 21.
+                example: '21'
+              cuota_repercutida:
+                type: string
+                description: Cuota repercutida de la linea.
+                example: '42'
+              impuesto:
+                type: string
+                default: '01'
+                enum:
+                  - '01'
+                  - '02'
+                  - '03'
+                  - '05'
+                description: |
+                  Tipo de impuesto.
+                    - 01: Impuesto sobre el Valor Añadido (IVA)
+                    - 02: Impuesto sobre la Producción, los Servicios y la Importación (IPSI) de Ceuta y Melilla
+                    - 03: Impuesto General Indirecto Canario (IGIC)
+                    - 05: Otros
+                example: '01'
+              calificacion_operacion:
+                type: string
+                enum:
+                  - S1
+                  - S2
+                  - N1
+                  - N2
+                description: >
+                  Calificación de la operación. Solo se puede informar si el
+                  campo `operacion_exenta` no se cumplimenta. En ese caso, por
+                  defecto se usará el valor `S1`. 
+                    - S1: Operación sujeta y no exenta - sin inversión del sujeto pasivo.
+                    - S2: Operación sujeta y no exenta - con inversión del sujeto pasivo.
+                    - N1: Operación no sujeta (art. 7, 14, otros).
+                    - N2: Operación no sujeta por reglas de localización.
+              clave_regimen:
+                type: string
+                enum:
+                  - '01'
+                  - '02'
+                  - '03'
+                  - '04'
+                  - '05'
+                  - '06'
+                  - '07'
+                  - '08'
+                  - '09'
+                  - '10'
+                  - '11'
+                  - '14'
+                  - '15'
+                  - '17'
+                  - '18'
+                  - '19'
+                  - '20'
+                description: Clave que identifica el tipo de régimen del IVA/IGIC.
+              operacion_exenta:
+                type: string
+                enum:
+                  - E1
+                  - E2
+                  - E3
+                  - E4
+                  - E5
+                  - E6
+                description: Tipo de operación exenta.
+              base_imponible_a_coste:
+                type: string
+                description: Base imponible a coste de la linea.
+              tipo_recargo_equivalencia:
+                type: string
+                description: Tipo de recargo de equivalencia de la linea.
+              cuota_recargo_equivalencia:
+                type: string
+                description: Cuota recargo de equivalencia de la linea.
+        importe_total:
+          description: Importe total de la factura.
+          type: string
+          example: '242.00'
+        cuota_total:
+          description: Cuota total de la factura.
+          type: string
+          example: '42.00'
+        encadenamiento:
+          type: object
+          description: >-
+            Datos sobre registro de facturación anterior con el que el registro
+            ha sido encadenado.
+          properties:
+            nif_emisor:
+              type: string
+              example: B75777847
+              description: NIF del emisor del registro de facturación anterior.
+            num_serie:
+              type: string
+              example: A34543
+              description: Serie y número del registro de facturación anterior.
+            fecha_expedicion:
+              type: string
+              example: 01-12-2024
+              description: Fecha de expedición del registro de facturación anterior.
+            huella:
+              type: string
+              example: 058EE12D8FB181EE51901736CA561F8E084857D976560C421D9F6668251645F3
+              description: Huella del registro de facturación anterior.
+        huella:
+          description: Huella de la factura.
+          type: string
+          example: F7811516E953893596430BFBC48DD2F790E55DA098E410A430C79EF945E1EAF5
+        ultima_modificacion:
+          description: Fecha y hora de la última modificación.
+          type: string
+          example: '2024-12-31T11:30:57+01:00'
+        estado:
+          description: |
+            Estado de la factura en el sistema de la AEAT.
+            <ol style="list-style: disc;">
+              <li>Correcta: factura registrada correctamente.</li>
+              <li>AceptadaConErrores: factura aceptada por la AEAT que contiene errores. Debe ser subsanada emitiendo una nueva factura rectificativa o usando el endpoint POST <code>/modify</code> dependiendo del caso.</li>
+              <li>Anulada: factura anulada correctamente.</li>
+            </ol>
+
+          type: string
+          example: Correcta
+    lineas:
+      type: object
+      example:
+        base_imponible: '200.00'
+        tipo_impositivo: '21'
+        cuota_repercutida: '42.00'
+      required:
+        - base_imponible
+      properties:
+        base_imponible:
+          type: string
+          pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+          description: Base imponible o importe no sujeto de la línea.
+        tipo_impositivo:
+          type: string
+          pattern: \d{1,3}(\.\d{0,2})?
+          description: >
+            Tipo impositivo de la línea. Obligatorio si `calificacion_operacion`
+            es S1 y `base_imponible_a_coste` no está cumplimentado.
+
+            Si `impuesto` = 01 (IVA) entonces los valores permitidos son: 0, 2,
+            4, 5, 7.5, 10, 21.
+        cuota_repercutida:
+          type: string
+          pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+          description: >-
+            Cuota repercutida de la línea. Solo podrá ser distinta de cero
+            (positivo o negativo) si `calificacion_operacion` es S1.
+        impuesto:
+          type: string
+          default: '01'
+          enum:
+            - '01'
+            - '02'
+            - '03'
+            - '05'
+          description: |
+            Tipo de impuesto. Los valores permitidos son:
+            <ul style="list-style: disc;">
+              <li>01: Impuesto sobre el Valor Añadido (IVA)</li>
+              <li>02: Impuesto sobre la Producción, los Servicios y la Importación (IPSI) de Ceuta y Melilla</li>
+              <li>03: Impuesto General Indirecto Canario (IGIC)</li>
+              <li>05: Otros</li>
+            </ul>
+        calificacion_operacion:
+          type: string
+          enum:
+            - S1
+            - S2
+            - N1
+            - N2
+          description: >
+            Calificación de la operación. Solo se puede informar si el campo
+            `operacion_exenta` no se cumplimenta. En ese caso, por defecto se
+            usará el valor `S1`. 
+
+            <ul style="list-style: disc;">
+              <li>S1: Operación sujeta y no exenta - sin inversión del sujeto pasivo.</li>
+              <li>S2: Operación sujeta y no exenta - con inversión del sujeto pasivo.</li>
+              <li>N1: Operación no sujeta (art. 7, 14, otros).</li>
+              <li>N2: Operación no sujeta por reglas de localización.</li>
+            </ul>
+        clave_regimen:
+          type: string
+          enum:
+            - '01'
+            - '02'
+            - '03'
+            - '04'
+            - '05'
+            - '06'
+            - '07'
+            - '08'
+            - '09'
+            - '10'
+            - '11'
+            - '14'
+            - '15'
+            - '17'
+            - '18'
+            - '19'
+            - '20'
+          description: >
+            Clave que identifica el tipo de régimen del IVA/IGIC. Permitido
+            únicamente cuando `impuesto` = 01 (IVA) o `impuesto` = 03 (IGIC).
+
+            En estos casos el valor por defecto es 01.
+
+
+            <ul style="list-style: disc;">
+              <li>01: Operación de régimen general.</li>
+              <li>02: Exportación.</li>
+              <li>03: Operaciones a las que se aplique el régimen especial de bienes usados, objetos de arte, antigüedades y objetos de colección.</li>
+              <li>04: Régimen especial del oro de inversión.</li>
+              <li>05: Régimen especial de las agencias de viajes.</li>
+              <li>06: Régimen especial grupo de entidades en IVA o IGIC (Nivel Avanzado)</li>
+              <li>07: Régimen especial del criterio de caja.</li>
+              <li>08: Operaciones sujetas al IPSI/IVA o IGIC.</li>
+              <li>09: Facturación de las prestaciones de servicios de agencias de viaje que actúan como mediadoras en nombre y por cuenta ajena(D.A.4ª RD1619/ 2012)</li>
+              <li>10: Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad industrial, de autor u otros por cuenta de sus socios, asociados o colegiados efectuados por sociedades, asociaciones, colegios profesionales u otras entidades que realicen estas funciones de cobro.</li>
+              <li>11: Operaciones de arrendamiento de local de negocio.</li>
+              <li>14: Factura con IVA o IGIC pendiente de devengo en certificaciones de obra cuyo destinatario sea una Administración Pública.</li>
+              <li>15: Factura con IVA o IGIC pendiente de devengo en operaciones de tracto sucesivo.</li>
+              <li>17: Operación acogida a alguno de los regímenes previstos en el Capítulo XI del Título IX(OSS e IOSS) o régimen especial de comerciante minorista</li>
+              <li>18: Recargo de equivalencia o régimen especial del pequeño empresario o profesional.</li>
+              <li>19: Operaciones de actividades incluidas en el Régimen Especial de Agricultura, Ganadería y Pesca(REAGYP) u operaciones interiores exentas por aplicación artículo 25 Ley 19 / 1994</li>
+              <li>20: Régimen simplificado</li>
+            </ul>
+        operacion_exenta:
+          type: string
+          enum:
+            - E1
+            - E2
+            - E3
+            - E4
+            - E5
+            - E6
+          description: >
+            Tipo de operación exenta. En caso de estar cumplimentado, no podrá
+            informarse de los campos `tipo_impositivo`,
+
+            `cuota_repercutida`, `tipo_recargo_equivalencia` y
+            `cuota_recargo_equivalencia`. Los valores permitidos son
+            (BOE-A-1992-28740):
+
+            <ul style="list-style: disc;">
+              <li>E1: Exenta por artículo 20</li>
+              <li>E2: Exenta por artículo 21</li>
+              <li>E3: Exenta por artículo 22</li>
+              <li>E4: Exenta por artículo 24</li>
+              <li>E5: Exenta por artículo 25</li>
+              <li>E6: Otros</li>
+            </ul>
+        base_imponible_a_coste:
+          type: string
+          pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+          description: >
+            Base imponible a coste de la linea. Este campo solo puede estar
+            cumplimentado si la 
+
+            `clave_regimen` es = 06 o `impuesto` = 02 (IPSI) o `impuesto` = 05
+            (Otros).
+        tipo_recargo_equivalencia:
+          type: string
+          pattern: \d{1,3}(\.\d{0,2})?
+          description: >
+            Tipo de recargo de equivalencia. Ver <a
+            href='https://www.agenciatributaria.es/static_files/AEAT_Desarrolladores/EEDD/IVA/VERI-FACTU/Validaciones_Errores_Veri-Factu.pdf'
+            target='_blank'>documentación AEAT</a> para más detalles.
+        cuota_recargo_equivalencia:
+          type: string
+          pattern: (\+|-)?\d{1,12}(\.\d{0,2})?
+          description: |
+            Cuota recargo de equivalencia.

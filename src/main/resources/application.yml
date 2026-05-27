@@ -16,7 +16,5 @@ spring:
         jwt:
           issuer-uri: https://nkwsihnvnyduumdbopuf.supabase.co/auth/v1
 
-
-
 server:
   port: 8080

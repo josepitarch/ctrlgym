@@ -31,4 +31,11 @@ public class MembersController {
     byte[] qrImage = membersService.generateQrCode(jwt.getClaims().get("email").toString());
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
+
+  @GetMapping(value = "/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable UUID invoiceId) {
+    byte[] pdfReport = membersService.getInvoiceReport(memberId, invoiceId);
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
+  }
+
 }

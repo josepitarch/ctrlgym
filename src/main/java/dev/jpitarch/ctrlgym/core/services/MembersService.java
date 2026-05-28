@@ -21,6 +21,8 @@ public class MembersService {
 
   private final MembersRepository membersRepository;
 
+  private final GenerateInvoiceReportService generateInvoiceReportService;
+
   private static final int QR_SIZE = 300;
 
   public byte[] generateQrCode(String data) throws WriterException, IOException {
@@ -34,6 +36,10 @@ public class MembersService {
 
   public List<MemberAccess> getAccesses(UUID memberId) {
     return membersRepository.getMemberAccessesByMemberId(memberId);
+  }
+
+  public byte[] getInvoiceReport(UUID memberId, UUID invoiceId) {
+    return generateInvoiceReportService.generate(1, invoiceId);
   }
 
 }

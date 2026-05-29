@@ -1,5 +1,7 @@
 package dev.jpitarch.ctrlgym;
 
+import com.stripe.model.Account;
+import com.stripe.service.AccountService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,5 +14,16 @@ public class CtrlgymApplication {
 	static void main(String[] args) {
 		SpringApplication.run(CtrlgymApplication.class, args);
 	}
-  
+
+	@Bean
+	CommandLineRunner init(AccountService accountService) {
+		return args -> {
+			Account account = Account.retrieve("acct_xxx");
+
+			AccountDeleteParams params =
+				AccountDeleteParams.builder().build();
+
+			Account deleted = account.delete(params);
+		};
+	}
 }

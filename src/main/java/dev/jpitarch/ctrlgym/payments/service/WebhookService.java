@@ -30,7 +30,6 @@ public class WebhookService {
       case "payment_intent.succeeded" -> handlePaymentIntentSucceeded(event);
       case "payment_intent.payment_failed" -> handlePaymentIntentFailed(event);
       case "payment_intent.canceled" -> handlePaymentIntentCanceled(event);
-      case "account.updated" -> handleAccountUpdated(event);
       default -> log.info("Unhandled event type: {}", event.getType());
     }
   }
@@ -64,22 +63,5 @@ public class WebhookService {
     String membershipId = paymentIntent.getMetadata().get("membership_id");
 
     log.warn("Payment canceled for membership: {}", membershipId);
-  }
-
-  private void handleAccountUpdated(Event event) {
-    event.getDataObjectDeserializer()
-      .getObject()
-      .ifPresent(stripeObject -> {
-        Account account = (Account) stripeObject;
-        String accountId = account.getId();
-
-        boolean onboardingComplete =
-          Boolean.TRUE.equals(account.getChargesEnabled()) &&
-            Boolean.TRUE.equals(account.getPayoutsEnabled());
-
-        if (onboardingComplete) {
-          log.info("Onboarding completed for account: {}", accountId);
-        }
-      });
   }
 }

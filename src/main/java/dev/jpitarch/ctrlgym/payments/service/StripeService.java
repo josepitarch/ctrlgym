@@ -6,6 +6,7 @@ import com.stripe.model.AccountLink;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
+import com.stripe.net.RequestOptions;
 import com.stripe.param.AccountCreateParams;
 import com.stripe.param.AccountLinkCreateParams;
 import com.stripe.param.CustomerCreateParams;
@@ -24,8 +25,8 @@ import java.util.Map;
 public class StripeService {
 
   public ConnectAccountResponse createConnectAccount(ConnectAccountRequest request) throws StripeException {
-    AccountCreateParams params = AccountCreateParams.builder()
-      .setType(AccountCreateParams.Type.STANDARD)
+    var params = AccountCreateParams.builder()
+      .setType(AccountCreateParams.Type.EXPRESS)
       .setBusinessType(AccountCreateParams.BusinessType.COMPANY)
       .setCompany(AccountCreateParams.Company.builder()
         .setName(request.getBusinessName())
@@ -44,19 +45,24 @@ public class StripeService {
               .setRequested(true)
               .build()
           )
+          .setSepaDebitPayments(
+            AccountCreateParams.Capabilities.SepaDebitPayments.builder()
+              .setRequested(true)
+              .build()
+          )
           .build())
       .build();
 
-    Account account = Account.create(params);
+    var account = Account.create(params);
 
-    AccountLinkCreateParams linkParams = AccountLinkCreateParams.builder()
+    var linkParams = AccountLinkCreateParams.builder()
       .setAccount(account.getId())
       .setRefreshUrl("https://app.ctrlgym.es/reauthenticate")
       .setReturnUrl("https://app.ctrlgym.es/onboarding-complete")
       .setType(AccountLinkCreateParams.Type.ACCOUNT_ONBOARDING)
       .build();
 
-    AccountLink accountLink = AccountLink.create(linkParams);
+    var accountLink = AccountLink.create(linkParams);
 
     return ConnectAccountResponse.builder()
       .accountId(account.getId())
@@ -74,7 +80,7 @@ public class StripeService {
         .setDestination(request.getAccountId())
         .build());
 
-    PaymentIntent paymentIntent = PaymentIntent.create(paramsBuilder.build());
+    var paymentIntent = PaymentIntent.create(paramsBuilder.build());
 
     return PaymentResponse.builder()
       .id(paymentIntent.getId())
@@ -88,7 +94,7 @@ public class StripeService {
   }
 
   public PaymentResponse retrievePaymentIntent(String paymentIntentId) throws StripeException {
-    PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+    var paymentIntent = PaymentIntent.retrieve(paymentIntentId);
 
     return PaymentResponse.builder()
       .id(paymentIntent.getId())
@@ -101,29 +107,36 @@ public class StripeService {
   }
 
   public String createCustomer(String email, String name) throws StripeException {
-    CustomerCreateParams params = CustomerCreateParams.builder()
+    var params = CustomerCreateParams.builder()
       .setEmail(email)
       .setName(name)
+      .setMetadata(Map.of(
+        "gymId", "1"
+      ))
       .build();
 
-    Customer customer = Customer.create(params);
+    RequestOptions requestOptions = RequestOptions.builder()
+      .setStripeAccount("")
+      .build();
+
+    Customer customer = Customer.create(params, requestOptions);
     return customer.getId();
   }
 
   public boolean isAccountActive(String accountId) throws StripeException {
-    Account account = Account.retrieve(accountId);
+    var account = Account.retrieve(accountId);
     return account.getChargesEnabled() && account.getPayoutsEnabled();
   }
 
   public String createAccountSession(String accountId, String refreshUrl, String returnUrl) throws StripeException {
-    AccountLinkCreateParams params = AccountLinkCreateParams.builder()
+    var params = AccountLinkCreateParams.builder()
       .setAccount(accountId)
       .setRefreshUrl(refreshUrl)
       .setReturnUrl(returnUrl)
       .setType(AccountLinkCreateParams.Type.ACCOUNT_ONBOARDING)
       .build();
 
-    AccountLink accountLink = AccountLink.create(params);
+    var accountLink = AccountLink.create(params);
     return accountLink.getUrl();
   }
 }

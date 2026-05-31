@@ -1,14 +1,21 @@
 package dev.jpitarch.ctrlgym.payments.controller;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Event;
+import com.stripe.model.Price;
+import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.payments.dto.*;
+import dev.jpitarch.ctrlgym.payments.service.CustomerService;
+import dev.jpitarch.ctrlgym.payments.service.MembershipService;
 import dev.jpitarch.ctrlgym.payments.service.PaymentService;
 import dev.jpitarch.ctrlgym.payments.service.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -18,7 +25,31 @@ public class PaymentsController {
 
   private final PaymentService paymentService;
 
+  private final MembershipService membershipService;
+
   private final WebhookService webhookService;
+
+  @PostMapping("/products")
+  public ResponseEntity<Price> createProduct(@RequestBody Map<String, String> request) throws StripeException {
+    int gymId = Integer.parseInt(request.get("gymId"));
+    String membershipName = request.get("membershipName");
+    double unitAmount = Double.parseDouble(request.get("unitAmount"));
+
+    var price = membershipService.createProduct(GymBranchId.of(gymId, 1000), membershipName, unitAmount);
+
+    return ResponseEntity.ok(price);
+  }
+
+  @PostMapping("/memberships")
+  public ResponseEntity<Void> createMembership(@RequestBody Map<String, String> request) throws StripeException {
+    String membershipId = request.get("membershipId");
+    UUID memberId = UUID.fromString(request.get("memberId"));
+    String paymentMethodId = request.get("paymentMethodId");
+
+    membershipService.initializeMembership(membershipId, memberId, GymBranchId.of(1, 1000), paymentMethodId);
+
+    return ResponseEntity.ok().build();
+  }
 
   @PostMapping("/accounts")
   public ResponseEntity<ConnectAccountResponse> createGymAccount(@RequestBody ConnectAccountRequest request) {
@@ -27,10 +58,7 @@ public class PaymentsController {
   }
 
   @GetMapping("/accounts/{accountId}/onboarding")
-  public ResponseEntity<String> getOnboardingLink(
-    @PathVariable String accountId,
-    @RequestParam String refreshUrl,
-    @RequestParam String returnUrl) {
+  public ResponseEntity<String> getOnboardingLink(@PathVariable String accountId, @RequestParam String refreshUrl, @RequestParam String returnUrl) {
     String url = paymentService.getOnboardingLink(accountId, refreshUrl, returnUrl);
     return ResponseEntity.ok(url);
   }
@@ -51,12 +79,6 @@ public class PaymentsController {
   public ResponseEntity<PaymentResponse> getPaymentStatus(@PathVariable String paymentIntentId) {
     PaymentResponse response = paymentService.getPaymentStatus(paymentIntentId);
     return ResponseEntity.ok(response);
-  }
-
-  @PostMapping("/customers")
-  public ResponseEntity<String> createCustomer(@RequestParam String email, @RequestParam String name) {
-    String customerId = paymentService.createCustomer(email, name);
-    return ResponseEntity.ok(customerId);
   }
 
   @PostMapping("/webhook")

@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.domain.Membership;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -17,6 +18,36 @@ import java.util.Map;
 public class MembershipsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
+
+  public void create(String id, GymBranchId gymBranchId, String membershipName, String priceId, double price, Membership.Recurring recurring) {
+    var sql = """
+      INSERT INTO membership_plans (id, gym_id, name, stripe_price_id, price, billing_period, active, created_at)
+      VALUES (:id, :gymId, :name, :priceId, :price, :billingPeriod, true, CURRENT_DATE)
+      """;
+
+    var params = Map.of(
+      "id", id,
+      "gymId", gymBranchId.gymId(),
+      "name", membershipName,
+      "priceId", priceId,
+      "price", price,
+      "billingPeriod", recurring.name()
+    );
+
+    jdbc.update(sql, params);
+  }
+
+  public String getStripePriceId(String id) {
+    var sql = """
+        SELECT stripe_price_id
+        FROM membership_plans
+        WHERE id = :id
+      """;
+    var params = Map.of("id", id);
+
+    return jdbc.queryForObject(sql, params, String.class);
+
+  }
 
   public List<Map<YearMonth, Integer>> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
@@ -199,7 +230,7 @@ public class MembershipsRepository {
       "gymId", gymBranchId.gymId(),
       "currentMonth", LocalDate.now().getMonthValue()
     );
-   return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, _) -> {
       var cohortMonth = row.getDate("cohort_month").toLocalDate();
       var monthOffset = row.getInt("month_offset");
       var activeMembers = row.getInt("active_members");

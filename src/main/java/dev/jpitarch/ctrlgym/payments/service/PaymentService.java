@@ -40,15 +40,6 @@ public class PaymentService {
     }
   }
 
-  public String createCustomer(String email, String name) {
-    try {
-      return stripeService.createCustomer(email, name);
-    } catch (StripeException e) {
-      log.error("Failed to create Stripe customer for email: {}", email, e);
-      throw new RuntimeException("Failed to create customer: " + e.getMessage(), e);
-    }
-  }
-
   public String getOnboardingLink(String accountId, String refreshUrl, String returnUrl) {
     try {
       return stripeService.createAccountSession(accountId, refreshUrl, returnUrl);

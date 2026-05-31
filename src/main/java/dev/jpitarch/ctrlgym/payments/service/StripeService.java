@@ -12,7 +12,9 @@ import com.stripe.param.AccountLinkCreateParams;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.payments.dto.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class StripeService {
 
   public ConnectAccountResponse createConnectAccount(ConnectAccountRequest request) throws StripeException {
@@ -104,23 +107,6 @@ public class StripeService {
       .status(paymentIntent.getStatus())
       .createdAt(LocalDateTime.now())
       .build();
-  }
-
-  public String createCustomer(String email, String name) throws StripeException {
-    var params = CustomerCreateParams.builder()
-      .setEmail(email)
-      .setName(name)
-      .setMetadata(Map.of(
-        "gymId", "1"
-      ))
-      .build();
-
-    RequestOptions requestOptions = RequestOptions.builder()
-      .setStripeAccount("")
-      .build();
-
-    Customer customer = Customer.create(params, requestOptions);
-    return customer.getId();
   }
 
   public boolean isAccountActive(String accountId) throws StripeException {

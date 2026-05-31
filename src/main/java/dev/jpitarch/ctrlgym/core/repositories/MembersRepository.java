@@ -21,6 +21,18 @@ public class MembersRepository {
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
+  public String getStripeCustomerId(UUID memberId) {
+    var sql = """
+      SELECT stripe_customer_id
+      FROM members
+      WHERE id = :memberId
+      """;
+
+    var params = Map.of("memberId", memberId);
+
+    return this.jdbc.queryForObject(sql, params, String.class);
+  }
+
   public List<Member> getMembers(GymBranchId gymBranchId) {
     var sql = """
       SELECT m.id, m.name, m.first_surname, m.second_surname, m.email, m.gender, m.birth_date, m.postal_code

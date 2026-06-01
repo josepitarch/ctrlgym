@@ -73,56 +73,9 @@ public class StripeService {
       .build();
   }
 
-  public PaymentResponse createPaymentIntent(PaymentIntentRequest request) throws StripeException {
-    PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
-      .setAmount(request.getAmount())
-      .setCurrency(request.getCurrency() != null ? request.getCurrency() : "eur")
-      .addPaymentMethodType("card")
-      .setDescription(request.getDescription())
-      .setTransferData(PaymentIntentCreateParams.TransferData.builder()
-        .setDestination(request.getAccountId())
-        .build());
-
-    var paymentIntent = PaymentIntent.create(paramsBuilder.build());
-
-    return PaymentResponse.builder()
-      .id(paymentIntent.getId())
-      .stripePaymentIntentId(paymentIntent.getId())
-      .amount(paymentIntent.getAmount())
-      .currency(paymentIntent.getCurrency())
-      .status(paymentIntent.getStatus())
-      .clientSecret(paymentIntent.getClientSecret())
-      .createdAt(LocalDateTime.now())
-      .build();
-  }
-
-  public PaymentResponse retrievePaymentIntent(String paymentIntentId) throws StripeException {
-    var paymentIntent = PaymentIntent.retrieve(paymentIntentId);
-
-    return PaymentResponse.builder()
-      .id(paymentIntent.getId())
-      .stripePaymentIntentId(paymentIntent.getId())
-      .amount(paymentIntent.getAmount())
-      .currency(paymentIntent.getCurrency())
-      .status(paymentIntent.getStatus())
-      .createdAt(LocalDateTime.now())
-      .build();
-  }
-
   public boolean isAccountActive(String accountId) throws StripeException {
     var account = Account.retrieve(accountId);
     return account.getChargesEnabled() && account.getPayoutsEnabled();
   }
 
-  public String createAccountSession(String accountId, String refreshUrl, String returnUrl) throws StripeException {
-    var params = AccountLinkCreateParams.builder()
-      .setAccount(accountId)
-      .setRefreshUrl(refreshUrl)
-      .setReturnUrl(returnUrl)
-      .setType(AccountLinkCreateParams.Type.ACCOUNT_ONBOARDING)
-      .build();
-
-    var accountLink = AccountLink.create(params);
-    return accountLink.getUrl();
-  }
 }

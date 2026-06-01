@@ -40,6 +40,14 @@ public class PaymentsController {
     return ResponseEntity.ok(price);
   }
 
+  @PostMapping("/intents")
+  public ResponseEntity<SetupIntentResponse> createIntent(@RequestBody Map<String, String> request) throws StripeException {
+    UUID memberId = UUID.fromString(request.get("memberId"));
+    SetupIntentResponse response = membershipService.createSetupIntent(GymBranchId.of(1, 1000), memberId);
+
+    return ResponseEntity.ok(response);
+  }
+
   @PostMapping("/memberships")
   public ResponseEntity<Void> createMembership(@RequestBody Map<String, String> request) throws StripeException {
     String membershipId = request.get("membershipId");
@@ -57,28 +65,10 @@ public class PaymentsController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/accounts/{accountId}/onboarding")
-  public ResponseEntity<String> getOnboardingLink(@PathVariable String accountId, @RequestParam String refreshUrl, @RequestParam String returnUrl) {
-    String url = paymentService.getOnboardingLink(accountId, refreshUrl, returnUrl);
-    return ResponseEntity.ok(url);
-  }
-
   @GetMapping("/accounts/{accountId}/status")
   public ResponseEntity<Boolean> isAccountActive(@PathVariable String accountId) {
     boolean isActive = paymentService.isAccountActive(accountId);
     return ResponseEntity.ok(isActive);
-  }
-
-  @PostMapping("/intents")
-  public ResponseEntity<PaymentResponse> createPaymentIntent(@RequestBody PaymentIntentRequest request) {
-    PaymentResponse response = paymentService.createMembershipPayment(request);
-    return ResponseEntity.ok(response);
-  }
-
-  @GetMapping("/intents/{paymentIntentId}")
-  public ResponseEntity<PaymentResponse> getPaymentStatus(@PathVariable String paymentIntentId) {
-    PaymentResponse response = paymentService.getPaymentStatus(paymentIntentId);
-    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/webhook")

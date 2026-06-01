@@ -22,33 +22,6 @@ public class PaymentService {
     }
   }
 
-  public PaymentResponse createMembershipPayment(PaymentIntentRequest request) {
-    try {
-      return stripeService.createPaymentIntent(request);
-    } catch (StripeException e) {
-      log.error("Failed to create payment intent for membership: {}", request.getMembershipId(), e);
-      throw new RuntimeException("Failed to create payment: " + e.getMessage(), e);
-    }
-  }
-
-  public PaymentResponse getPaymentStatus(String paymentIntentId) {
-    try {
-      return stripeService.retrievePaymentIntent(paymentIntentId);
-    } catch (StripeException e) {
-      log.error("Failed to retrieve payment intent: {}", paymentIntentId, e);
-      throw new RuntimeException("Failed to get payment status: " + e.getMessage(), e);
-    }
-  }
-
-  public String getOnboardingLink(String accountId, String refreshUrl, String returnUrl) {
-    try {
-      return stripeService.createAccountSession(accountId, refreshUrl, returnUrl);
-    } catch (StripeException e) {
-      log.error("Failed to create onboarding link for account: {}", accountId, e);
-      throw new RuntimeException("Failed to create onboarding link: " + e.getMessage(), e);
-    }
-  }
-
   public boolean isAccountActive(String accountId) {
     try {
       return stripeService.isAccountActive(accountId);

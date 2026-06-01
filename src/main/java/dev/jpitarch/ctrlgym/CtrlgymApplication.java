@@ -15,15 +15,4 @@ public class CtrlgymApplication {
 		SpringApplication.run(CtrlgymApplication.class, args);
 	}
 
-	@Bean
-	CommandLineRunner init(AccountService accountService) {
-		return args -> {
-			Account account = Account.retrieve("acct_xxx");
-
-			AccountDeleteParams params =
-				AccountDeleteParams.builder().build();
-
-			Account deleted = account.delete(params);
-		};
-	}
 }

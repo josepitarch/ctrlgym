@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,8 +62,26 @@ public class MembershipService {
     return price;
   }
 
-  public Subscription initializeMembership(String membershipId, UUID memberId, GymBranchId gymBranchId, String paymentMethodId) throws StripeException {
+  public SetupIntentResponse createSetupIntent(GymBranchId gymBranchId, UUID memberId) throws StripeException {
+    var accountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
+    var customerId = membersRepository.getStripeCustomerId(memberId);
 
+    var requestOptions = RequestOptions.builder()
+      .setStripeAccount(accountId)
+      .build();
+
+    var params = SetupIntentCreateParams.builder()
+      .setCustomer(customerId)
+      .addPaymentMethodType("sepa_debit")
+      .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION) //TODO: revisar esto
+      .build();
+
+    var setupIntent = SetupIntent.create(params, requestOptions);
+
+    return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
+  }
+
+  public Subscription initializeMembership(String membershipId, UUID memberId, GymBranchId gymBranchId, String paymentMethodId) throws StripeException {
     String stripeAccountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
     String stripeCustomerId = membersRepository.getStripeCustomerId(memberId);
     String stripePriceId = membershipsRepository.getStripePriceId(membershipId);
@@ -70,12 +90,10 @@ public class MembershipService {
       .setStripeAccount(stripeAccountId)
       .build();
 
-    var paymentMethod = PaymentMethod.retrieve(paymentMethodId, requestOptions);
-    paymentMethod.attach(PaymentMethodAttachParams.builder()
-        .setCustomer(stripeCustomerId)
-        .build(),
-      requestOptions
-    );
+    LocalDate firstDayOfNextMonth = LocalDate.now().withDayOfMonth(1).plusMonths(1);
+    long billingAnchorTimestamp = firstDayOfNextMonth
+      .atStartOfDay(ZoneOffset.UTC)
+      .toEpochSecond();
 
     var customerUpdateParams = CustomerUpdateParams.builder()
       .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
@@ -92,39 +110,19 @@ public class MembershipService {
         .setPrice(stripePriceId)
         .build()
       )
-      .setApplicationFeePercent(new BigDecimal("20.0"))
+      .setApplicationFeePercent(new BigDecimal("0.0"))
       .setPaymentSettings(
         SubscriptionCreateParams.PaymentSettings.builder()
           .setPaymentMethodTypes(List.of(SubscriptionCreateParams.PaymentSettings.PaymentMethodType.CARD))
           .build()
       )
+      .setBillingCycleAnchor(billingAnchorTimestamp)
+      .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
       .build();
 
     var subscription = Subscription.create(subscriptionParams, requestOptions);
 
     return subscription;
-  }
-
-  public SetupIntentResponse createSetupIntent(String customerId) throws StripeException {
-    SetupIntentCreateParams params = SetupIntentCreateParams.builder()
-      .setCustomer(customerId)
-      .addPaymentMethodType("sepa_debit")
-      .setMandateData(
-        SetupIntentCreateParams.MandateData.builder()
-          .setCustomerAcceptance(
-            SetupIntentCreateParams.MandateData.CustomerAcceptance.builder()
-              .setType(SetupIntentCreateParams.MandateData
-                .CustomerAcceptance.Type.ONLINE)
-              .build()
-          )
-          .build()
-      )
-      .build();
-
-    SetupIntent setupIntent = SetupIntent.create(params);
-
-    // El clientSecret se envía al frontend para mostrar el formulario del IBAN
-    return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
   }
 
   private Membership.Recurring mapRecurring(String interval) {

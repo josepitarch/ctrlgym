@@ -32,7 +32,7 @@ public class MembershipService {
 
   private final CustomerService customerService;
 
-  public Price createProduct(GymBranchId gymBranchId, String membershipName, double amount) throws StripeException {
+  public void createMembership(GymBranchId gymBranchId, String membershipName, double amount) throws StripeException {
 
     var stripeAccountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
 
@@ -61,8 +61,6 @@ public class MembershipService {
     var price = Price.create(priceParams, requestOptions);
 
     membershipsRepository.createMembershipPlan(product.getId(), gymBranchId, product.getName(), price.getId(), price.getUnitAmountDecimal().doubleValue(), mapRecurring(price.getRecurring().getInterval()));
-
-    return price;
   }
 
   public SetupIntentResponse createSetupIntent(UUID memberId) throws StripeException {
@@ -144,7 +142,7 @@ public class MembershipService {
     membershipsRepository.initializeMembership(memberId, membershipId, subscription.getId());
   }
 
-  public void cancelMembership(UUID memberId, String membershipId) throws StripeException {
+  public void cancelMembership(UUID memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
     if (!membershipsRepository.hasMembership(memberId, membershipId)) {
       throw new IllegalStateException("Membership " + membershipId + " not found for member " + membershipId);
     }
@@ -159,7 +157,7 @@ public class MembershipService {
 
     var subscription = Subscription.retrieve(subscriptionId, requestOptions);
     subscription.cancel(SubscriptionCancelParams.builder().build(), requestOptions);
-    membershipsRepository.cancelMembership(memberId, membershipId);
+    membershipsRepository.cancelMembership(memberId, membershipId, cancellationReasonId);
   }
 
   private Membership.Recurring mapRecurring(String interval) {

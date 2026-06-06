@@ -54,16 +54,17 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public void cancelMembership(UUID memberId, String membershipId) {
+  public void cancelMembership(UUID memberId, String membershipId, Integer cancellationReasonId) {
     var sql = """
       UPDATE memberships
-      SET end_date = CURRENT_DATE
+      SET end_date = CURRENT_DATE, cancellation_reason_id = :cancellationReasonId
       WHERE member_id = :memberId AND membership_plan_id = :membershipId
       """;
 
     var params = Map.of(
       "memberId", memberId,
-      "membershipId", membershipId
+      "membershipId", membershipId,
+      "cancellationReasonId", cancellationReasonId
     );
 
     jdbc.update(sql, params);

@@ -1,7 +1,6 @@
-package dev.jpitarch.ctrlgym.payments.controller;
+package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
 import dev.jpitarch.ctrlgym.payments.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +22,6 @@ public class CustomersController {
     //TODO
     customerService.create(UUID.randomUUID());
     return ResponseEntity.noContent().build();
-  }
-
-  @GetMapping("/{customerId}")
-  public ResponseEntity<Customer> getCustomer(@PathVariable String customerId) throws StripeException {
-    Customer customer = customerService.retrieve(customerId);
-    return ResponseEntity.ok(customer);
   }
 
 }

@@ -1,7 +1,6 @@
-package dev.jpitarch.ctrlgym.payments.controller;
+package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Price;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.payments.dto.*;
 import dev.jpitarch.ctrlgym.payments.service.MembershipService;
@@ -18,21 +17,21 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/payments")
 @RequiredArgsConstructor
-public class PaymentsController {
+public class MembershipsController {
 
   private final MembershipService membershipService;
 
   private final WebhookService webhookService;
 
   @PostMapping("/products")
-  public ResponseEntity<Price> createProduct(@RequestBody Map<String, String> request) throws StripeException {
+  public ResponseEntity<Void> createProduct(@RequestBody Map<String, String> request) throws StripeException {
     int gymId = Integer.parseInt(request.get("gymId"));
     String membershipName = request.get("membershipName");
     double unitAmount = Double.parseDouble(request.get("unitAmount"));
 
-    var price = membershipService.createProduct(GymBranchId.of(gymId, 1000), membershipName, unitAmount);
+    membershipService.createMembership(GymBranchId.of(gymId, 1000), membershipName, unitAmount);
 
-    return ResponseEntity.ok(price);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/members/{memberId}/payment-methods")
@@ -49,8 +48,8 @@ public class PaymentsController {
   }
 
   @DeleteMapping("/members/{memberId}/memberships/{membershipId}")
-  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId) throws StripeException {
-    membershipService.cancelMembership(memberId, membershipId);
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer cancellationReasonId) throws StripeException {
+    membershipService.cancelMembership(memberId, membershipId, cancellationReasonId);
     return ResponseEntity.noContent().build();
   }
 

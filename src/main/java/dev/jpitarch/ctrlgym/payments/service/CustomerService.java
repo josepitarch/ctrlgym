@@ -43,12 +43,4 @@ public class CustomerService {
     return customer.getId();
   }
 
-  public Customer retrieve(String customerId) throws StripeException {
-    Integer gymId = 1;
-    var requestOptions = RequestOptions.builder()
-      .setStripeAccount(gymsRepository.getStripeAccountId(gymId))
-      .build();
-
-    return Customer.retrieve(customerId, requestOptions);
-  }
 }

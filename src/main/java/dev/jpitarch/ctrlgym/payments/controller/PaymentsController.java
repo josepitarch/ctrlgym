@@ -3,11 +3,8 @@ package dev.jpitarch.ctrlgym.payments.controller;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Price;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.payments.dto.*;
-import dev.jpitarch.ctrlgym.payments.service.CustomerService;
 import dev.jpitarch.ctrlgym.payments.service.MembershipService;
-import dev.jpitarch.ctrlgym.payments.service.PaymentService;
 import dev.jpitarch.ctrlgym.payments.service.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +19,6 @@ import java.util.UUID;
 @RequestMapping("/v1/payments")
 @RequiredArgsConstructor
 public class PaymentsController {
-
-  private final PaymentService paymentService;
 
   private final MembershipService membershipService;
 
@@ -40,35 +35,17 @@ public class PaymentsController {
     return ResponseEntity.ok(price);
   }
 
-  @PostMapping("/intents")
-  public ResponseEntity<SetupIntentResponse> createIntent(@RequestBody Map<String, String> request) throws StripeException {
-    UUID memberId = UUID.fromString(request.get("memberId"));
-    SetupIntentResponse response = membershipService.createSetupIntent(GymBranchId.of(1, 1000), memberId);
+  @PostMapping("/members/{memberId}/payment-methods")
+  public ResponseEntity<SetupIntentResponse> createIntent(@PathVariable UUID memberId) throws StripeException {
+    SetupIntentResponse response = membershipService.createSetupIntent(memberId);
 
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("/memberships")
-  public ResponseEntity<Void> createMembership(@RequestBody Map<String, String> request) throws StripeException {
-    String membershipId = request.get("membershipId");
-    UUID memberId = UUID.fromString(request.get("memberId"));
-    String paymentMethodId = request.get("paymentMethodId");
-
-    membershipService.initializeMembership(membershipId, memberId, GymBranchId.of(1, 1000), paymentMethodId);
-
-    return ResponseEntity.ok().build();
-  }
-
-  @PostMapping("/accounts")
-  public ResponseEntity<ConnectAccountResponse> createGymAccount(@RequestBody ConnectAccountRequest request) {
-    ConnectAccountResponse response = paymentService.createGymAccount(request);
-    return ResponseEntity.ok(response);
-  }
-
-  @GetMapping("/accounts/{accountId}/status")
-  public ResponseEntity<Boolean> isAccountActive(@PathVariable String accountId) {
-    boolean isActive = paymentService.isAccountActive(accountId);
-    return ResponseEntity.ok(isActive);
+  @PostMapping("/members/{memberId}/memberships/{membershipId}")
+  public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId) throws StripeException {
+    membershipService.initializeMembership(memberId, membershipId);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/webhook")

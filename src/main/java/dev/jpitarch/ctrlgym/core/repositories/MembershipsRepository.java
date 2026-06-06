@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ public class MembershipsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public void create(String id, GymBranchId gymBranchId, String membershipName, String priceId, double price, Membership.Recurring recurring) {
+  public void createMembershipPlan(String id, GymBranchId gymBranchId, String membershipName, String priceId, double price, Membership.Recurring recurring) {
     var sql = """
       INSERT INTO membership_plans (id, gym_id, name, stripe_price_id, price, billing_period, active, created_at)
       VALUES (:id, :gymId, :name, :priceId, :price, :billingPeriod, true, CURRENT_DATE)
@@ -37,11 +39,41 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
+  public void initializeMembership(UUID memberId, String membershipId) {
+    var sql = """
+      INSERT INTO memberships (member_id, membership_plan_id, start_date)
+      VALUES (:memberId, :membershipId, :startDate)
+      """;
+
+    var params = Map.of(
+      "memberId", memberId,
+      "membershipId", membershipId,
+      "startDate", LocalDate.now()
+    );
+    jdbc.update(sql, params);
+  }
+
+  public boolean hasMembership(UUID memberId, String membershipId) {
+    var sql = """
+      SELECT COUNT(1)
+      FROM memberships
+      WHERE member_id = :memberId AND membership_plan_id = :membershipId
+      AND start_date <= CURRENT_DATE AND (end_date IS NULL OR end_date >= CURRENT_DATE)
+      """;
+
+    var params = Map.of(
+      "memberId", memberId,
+      "membershipId", membershipId
+    );
+
+    return Optional.ofNullable(jdbc.queryForObject(sql, params, Integer.class)).orElse(0) > 0;
+  }
+
   public String getStripePriceId(String id) {
     var sql = """
-        SELECT stripe_price_id
-        FROM membership_plans
-        WHERE id = :id
+      SELECT stripe_price_id
+      FROM membership_plans
+      WHERE id = :id
       """;
     var params = Map.of("id", id);
 
@@ -52,17 +84,17 @@ public class MembershipsRepository {
   public List<Map<YearMonth, Integer>> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       SELECT
-          month::date,
-          COUNT(m.id) AS active_memberships
-      FROM generate_series(
-          :from::date,
-          :to::date,
-          INTERVAL '1 month'
-      ) month
+      month::date,
+        COUNT(m.id) AS active_memberships
+      FROM generate_series (
+            :from::date,
+            :to::date,
+        INTERVAL '1 month'
+        )month
       LEFT JOIN memberships m
-          ON m.gym_id = :gymId
-         AND m.start_date <= month
-         AND (m.end_date IS NULL OR m.end_date >= month)
+      ON m.gym_id = :gymId
+      AND m.start_date <= month
+      AND(m.end_date IS NULL OR m.end_date >= month)
       GROUP BY 1
       ORDER BY 1;
       """;
@@ -83,26 +115,26 @@ public class MembershipsRepository {
 
   public List<Map<YearMonth, Integer>> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      WITH months AS (
-          SELECT generate_series(
-              DATE_TRUNC('month', CAST(:from AS date)),
-              DATE_TRUNC('month', CAST(:to AS date)),
-              INTERVAL '1 month'
-          )::date AS month
-      ),
+      WITH months AS(
+        SELECT generate_series(
+          DATE_TRUNC('month', CAST(:from AS date)),
+      DATE_TRUNC('month', CAST(:to AS date)),
+      INTERVAL '1 month'
+            )::date AS month
+        ),
       memberships_by_month AS (
-          SELECT
-              DATE_TRUNC('month', start_date)::date AS month,
-              COUNT(*) AS new_memberships
-          FROM memberships
-          WHERE gym_id = :gymId
-            AND start_date >= :from
-            AND start_date <= :to
-          GROUP BY 1
-      )
+        SELECT
+      DATE_TRUNC('month', start_date)::date AS month,
+      COUNT( *)AS new_memberships
+      FROM memberships
+      WHERE gym_id = :gymId
+      AND start_date >= :from
+      AND start_date <= :to
+      GROUP BY 1
+        )
       SELECT
-          m.month,
-          COALESCE(mbm.new_memberships, 0) AS new_memberships
+      m.month,
+        COALESCE(mbm.new_memberships, 0) AS new_memberships
       FROM months m
       LEFT JOIN memberships_by_month mbm ON mbm.month = m.month
       ORDER BY m.month;
@@ -123,23 +155,23 @@ public class MembershipsRepository {
 
   public List<Map<YearMonth, Integer>> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-            WITH months AS (
-          SELECT generate_series(
-              DATE_TRUNC('month', CAST(:from AS date)),
-              DATE_TRUNC('month', CAST(:to AS date)),
-              INTERVAL '1 month'
-          )::date AS month
-      ),
+      WITH months AS(
+        SELECT generate_series(
+          DATE_TRUNC('month', CAST(:from AS date)),
+      DATE_TRUNC('month', CAST(:to AS date)),
+      INTERVAL '1 month'
+            )::date AS month
+        ),
       memberships_by_month AS (SELECT
-          DATE_TRUNC('month', end_date)::date AS month,
-          COUNT(*) AS cancellations
+      DATE_TRUNC('month', end_date)::date AS month,
+      COUNT( *)AS cancellations
       FROM memberships
       WHERE gym_id = :gymId
       AND start_date >= :from AND start_date <= :to
       AND end_date IS NOT NULL AND end_date <= CURRENT_DATE
       GROUP BY 1
       ORDER BY 1
-      )
+        )
       SELECT m.month, COALESCE(mbm.cancellations, 0) AS cancellations
       FROM months m
       LEFT JOIN memberships_by_month mbm ON mbm.month = m.month
@@ -167,8 +199,8 @@ public class MembershipsRepository {
       AVG(CURRENT_DATE - start_date) AS avg_days
       FROM memberships
       WHERE gym_id = :gymId
-        AND start_date <= CURRENT_DATE
-        AND (end_date IS NULL OR end_date >= CURRENT_DATE);
+      AND start_date <=CURRENT_DATE
+      AND(end_date IS NULL OR end_date >= CURRENT_DATE);
       """;
 
     var params = Map.of(
@@ -180,47 +212,47 @@ public class MembershipsRepository {
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {
     var sql = """
-      WITH cohorts AS (
-          SELECT
-              id,
-              DATE_TRUNC('month', start_date)::date AS cohort_month,
-              start_date,
-              end_date
-          FROM memberships
-          WHERE gym_id = :gymId
-      ),
+      WITH cohorts AS(
+        SELECT
+        id,
+        DATE_TRUNC('month', start_date)::date AS cohort_month,
+        start_date,
+        end_date
+        FROM memberships
+        WHERE gym_id = :gymId
+        ),
       
       cohort_activity AS (
-          SELECT
-              c.cohort_month,
-              gs.month_offset,
-              COUNT(*) FILTER (
-                  WHERE c.end_date IS NULL
-                     OR c.end_date >= c.cohort_month
-                          + (gs.month_offset || ' month')::interval
-              ) AS active_members
-          FROM cohorts c
-          CROSS JOIN generate_series(0, :currentMonth) AS gs(month_offset)
-          GROUP BY 1, 2
-      ),
+        SELECT
+      c.cohort_month,
+        gs.month_offset,
+        COUNT( *)FILTER(
+        WHERE c.end_date IS NULL
+        OR c.end_date >= c.cohort_month
+          + (gs.month_offset || ' month')::interval
+      ) AS active_members
+      FROM cohorts c
+      CROSS JOIN generate_series(0, :currentMonth)AS gs (month_offset)
+        GROUP BY 1, 2
+        ),
       
       cohort_sizes AS (
-          SELECT
-              cohort_month,
-              COUNT(*) AS cohort_size
-          FROM cohorts
-          GROUP BY 1
-      )
+        SELECT
+      cohort_month,
+        COUNT( *)AS cohort_size
+      FROM cohorts
+      GROUP BY 1
+        )
       
       SELECT
-          ca.cohort_month,
-          ca.month_offset,
-          ca.active_members,
-          cs.cohort_size,
-          ROUND(
-              ca.active_members * 100.0 / cs.cohort_size,
-              2
-          ) AS retention_rate
+      ca.cohort_month,
+        ca.month_offset,
+        ca.active_members,
+        cs.cohort_size,
+        ROUND(
+          ca.active_members * 100.0 / cs.cohort_size,
+          2
+        ) AS retention_rate
       FROM cohort_activity ca
       JOIN cohort_sizes cs ON cs.cohort_month = ca.cohort_month
       ORDER BY 1, 2;
@@ -243,10 +275,10 @@ public class MembershipsRepository {
 
   public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      SELECT cancellation_reason_id, COUNT(1) as count
+      SELECT cancellation_reason_id, COUNT (1) as count
       FROM memberships
       WHERE gym_id = :gymId
-      AND end_date <= CURRENT_DATE
+      AND end_date <=CURRENT_DATE
       GROUP BY cancellation_reason_id
       """;
 

@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("/v1/customers")
@@ -17,9 +19,10 @@ public class CustomersController {
   private final CustomerService customerService;
 
   @PostMapping("/")
-  public ResponseEntity<String> create(@RequestParam String email, @RequestParam String name) throws StripeException {
-    String customerId = customerService.create(email, name);
-    return ResponseEntity.ok(customerId);
+  public ResponseEntity<String> create() throws StripeException {
+    //TODO
+    customerService.create(UUID.randomUUID());
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/{customerId}")

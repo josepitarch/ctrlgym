@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,6 +29,8 @@ public class MembershipService {
   private final MembersRepository membersRepository;
 
   private final MembershipsRepository membershipsRepository;
+
+  private final CustomerService customerService;
 
   public Price createProduct(GymBranchId gymBranchId, String membershipName, double amount) throws StripeException {
 
@@ -57,14 +60,21 @@ public class MembershipService {
 
     var price = Price.create(priceParams, requestOptions);
 
-    membershipsRepository.create(product.getId(), gymBranchId, product.getName(), price.getId(), price.getUnitAmountDecimal().doubleValue(), mapRecurring(price.getRecurring().getInterval()));
+    membershipsRepository.createMembershipPlan(product.getId(), gymBranchId, product.getName(), price.getId(), price.getUnitAmountDecimal().doubleValue(), mapRecurring(price.getRecurring().getInterval()));
 
     return price;
   }
 
-  public SetupIntentResponse createSetupIntent(GymBranchId gymBranchId, UUID memberId) throws StripeException {
-    var accountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
-    var customerId = membersRepository.getStripeCustomerId(memberId);
+  public SetupIntentResponse createSetupIntent(UUID memberId) throws StripeException {
+    Integer gymId = membersRepository.getGymId(memberId);
+    String accountId = gymsRepository.getStripeAccountId(gymId);
+    String customerId = membersRepository.getStripeCustomerId(memberId).orElseGet(() -> {
+      try {
+        return customerService.create(memberId);
+      } catch (StripeException e) {
+        throw new RuntimeException(e);
+      }
+    });
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(accountId)
@@ -73,7 +83,7 @@ public class MembershipService {
     var params = SetupIntentCreateParams.builder()
       .setCustomer(customerId)
       .addPaymentMethodType("sepa_debit")
-      .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION) //TODO: revisar esto
+      .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION) // <- no requiere confirmación del usuario en ese momento. Se cobrará en el futuro
       .build();
 
     var setupIntent = SetupIntent.create(params, requestOptions);
@@ -81,10 +91,20 @@ public class MembershipService {
     return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
   }
 
-  public Subscription initializeMembership(String membershipId, UUID memberId, GymBranchId gymBranchId, String paymentMethodId) throws StripeException {
-    String stripeAccountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
-    String stripeCustomerId = membersRepository.getStripeCustomerId(memberId);
+  public void initializeMembership(UUID memberId, String membershipId) throws StripeException {
+    if (membershipsRepository.hasMembership(memberId, membershipId)) {
+      throw new IllegalStateException("Member " + memberId + " already has membership " + membershipId);
+    }
+
+    Integer gymId = membersRepository.getGymId(memberId);
+    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
     String stripePriceId = membershipsRepository.getStripePriceId(membershipId);
+    Optional<String> paymentMethodId = membersRepository.getPaymentMethodId(memberId);
+    Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
+
+    if (paymentMethodId.isEmpty() || customerId.isEmpty()) {
+      throw new IllegalStateException("Customer or payment method not found for member " + memberId);
+    }
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
@@ -97,15 +117,15 @@ public class MembershipService {
 
     var customerUpdateParams = CustomerUpdateParams.builder()
       .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
-        .setDefaultPaymentMethod(paymentMethodId)
+        .setDefaultPaymentMethod(paymentMethodId.get())
         .build()
       )
       .build();
 
-    Customer.retrieve(stripeCustomerId, requestOptions).update(customerUpdateParams, requestOptions);
+    Customer.retrieve(customerId.get(), requestOptions).update(customerUpdateParams, requestOptions);
 
     var subscriptionParams = SubscriptionCreateParams.builder()
-      .setCustomer(stripeCustomerId)
+      .setCustomer(customerId.get())
       .addItem(SubscriptionCreateParams.Item.builder()
         .setPrice(stripePriceId)
         .build()
@@ -120,9 +140,8 @@ public class MembershipService {
       .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
       .build();
 
-    var subscription = Subscription.create(subscriptionParams, requestOptions);
-
-    return subscription;
+    Subscription.create(subscriptionParams, requestOptions);
+    membershipsRepository.initializeMembership(memberId, membershipId);
   }
 
   private Membership.Recurring mapRecurring(String interval) {

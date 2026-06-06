@@ -1,10 +1,10 @@
 package dev.jpitarch.ctrlgym.payments.service;
 
 import com.stripe.exception.SignatureVerificationException;
-import com.stripe.model.Account;
 import com.stripe.model.Event;
-import com.stripe.model.PaymentIntent;
+import com.stripe.model.SetupIntent;
 import com.stripe.net.Webhook;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +15,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class WebhookService {
 
-  @Value("${stripe.webhook-secret}")
+  @Value("${stripe.whsec-account}")
   private String webhookSecret;
+
+  private final MembersRepository membersRepository;
 
   public void processWebhook(String payload, String signatureHeader) {
     Event event;
@@ -27,41 +29,24 @@ public class WebhookService {
     }
 
     switch (event.getType()) {
-      case "payment_intent.succeeded" -> handlePaymentIntentSucceeded(event);
-      case "payment_intent.payment_failed" -> handlePaymentIntentFailed(event);
-      case "payment_intent.canceled" -> handlePaymentIntentCanceled(event);
-      default -> log.info("Unhandled event type: {}", event.getType());
+      case "setup_intent.created" -> handleSetupIntentCreated(map(event));
+      case "setup_intent.succeeded" -> handleSetupIntentSucceeded(map(event));
     }
+
   }
 
-  private void handlePaymentIntentSucceeded(Event event) {
-    PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
-      .getObject()
-      .orElseThrow(() -> new IllegalStateException("Unable to deserialize payment intent"));
-
-    String membershipId = paymentIntent.getMetadata().get("membership_id");
-    String customerEmail = paymentIntent.getMetadata().get("customer_email");
-
-    log.info("Payment succeeded for membership: {} by customer: {}", membershipId, customerEmail);
+  private void handleSetupIntentCreated(SetupIntent setupIntent) {
+    log.info("SetupIntent with id {} of customer {} is created", setupIntent.getId(), setupIntent.getCustomer());
   }
 
-  private void handlePaymentIntentFailed(Event event) {
-    PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
-      .getObject()
-      .orElseThrow(() -> new IllegalStateException("Unable to deserialize payment intent"));
-
-    String membershipId = paymentIntent.getMetadata().get("membership_id");
-
-    log.error("Payment failed for membership: {}", membershipId);
+  private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
+    log.info("SetupIntent with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
+    membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
-  private void handlePaymentIntentCanceled(Event event) {
-    PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer()
-      .getObject()
-      .orElseThrow(() -> new IllegalStateException("Unable to deserialize payment intent"));
-
-    String membershipId = paymentIntent.getMetadata().get("membership_id");
-
-    log.warn("Payment canceled for membership: {}", membershipId);
+  @SuppressWarnings("unchecked")
+  private <T> T map(Event event) {
+    return (T) event.getDataObjectDeserializer().getObject().orElseThrow();
   }
+
 }

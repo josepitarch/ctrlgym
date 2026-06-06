@@ -21,21 +21,87 @@ public class MembersRepository {
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
-  public String getStripeCustomerId(UUID memberId) {
+  public Member getById(UUID id) {
+    var sql = """
+      SELECT *
+      FROM members
+      WHERE id = :id
+      """;
+
+    var params = Map.of("id", id);
+
+    return jdbc.queryForObject(sql, params, Member.class);
+  }
+
+  public Optional<String> getStripeCustomerId(UUID id) {
     var sql = """
       SELECT stripe_customer_id
       FROM members
-      WHERE id = :memberId
+      WHERE id = :id
       """;
 
-    var params = Map.of("memberId", memberId);
+    var params = Map.of("id", id);
 
-    return this.jdbc.queryForObject(sql, params, String.class);
+    return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
+  }
+
+  public Optional<String> getPaymentMethodId(UUID id) {
+    var sql = """
+      SELECT stripe_payment_method_id
+      FROM members
+      WHERE id = :id
+      """;
+
+    var params = Map.of("id", id);
+
+    return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
+  }
+
+  public Integer getGymId(UUID id) {
+    var sql = """
+        SELECT gym_id
+        FROM members
+        WHERE id = :id
+      """;
+
+    var params = Map.of("id", id);
+
+    return this.jdbc.queryForObject(sql, params, Integer.class);
+  }
+
+  public void saveCustomerId(UUID id, String customerId) {
+    var sql = """
+      UPDATE members
+      SET stripe_customer_id = :customerId
+      WHERE id = :id
+      """;
+
+    var params = Map.of(
+      "id", id,
+      "customerId", customerId
+    );
+
+    this.jdbc.update(sql, params);
+  }
+
+  public void savePaymentMethodId(String customerId, String paymentMethodId) {
+    var sql = """
+      UPDATE members
+      SET stripe_payment_method_id = :paymentMethodId
+      WHERE stripe_customer_id = :customerId
+      """;
+
+    var params = Map.of(
+      "customerId", customerId,
+      "paymentMethodId", paymentMethodId
+    );
+
+    this.jdbc.update(sql, params);
   }
 
   public List<Member> getMembers(GymBranchId gymBranchId) {
     var sql = """
-      SELECT m.id, m.name, m.first_surname, m.second_surname, m.email, m.gender, m.birth_date, m.postal_code
+      SELECT m.id, m.name, m.first_surname, m.second_surname, m.email, m.gender, m.birth_date, m.postal_code, m.gym_id
       FROM members m
       JOIN memberships ms ON m.id = ms.member_id
       JOIN membership_plan_branches mpb ON ms.membership_plan_id = mpb.membership_plan_id
@@ -47,17 +113,7 @@ public class MembersRepository {
       "gymBranchId", gymBranchId.branchId()
     );
 
-    return jdbc.query(sql, params, (rs, _) -> {
-      var id = rs.getString("id");
-      var name = rs.getString("name");
-      var firstSurname = rs.getString("first_surname");
-      var secondSurname = rs.getString("second_surname");
-      var email = rs.getString("email");
-      var gender = rs.getString("gender");
-      var birthDate = rs.getDate("birth_date").toLocalDate();
-      var postalCode = rs.getInt("postal_code");
-      return new Member(UUID.fromString(id), name, firstSurname, secondSurname, email, Gender.fromCode(gender), birthDate, postalCode);
-    });
+    return jdbc.queryForList(sql, params, Member.class);
   }
 
   public Map<MemberDistribution, List<String[]>> getDistribution(GymBranchId gymBranchId) {
@@ -114,7 +170,7 @@ public class MembersRepository {
   }
 
   private MemberAccess.Direction mapDirection(Integer direction) {
-    return switch(direction) {
+    return switch (direction) {
       case 0 -> MemberAccess.Direction.IN;
       case 1 -> MemberAccess.Direction.OUT;
       default -> throw new IllegalStateException("Unexpected value: " + direction);

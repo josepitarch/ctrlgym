@@ -31,4 +31,6 @@ public class Member {
 
   private Integer postalCode;
 
+  private Integer gymId;
+
 }

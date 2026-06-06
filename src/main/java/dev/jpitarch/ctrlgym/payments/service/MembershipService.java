@@ -140,8 +140,26 @@ public class MembershipService {
       .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
       .build();
 
-    Subscription.create(subscriptionParams, requestOptions);
-    membershipsRepository.initializeMembership(memberId, membershipId);
+    var subscription = Subscription.create(subscriptionParams, requestOptions);
+    membershipsRepository.initializeMembership(memberId, membershipId, subscription.getId());
+  }
+
+  public void cancelMembership(UUID memberId, String membershipId) throws StripeException {
+    if (!membershipsRepository.hasMembership(memberId, membershipId)) {
+      throw new IllegalStateException("Membership " + membershipId + " not found for member " + membershipId);
+    }
+
+    Integer gymId = membersRepository.getGymId(memberId);
+    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
+    String subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId, membershipId);
+
+    var requestOptions = RequestOptions.builder()
+      .setStripeAccount(stripeAccountId)
+      .build();
+
+    var subscription = Subscription.retrieve(subscriptionId, requestOptions);
+    subscription.cancel(SubscriptionCancelParams.builder().build(), requestOptions);
+    membershipsRepository.cancelMembership(memberId, membershipId);
   }
 
   private Membership.Recurring mapRecurring(String interval) {

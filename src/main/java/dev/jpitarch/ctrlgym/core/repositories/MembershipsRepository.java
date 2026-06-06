@@ -39,17 +39,33 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public void initializeMembership(UUID memberId, String membershipId) {
+  public void initializeMembership(UUID memberId, String membershipId, String subscriptionId) {
     var sql = """
-      INSERT INTO memberships (member_id, membership_plan_id, start_date)
-      VALUES (:memberId, :membershipId, :startDate)
+      INSERT INTO memberships (member_id, membership_plan_id, start_date, stripe_subscription_id)
+      VALUES (:memberId, :membershipId, :startDate, :stripeSubscriptionId)
       """;
 
     var params = Map.of(
       "memberId", memberId,
       "membershipId", membershipId,
-      "startDate", LocalDate.now()
+      "startDate", LocalDate.now(),
+      "stripeSubscriptionId", subscriptionId
     );
+    jdbc.update(sql, params);
+  }
+
+  public void cancelMembership(UUID memberId, String membershipId) {
+    var sql = """
+      UPDATE memberships
+      SET end_date = CURRENT_DATE
+      WHERE member_id = :memberId AND membership_plan_id = :membershipId
+      """;
+
+    var params = Map.of(
+      "memberId", memberId,
+      "membershipId", membershipId
+    );
+
     jdbc.update(sql, params);
   }
 
@@ -78,7 +94,21 @@ public class MembershipsRepository {
     var params = Map.of("id", id);
 
     return jdbc.queryForObject(sql, params, String.class);
+  }
 
+  public String getStripeSubscriptionId(UUID memberId, String membershipId) {
+    var sql = """
+        SELECT stripe_subscription_id
+        FROM memberships
+        WHERE member_id = :memberId AND membership_plan_id = :membershipId
+      """;
+
+    var params = Map.of(
+      "memberId", memberId,
+      "membershipId", membershipId
+    );
+
+    return jdbc.queryForObject(sql, params, String.class);
   }
 
   public List<Map<YearMonth, Integer>> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {

@@ -48,6 +48,12 @@ public class PaymentsController {
     return ResponseEntity.noContent().build();
   }
 
+  @DeleteMapping("/members/{memberId}/memberships/{membershipId}")
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId) throws StripeException {
+    membershipService.cancelMembership(memberId, membershipId);
+    return ResponseEntity.noContent().build();
+  }
+
   @PostMapping("/webhook")
   public ResponseEntity<String> handleWebhook(
     @RequestBody String payload,

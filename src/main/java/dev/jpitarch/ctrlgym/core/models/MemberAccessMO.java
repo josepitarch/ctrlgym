@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -13,7 +12,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "member_accesses")
-public class MemberAccess {
+public class MemberAccessMO {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

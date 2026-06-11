@@ -86,6 +86,24 @@ public class MembershipsRepository {
     return Optional.ofNullable(jdbc.queryForObject(sql, params, Integer.class)).orElse(0) > 0;
   }
 
+  public List<Integer> getMembership(UUID memberId, Integer gymId) {
+    var sql = """
+      SELECT mpb.branch_id
+      FROM memberships m
+      INNER JOIN membership_plans mp ON m.membership_plan_id = mp.id
+      INNER JOIN membership_plan_branches mpb ON mp.id = mpb.membership_plan_id
+      WHERE m.member_id = :memberId AND mp.gym_id = :gymId
+      AND m.start_date <= CURRENT_DATE AND (end_date IS NULL OR end_date >= CURRENT_DATE)
+      """;
+
+    var params = Map.of(
+      "memberId", memberId,
+      "gymId", gymId
+    );
+
+    return jdbc.queryForList(sql, params, Integer.class);
+  }
+
   public String getStripePriceId(String id) {
     var sql = """
       SELECT stripe_price_id

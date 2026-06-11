@@ -150,20 +150,18 @@ public class GenerateInvoiceReportService {
     </html>
     """;
 
-  public byte[] generate(Integer gymId, UUID invoiceId) {
-    var qrUrl = verifactuService.getStatus(gymId, invoiceId).getQr();
-    try {
+  public byte[] generate(Integer gymId, UUID invoiceId) throws IOException {
+    String qrUrl = verifactuService.getStatus(gymId, invoiceId).getQr();
 
+    try (var os = new ByteArrayOutputStream()) {
       var html = DEFAULT_HTML.replace("{{QR_CODE_BASE64}}", qrUrl);
-      try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-        PdfRendererBuilder builder = new PdfRendererBuilder();
-        builder.withHtmlContent(html, null);
-        builder.toStream(os);
-        builder.run();
-        return os.toByteArray();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to generate PDF", e);
+      var builder = new PdfRendererBuilder();
+      builder.withHtmlContent(html, null);
+      builder.toStream(os);
+      builder.run();
+      return os.toByteArray();
     }
+
   }
+
 }

@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @Setter
 @Entity
 @Table(name = "gym_branch_heartbeat")
-public class GymBranchHeartbeat {
+public class GymBranchHeartbeatMO {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")

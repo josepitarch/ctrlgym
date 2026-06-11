@@ -27,8 +27,8 @@ public class MembersController {
   }
 
   @PostMapping(value = "/members/{memberId}/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
-  public ResponseEntity<byte[]> generateQr(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID memberId) throws WriterException, IOException {
-    byte[] qrImage = membersService.generateQrCode(jwt.getClaims().get("email").toString());
+  public ResponseEntity<byte[]> generateQr(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID memberId, @RequestParam Integer gymId) throws WriterException, IOException {
+    byte[] qrImage = membersService.generateQrCode(memberId, gymId);
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
 

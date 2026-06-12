@@ -7,7 +7,7 @@ import dev.jpitarch.ctrlgym.verifactu.dto.StatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import java.util.UUID;
 
@@ -15,32 +15,29 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VerifactuService {
 
-  private final WebClient webClient;
+  private final RestClient restClient;
 
   private final GymsRepository gymsRepository;
 
   public CreateInvoiceResponse createInvoice(Integer gymId, CreateInvoiceRequest request, String idempotencyKey) {
     var apiKey = gymsRepository.getApiKey(gymId);
-    return webClient.post()
+    return restClient.post()
       .uri("/create")
       .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-      //.header("Idempotency-Key", idempotencyKey)
-      .bodyValue(request)
+      .body(request)
       .retrieve()
-      .bodyToMono(CreateInvoiceResponse.class)
-      .block();
+      .body(CreateInvoiceResponse.class);
   }
 
   public StatusResponse getStatus(Integer gymId, UUID uuid) {
     var apiKey = gymsRepository.getApiKey(gymId);
-    return webClient.get()
+    return restClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/status")
         .queryParam("uuid", uuid)
         .build())
       .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
       .retrieve()
-      .bodyToMono(StatusResponse.class)
-      .block();
+      .body(StatusResponse.class);
   }
 }

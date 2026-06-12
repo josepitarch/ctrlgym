@@ -29,7 +29,7 @@ public class MembersService {
     return membersRepository.getMemberAccessesByMemberId(memberId);
   }
 
-  public byte[] getInvoiceReport(UUID memberId, UUID invoiceId) {
+  public byte[] getInvoiceReport(UUID memberId, UUID invoiceId) throws IOException {
     return generateInvoiceReportService.generate(1, invoiceId);
   }
 

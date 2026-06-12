@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -19,28 +21,13 @@ import java.math.BigDecimal;
 public class RoutineDayExerciseMO {
 
   @Id
-  @Column(name = "routine_id", nullable = false)
-  private Integer routineId;
-
-  @Id
-  @Column(name = "day_number", nullable = false)
-  private Integer dayNumber;
-
-  @Id
   @Column(name = "exercise_id", nullable = false)
   private Integer exerciseId;
 
-  @MapsId("id")
-  @JoinColumns({
-    @JoinColumn(name = "routine_id",
-      referencedColumnName = "routine_id",
-      nullable = false),
-    @JoinColumn(name = "day_number",
-      referencedColumnName = "day_number",
-      nullable = false) })
+  @JoinColumn(name = "routine_id", referencedColumnName = "routine_id", nullable = false)
+  @JoinColumn(name = "day_number", referencedColumnName = "day_number", nullable = false)
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  private RoutineDayMO routineDaysMO;
+  private RoutineDayMO day;
 
   @Column(name = "position", nullable = false)
   private Short position;
@@ -64,12 +51,28 @@ public class RoutineDayExerciseMO {
     @Serial
     private static final long serialVersionUID = 942714046996821003L;
 
-    private Integer routineId;
-
-    private Integer dayNumber;
+    private RoutineDayMO day;
 
     private Integer exerciseId;
 
   }
 
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null) return false;
+    Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+    Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+    if (thisEffectiveClass != oEffectiveClass) return false;
+    RoutineDayExerciseMO that = (RoutineDayExerciseMO) o;
+    return getDay().getRoutine().getId() != null && Objects.equals(getDay().getRoutine().getId(), that.getDay().getRoutine().getId())
+      && getDay().getDayNumber() != null && Objects.equals(getDay().getDayNumber(), that.getDay().getDayNumber())
+      && getExerciseId() != null && Objects.equals(getExerciseId(), that.getExerciseId());
+  }
+
+
+  @Override
+  public final int hashCode() {
+    return Objects.hash(day.getRoutine().getId(), day.getDayNumber(), exerciseId);
+  }
 }

@@ -28,35 +28,25 @@ public class RoutinesRepository {
     routineMO.setGymId(gymId);
     routineMO.setCreatedAt(Instant.now());
 
-    List<RoutineDayMO> days = new ArrayList<>();
     if (routine.getDays() != null) {
       for (Routine.Day day : routine.getDays()) {
-        RoutineDayMO dayMO = new RoutineDayMO();
-        dayMO.setRoutineMO(routineMO);
+        var dayMO = new RoutineDayMO();
         dayMO.setDayNumber(day.getDayNumber().shortValue());
         dayMO.setName(day.getName());
 
-        List<RoutineDayExerciseMO> exercises = new ArrayList<>();
         if (day.getExercises() != null) {
           for (Routine.Day.Exercise exercise : day.getExercises()) {
-            RoutineDayExerciseMO exerciseMO = new RoutineDayExerciseMO();
-            exerciseMO.setRoutineDaysMO(dayMO);
+            var exerciseMO = new RoutineDayExerciseMO();
             exerciseMO.setExerciseId(exercise.getId());
             exerciseMO.setPosition(exercise.getPosition().shortValue());
-
-if (exercise.getSets() != null && !exercise.getSets().isEmpty()) {
-              Set firstSet = exercise.getSets().get(0);
-              exerciseMO.setSets((short) exercise.getSets().size());
-              exerciseMO.setReps(firstSet.getRepetition().shortValue());
-            }
-            exercises.add(exerciseMO);
+            exerciseMO.setSets((short) 4);
+            exerciseMO.setReps((short) 10);
+            dayMO.addExercise(exerciseMO);
           }
-          dayMO.setExercises(exercises);
         }
-        days.add(dayMO);
+        routineMO.addDay(dayMO);
       }
     }
-    routineMO.setDays(days);
 
     RoutineMO saved = routineJpaRepository.save(routineMO);
     return mapToDomain(saved);
@@ -74,22 +64,7 @@ if (exercise.getSets() != null && !exercise.getSets().isEmpty()) {
     if (routineMO.getDays() != null) {
       for (RoutineDayMO dayMO : routineMO.getDays()) {
         List<Routine.Day.Exercise> exercises = new ArrayList<>();
-        if (dayMO.getExercises() != null) {
-          for (RoutineDayExerciseMO exerciseMO : dayMO.getExercises()) {
-            List<Set> sets = new ArrayList<>();
-            for (int i = 0; i < exerciseMO.getSets(); i++) {
-              sets.add(Set.builder()
-                .number(i + 1)
-                .repetition(exerciseMO.getReps().intValue())
-                .build());
-            }
-            exercises.add(Routine.Day.Exercise.builder()
-              .id(exerciseMO.getExerciseId())
-              .position(exerciseMO.getPosition().intValue())
-              .sets(sets)
-              .build());
-          }
-        }
+
         days.add(Routine.Day.builder()
           .dayNumber(dayMO.getDayNumber().intValue())
           .name(dayMO.getName())

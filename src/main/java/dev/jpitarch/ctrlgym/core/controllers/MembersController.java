@@ -33,7 +33,7 @@ public class MembersController {
   }
 
   @GetMapping(value = "/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
-  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable UUID invoiceId) {
+  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable UUID invoiceId) throws IOException {
     byte[] pdfReport = membersService.getInvoiceReport(memberId, invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
   }

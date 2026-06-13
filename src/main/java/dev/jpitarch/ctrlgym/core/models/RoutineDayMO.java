@@ -63,12 +63,12 @@ public class RoutineDayMO {
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
     RoutineDayMO that = (RoutineDayMO) o;
-    return getRoutine().getId() != null && Objects.equals(getRoutine().getId(), that.getRoutine().getId())
+    return getRoutine() != null && Objects.equals(getRoutine(), that.getRoutine())
       && getDayNumber() != null && Objects.equals(getDayNumber(), that.getDayNumber());
   }
 
   @Override
   public final int hashCode() {
-    return Objects.hash(routine.getId(), dayNumber);
+    return Objects.hash(routine, dayNumber);
   }
 }

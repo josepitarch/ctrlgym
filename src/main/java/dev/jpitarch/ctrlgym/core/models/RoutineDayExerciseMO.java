@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serial;
@@ -24,6 +26,7 @@ public class RoutineDayExerciseMO {
   @Column(name = "exercise_id", nullable = false)
   private Integer exerciseId;
 
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "routine_id", referencedColumnName = "routine_id", nullable = false)
   @JoinColumn(name = "day_number", referencedColumnName = "day_number", nullable = false)
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -65,14 +68,13 @@ public class RoutineDayExerciseMO {
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
     RoutineDayExerciseMO that = (RoutineDayExerciseMO) o;
-    return getDay().getRoutine().getId() != null && Objects.equals(getDay().getRoutine().getId(), that.getDay().getRoutine().getId())
-      && getDay().getDayNumber() != null && Objects.equals(getDay().getDayNumber(), that.getDay().getDayNumber())
+    return getDay() != null && Objects.equals(getDay(), that.getDay())
       && getExerciseId() != null && Objects.equals(getExerciseId(), that.getExerciseId());
   }
 
 
   @Override
   public final int hashCode() {
-    return Objects.hash(day.getRoutine().getId(), day.getDayNumber(), exerciseId);
+    return Objects.hash(day, exerciseId);
   }
 }

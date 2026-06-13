@@ -7,6 +7,8 @@ import dev.jpitarch.ctrlgym.core.models.RoutineDayMO;
 import dev.jpitarch.ctrlgym.core.models.RoutineMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -53,10 +55,11 @@ public class RoutinesRepository {
   }
 
   public void deleteById(Integer id) {
-    RoutineMO routine = routineJpaRepository.findById(id)
-      .orElseThrow(() -> new IllegalArgumentException("Routine not found with id: " + id));
-    routine.setDeletedAt(LocalDate.now());
-    routineJpaRepository.save(routine);
+    routineJpaRepository.deleteById(id);
+  }
+
+  public Page<Routine> findByMemberId(UUID memberId, Pageable pageable) {
+    return routineJpaRepository.findByMemberId(memberId, pageable).map(this::mapToDomain);
   }
 
   private Routine mapToDomain(RoutineMO routineMO) {

@@ -3,6 +3,8 @@ package dev.jpitarch.ctrlgym.core.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.Instant;
@@ -41,6 +43,7 @@ public class RoutineMO {
   @Column(name = "deleted_at")
   private LocalDate deletedAt;
 
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RoutineDayMO> days = new ArrayList<>();
 

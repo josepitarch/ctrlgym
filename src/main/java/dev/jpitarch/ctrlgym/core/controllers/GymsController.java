@@ -10,14 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/gyms")
 @RequiredArgsConstructor
+@RequestMapping("/v1/gyms")
 public class GymsController {
 
   private final RoutinesService routinesService;
 
   @PostMapping("/{gymId}/routines")
-  public ResponseEntity<Routine> create(@PathVariable Integer gymId, @RequestBody MembersController.RoutineRequest request) {
+  public ResponseEntity<Void> create(@PathVariable Integer gymId, @RequestBody MembersController.RoutineRequest request) {
     Routine routine = request.routine();
     routinesService.create(routine, gymId);
 

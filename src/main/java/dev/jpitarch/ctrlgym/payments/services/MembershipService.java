@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.payments.service;
+package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;

@@ -45,6 +45,19 @@ public class MembersRepository {
     return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
   }
 
+  public UUID getId(String stripeCustomerId) {
+    var sql = """
+        SELECT id
+        FROM members
+        WHERE stripe_customer_id = :stripeCustomerId
+      """;
+
+    var params = Map.of("stripeCustomerId", stripeCustomerId);
+
+    return this.jdbc.queryForObject(sql, params, UUID.class);
+
+  }
+
   public Optional<String> getPaymentMethodId(UUID id) {
     var sql = """
       SELECT stripe_payment_method_id

@@ -3,8 +3,8 @@ package dev.jpitarch.ctrlgym.payments.controllers;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.payments.dto.*;
-import dev.jpitarch.ctrlgym.payments.service.MembershipService;
-import dev.jpitarch.ctrlgym.payments.service.WebhookService;
+import dev.jpitarch.ctrlgym.payments.services.MembershipService;
+import dev.jpitarch.ctrlgym.payments.services.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +58,7 @@ public class MembershipsController {
     @RequestBody String payload,
     @RequestHeader("Stripe-Signature") String signature) {
     try {
-      webhookService.processWebhook(payload, signature);
+      webhookService.process(payload, signature);
       return ResponseEntity.ok("Webhook processed successfully");
     } catch (Exception e) {
       log.error("Failed to process webhook", e);

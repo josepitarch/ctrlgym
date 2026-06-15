@@ -36,5 +36,16 @@ public class GymsRepository {
 
   }
 
+  public Integer getId(String stripeAccountId) {
+    var sql = """
+        SELECT id
+        FROM gyms
+        WHERE stripe_account_id = :stripeAccountId
+      """;
+
+    var params = Map.of("stripeAccountId", stripeAccountId);
+
+    return this.jdbc.queryForObject(sql, params, Integer.class);
+  }
 
 }

@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.payments.service.CustomerService;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/v1/customers")
 @RequiredArgsConstructor
+@RequestMapping("/v1/customers")
 public class CustomersController {
 
   private final CustomerService customerService;

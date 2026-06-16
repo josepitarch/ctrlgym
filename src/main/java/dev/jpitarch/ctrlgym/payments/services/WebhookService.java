@@ -8,7 +8,6 @@ import com.stripe.model.SetupIntent;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
-import dev.jpitarch.ctrlgym.payments.repositories.jpa.PaymentJpaRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +31,12 @@ public class WebhookService {
   private static final String WEBHOOK_EVENTS_DIR = "webhook-events";
 
   private static final Set<String> SUPPORTED_EVENTS = Set.of(
-      "setup_intent.created",
-      "setup_intent.succeeded",
-      "invoice.created",
-      "payment_intent.processing",
-      "invoice.payment_succeeded",
-      "invoice.payment_failed"
+    "setup_intent.created",
+    "setup_intent.succeeded",
+    "invoice.created",
+    "payment_intent.processing",
+    "invoice.payment_succeeded",
+    "invoice.payment_failed"
   );
 
   @Value("${stripe.whsec-account}")
@@ -53,14 +52,14 @@ public class WebhookService {
       Path dir = Paths.get(WEBHOOK_EVENTS_DIR);
       if (Files.exists(dir)) {
         Files.walk(dir)
-            .sorted(Comparator.reverseOrder())
-            .forEach(p -> {
-              try {
-                Files.delete(p);
-              } catch (IOException e) {
-                log.warn("Failed to delete {}", p);
-              }
-            });
+          .sorted(Comparator.reverseOrder())
+          .forEach(p -> {
+            try {
+              Files.delete(p);
+            } catch (IOException e) {
+              log.warn("Failed to delete {}", p);
+            }
+          });
         log.info("Cleared webhook events directory");
       }
     } catch (IOException e) {
@@ -76,18 +75,16 @@ public class WebhookService {
       throw new IllegalArgumentException("Invalid webhook signature", e);
     }
 
-    //log.info("Event received: {}", event);
-    log.info("{}: {}", event.getType(), map(event).getClass().getName());
 
     String eventType = event.getType();
     if (SUPPORTED_EVENTS.contains(eventType)) {
-      writeEventToFile(event);
+      //writeEventToFile(event);
     }
 
     switch (eventType) {
       case "setup_intent.created" -> handleSetupIntentCreated(map(event));
       case "setup_intent.succeeded" -> handleSetupIntentSucceeded(map(event));
-      case "invoice.created" -> handleInvoiceCreated(map(event));
+      case "invoice.created" -> handleInvoiceCreated(map(event), event.getAccount());
       case "payment_intent.processing" -> handlePaymentIntentProcessing(map(event));
       case "invoice.payment_succeeded" -> handlePaymentSucceeded(map(event));
       case "invoice.payment_failed" -> handlePaymentFailed(map(event));
@@ -104,25 +101,25 @@ public class WebhookService {
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
-  private void handleInvoiceCreated(Invoice invoice) {
-    log.info("Invoice with id {} is created", invoice.getId());
+  private void handleInvoiceCreated(Invoice invoice, String accountId) {
+    log.info("Creating invoice with id {}...", invoice.getId());
     invoiceRepository.create(invoice);
   }
 
   private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) {
-    log.info("PaymentIntent with id {} is processing", paymentIntent.getId());
+    log.info("Marking invoice with {} as processing...", paymentIntent.getPaymentDetails().getOrderReference());
 
     invoiceRepository.markAsProcessing(paymentIntent);
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {
-    log.info("Payment with id {} is succeeded", invoice.getId());
+    log.info("Marking invoice with id {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice);
   }
 
   private void handlePaymentFailed(Invoice invoice) {
     //TODO: push notification
-    log.info("Payment with id {} is failed", invoice.getId());
+    log.info("Marking invoice with id {} failed...", invoice.getId());
     invoiceRepository.markAsFailed(invoice);
   }
 

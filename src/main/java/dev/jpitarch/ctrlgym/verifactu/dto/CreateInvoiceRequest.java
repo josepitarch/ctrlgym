@@ -14,84 +14,95 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateInvoiceRequest {
 
+  @JsonProperty("serie")
   private String serie;
 
+  @JsonProperty("numero")
   private String numero;
 
-  private String fecha_expedicion;
+  @JsonProperty("fecha_expedicion")
+  private String expeditionDate;
 
-  private String tipo_factura;
+  @JsonProperty("tipo_factura")
+  private String invoiceType;
 
-  private String descripcion;
+  @JsonProperty("descripcion")
+  private String description;
 
-  private List<LineaFactura> lineas;
+  @JsonProperty("lineas")
+  private List<Line> lines;
 
   @JsonProperty("importe_total")
-  private String importeTotal;
+  private String totalAmount;
 
   @JsonProperty("fecha_operacion")
-  private String fechaOperacion;
+  private String operationDate;
 
+  @JsonProperty("nif")
   private String nif;
 
   @JsonProperty("id_otro")
-  private IdOtro idOtro;
+  private IdOtro otherId;
 
-  private String nombre;
+  @JsonProperty("nombre")
+  private String name;
 
   @JsonProperty("validar_destinatario")
-  private Boolean validarDestinatario;
+  private Boolean validateRecipient;
 
   @JsonProperty("tipo_rectificativa")
-  private String tipoRectificativa;
+  private String correctiveType;
 
   @JsonProperty("importe_rectificativa")
-  private ImporteRectificativa importeRectificativa;
+  private ImporteRectificativa correctiveAmount;
 
   @JsonProperty("facturas_rectificadas")
-  private List<FacturaRectificada> facturasRectificadas;
+  private List<FacturaRectificada> correctedInvoices;
 
   @JsonProperty("facturas_sustituidas")
-  private List<FacturaSustituida> facturasSustituidas;
+  private List<FacturaSustituida> substitutedInvoices;
 
-  private String incidencia;
+  @JsonProperty("incidencia")
+  private String incident;
 
-  private Especial especial;
+  @JsonProperty("especial")
+  private Especial special;
 
   @Data
   @Builder
   @NoArgsConstructor
   @AllArgsConstructor
-  public static class LineaFactura {
+  public static class Line {
 
     @JsonProperty("base_imponible")
-    private String baseImponible;
+    private String taxableBase;
 
     @JsonProperty("tipo_impositivo")
-    private String tipoImpositivo;
+    private String taxRate;
 
     @JsonProperty("cuota_repercutida")
-    private String cuotaRepercutida;
+    private String repercussedQuota;
 
-    private String impuesto;
+    @JsonProperty("impuesto")
+    private String tax;
 
     @JsonProperty("calificacion_operacion")
-    private String calificacionOperacion;
+    private String operationClassification;
 
     @JsonProperty("clave_regimen")
-    private String claveRegimen;
+    private String regimeKey;
 
     @JsonProperty("operacion_exenta")
-    private String operacionExenta;
+    private String exemptOperation;
 
     @JsonProperty("base_imponible_a_coste")
-    private String baseImponibleACoste;
+    private String taxableBaseAtCost;
 
     @JsonProperty("tipo_recargo_equivalencia")
-    private String tipoRecargoEquivalencia;
+    private String equivalenceSurchargeRate;
 
     @JsonProperty("cuota_recargo_equivalencia")
-    private String cuotaRecargoEquivalencia;
+    private String equivalenceSurchargeQuota;
   }
 
   @Data
@@ -100,11 +111,12 @@ public class CreateInvoiceRequest {
   @AllArgsConstructor
   public static class IdOtro {
     @JsonProperty("codigo_pais")
-    private String codigoPais;
+    private String countryCode;
 
     @JsonProperty("id_type")
     private String idType;
 
+    @JsonProperty("id")
     private String id;
   }
 
@@ -114,13 +126,13 @@ public class CreateInvoiceRequest {
   @AllArgsConstructor
   public static class ImporteRectificativa {
     @JsonProperty("base_rectificada")
-    private String baseRectificada;
+    private String correctedBase;
 
     @JsonProperty("cuota_rectificada")
-    private String cuotaRectificada;
+    private String correctedQuota;
 
     @JsonProperty("cuota_recargo_rectificada")
-    private String cuotaRecargoRectificada;
+    private String correctedEquivalenceSurcharge;
   }
 
   @Data
@@ -128,11 +140,13 @@ public class CreateInvoiceRequest {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class FacturaRectificada {
+    @JsonProperty("serie")
     private String serie;
+    @JsonProperty("numero")
     private String numero;
 
     @JsonProperty("fecha_expedicion")
-    private String fechaExpedicion;
+    private String expeditionDate;
   }
 
   @Data
@@ -140,11 +154,13 @@ public class CreateInvoiceRequest {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class FacturaSustituida {
+    @JsonProperty("serie")
     private String serie;
+    @JsonProperty("numero")
     private String numero;
 
     @JsonProperty("fecha_expedicion")
-    private String fechaExpedicion;
+    private String expeditionDate;
   }
 
   @Data
@@ -152,24 +168,25 @@ public class CreateInvoiceRequest {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class Especial {
-    private String cupon;
+    @JsonProperty("cupon")
+    private String coupon;
 
     @JsonProperty("factura_simplificada_art_7273")
-    private String facturaSimplificadaArt7273;
+    private String simplifiedInvoiceArt7273;
 
     @JsonProperty("factura_sin_identif_destinatario_art_61d")
-    private String facturaSinIdentifDestinatarioArt61d;
+    private String invoiceWithoutRecipientIdArt61d;
 
     @JsonProperty("emitida_por_tercero_o_destinatario")
-    private String emitidaPorTerceroODestinatario;
+    private String issuedByThirdPartyOrRecipient;
 
     @JsonProperty("nombre_tercero")
-    private String nombreTercero;
+    private String thirdPartyName;
 
     @JsonProperty("nif_tercero")
-    private String nifTercero;
+    private String thirdPartyNif;
 
     @JsonProperty("id_otro_tercero")
-    private IdOtro idOtroTercero;
+    private IdOtro thirdPartyOtherId;
   }
 }

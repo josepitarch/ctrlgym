@@ -21,7 +21,7 @@ public class Member {
 
   private String firstSurname;
 
-  private String lastSurname;
+  private String secondSurname;
 
   private String email;
 

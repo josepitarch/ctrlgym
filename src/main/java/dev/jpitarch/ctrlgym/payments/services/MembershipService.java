@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +32,19 @@ public class MembershipService {
   private final MembershipsRepository membershipsRepository;
 
   private final CustomerService customerService;
+
+  public void createTaxRate() throws StripeException {
+    var taxRateParams = TaxRateCreateParams.builder()
+      .setDisplayName("IVA")
+      .setPercentage(new BigDecimal("21"))
+      .setInclusive(true)
+      .setCountry("ES")
+      .setJurisdiction("ES")
+      .setDescription("IVA español 21%")
+      .build();
+
+    TaxRate.create(taxRateParams);
+  }
 
   public void createMembership(GymBranchId gymBranchId, String membershipName, double amount) throws StripeException {
 
@@ -50,7 +64,7 @@ public class MembershipService {
     var priceParams = PriceCreateParams.builder()
       .setProduct(product.getId())
       .setCurrency("eur")
-      .setUnitAmountDecimal(BigDecimal.valueOf(amount)) //TODO: en Stripe se crea como 0.30€
+      .setUnitAmountDecimal(BigDecimal.valueOf(amount * 100)) //Stripe trabaja con céntimos
       .setRecurring(
         PriceCreateParams.Recurring.builder()
           .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
@@ -136,6 +150,7 @@ public class MembershipService {
       )
       .setBillingCycleAnchor(billingAnchorTimestamp)
       .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
+      .setMetadata(Map.of("gymId", gymId.toString()))
       .build();
 
     var subscription = Subscription.create(subscriptionParams, requestOptions);

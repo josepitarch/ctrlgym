@@ -6,22 +6,17 @@ import com.stripe.model.Invoice;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.SetupIntent;
 import com.stripe.net.Webhook;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.payments.models.InvoiceMO;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.Set;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -30,15 +25,6 @@ public class WebhookService {
 
   private static final String WEBHOOK_EVENTS_DIR = "webhook-events";
 
-  private static final Set<String> SUPPORTED_EVENTS = Set.of(
-    "setup_intent.created",
-    "setup_intent.succeeded",
-    "invoice.created",
-    "payment_intent.processing",
-    "invoice.payment_succeeded",
-    "invoice.payment_failed"
-  );
-
   @Value("${stripe.whsec-account}")
   private String webhookSecret;
 
@@ -46,27 +32,10 @@ public class WebhookService {
 
   private final InvoiceRepository invoiceRepository;
 
-  @PostConstruct
-  public void clearWebhookEventsDirectory() {
-    try {
-      Path dir = Paths.get(WEBHOOK_EVENTS_DIR);
-      if (Files.exists(dir)) {
-        Files.walk(dir)
-          .sorted(Comparator.reverseOrder())
-          .forEach(p -> {
-            try {
-              Files.delete(p);
-            } catch (IOException e) {
-              log.warn("Failed to delete {}", p);
-            }
-          });
-        log.info("Cleared webhook events directory");
-      }
-    } catch (IOException e) {
-      log.warn("Failed to clear webhook events directory", e);
-    }
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
+  @Transactional
+  @Retryable(delay = 500, maxRetries = 3)
   public void process(String payload, String signatureHeader) {
     Event event;
     try {
@@ -75,16 +44,10 @@ public class WebhookService {
       throw new IllegalArgumentException("Invalid webhook signature", e);
     }
 
-
-    String eventType = event.getType();
-    if (SUPPORTED_EVENTS.contains(eventType)) {
-      //writeEventToFile(event);
-    }
-
-    switch (eventType) {
+    switch (event.getType()) {
       case "setup_intent.created" -> handleSetupIntentCreated(map(event));
       case "setup_intent.succeeded" -> handleSetupIntentSucceeded(map(event));
-      case "invoice.created" -> handleInvoiceCreated(map(event), event.getAccount());
+      case "invoice.finalized" -> handleInvoiceCreated(map(event), event.getAccount());
       case "payment_intent.processing" -> handlePaymentIntentProcessing(map(event));
       case "invoice.payment_succeeded" -> handlePaymentSucceeded(map(event));
       case "invoice.payment_failed" -> handlePaymentFailed(map(event));
@@ -103,18 +66,23 @@ public class WebhookService {
 
   private void handleInvoiceCreated(Invoice invoice, String accountId) {
     log.info("Creating invoice with id {}...", invoice.getId());
-    invoiceRepository.create(invoice);
+    invoiceRepository.create(invoice, accountId);
   }
 
   private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) {
     log.info("Marking invoice with {} as processing...", paymentIntent.getPaymentDetails().getOrderReference());
-
     invoiceRepository.markAsProcessing(paymentIntent);
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {
     log.info("Marking invoice with id {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice);
+
+    var invoiceMO = invoiceRepository
+      .getInvoice(invoice.getId())
+      .orElseThrow(() -> new IllegalArgumentException("Invoice with id " + invoice.getId() + " does not exist"));
+
+    eventPublisher.publishEvent(this.mapToInvoice(invoiceMO));
   }
 
   private void handlePaymentFailed(Invoice invoice) {
@@ -123,23 +91,25 @@ public class WebhookService {
     invoiceRepository.markAsFailed(invoice);
   }
 
-  private void writeEventToFile(Event event) {
-    try {
-      Path dir = Paths.get(WEBHOOK_EVENTS_DIR);
-      Files.createDirectories(dir);
-      String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
-      String filename = String.format("%s_%s.json", event.getType(), timestamp);
-      Path filePath = dir.resolve(filename);
-      Files.writeString(filePath, event.toJson());
-      log.info("Webhook event written to {}", filePath);
-    } catch (IOException e) {
-      log.error("Failed to write webhook event to file", e);
-    }
-  }
-
   @SuppressWarnings("unchecked")
   private <T> T map(Event event) {
     return (T) event.getDataObjectDeserializer().getObject().orElseThrow();
+  }
+
+  private dev.jpitarch.ctrlgym.core.domain.Invoice mapToInvoice(InvoiceMO invoiceMO) {
+    Member member = membersRepository.getById(invoiceMO.getMemberId());
+    return dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
+      .name(member.getName())
+      .firstSurname(member.getFirstSurname())
+      .secondSurname(member.getSecondSurname())
+      .nif("45911747K") //TODO
+      .series(invoiceMO.getSeries())
+      .number(invoiceMO.getNumber())
+      .issueAt(invoiceMO.getIssueAt())
+      .subtotal(invoiceMO.getSubtotal())
+      .tax(invoiceMO.getTax())
+      .total(invoiceMO.getTotal())
+      .build();
   }
 
 }

@@ -31,8 +31,11 @@ public class InvoiceMO {
   @Column(name = "member_id", nullable = false)
   private UUID memberId;
 
-  @Column(name = "invoice_number", nullable = false, length = 50)
-  private String invoiceNumber;
+  @Column(name = "series", nullable = false, length = 20)
+  private String series;
+
+  @Column(name = "number", nullable = false, length = 20)
+  private String number;
 
   @Column(name = "issue_at", nullable = false)
   private LocalDate issueAt;
@@ -63,6 +66,12 @@ public class InvoiceMO {
 
   @Column(name = "updated_at")
   private OffsetDateTime updatedAt;
+
+  @Column(name = "verifactu_id")
+  private UUID verifactuId;
+
+  @Column(name = "stripe_invoice_number", nullable = false, length = 50)
+  private String stripeInvoiceNumber;
 
   @Override
   public final boolean equals(Object o) {

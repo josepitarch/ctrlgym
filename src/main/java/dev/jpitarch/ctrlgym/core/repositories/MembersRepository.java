@@ -3,7 +3,6 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
-import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberDistribution;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,14 +22,22 @@ public class MembersRepository {
 
   public Member getById(UUID id) {
     var sql = """
-      SELECT *
+      SELECT id, gym_id, email, name, first_surname, second_surname, avatar_url, gender, birth_date, postal_code, created_at, stripe_customer_id, stripe_payment_method_id
       FROM members
       WHERE id = :id
       """;
 
     var params = Map.of("id", id);
 
-    return jdbc.queryForObject(sql, params, Member.class);
+    return jdbc.queryForObject(sql, params, (rs, _) -> Member.builder()
+      .id(UUID.fromString(rs.getString("id")))
+      .gymId(rs.getInt("gym_id"))
+      .email(rs.getString("email"))
+      .name(rs.getString("name"))
+      .firstSurname(rs.getString("first_surname"))
+      .secondSurname(rs.getString("second_surname"))
+      .build()
+    );
   }
 
   public Optional<String> getStripeCustomerId(UUID id) {

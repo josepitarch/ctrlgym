@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.google.zxing.WriterException;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +22,16 @@ public class MembersService {
   private final GenerateInvoiceReportService generateInvoiceReportService;
 
 
-  public byte[] generateQrCode(UUID memberId, Integer gymId) throws WriterException, IOException {
-    return generateAccessQrService.generateQrCode(memberId, gymId);
+  public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
+    return generateAccessQrService.generateQrCode(memberId);
   }
 
-  public List<MemberAccess> getAccesses(UUID memberId) {
+  public List<MemberAccess> getAccesses(Member.Id memberId) {
     return membersRepository.getMemberAccessesByMemberId(memberId);
   }
 
-  public byte[] getInvoiceReport(UUID memberId, UUID invoiceId) throws IOException {
-    return generateInvoiceReportService.generate(1, invoiceId);
+  public byte[] getInvoiceReport(Member.Id memberId, UUID invoiceId) throws IOException {
+    return generateInvoiceReportService.generate(memberId, invoiceId);
   }
 
 }

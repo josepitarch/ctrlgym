@@ -1,9 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.Cohort;
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
+import dev.jpitarch.ctrlgym.core.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -39,14 +36,15 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public void initializeMembership(UUID memberId, String membershipId, String subscriptionId) {
+  public void initializeMembership(Member.Id memberId, String membershipId, String subscriptionId) {
     var sql = """
-      INSERT INTO memberships (member_id, membership_plan_id, start_date, stripe_subscription_id)
-      VALUES (:memberId, :membershipId, :startDate, :stripeSubscriptionId)
+      INSERT INTO memberships (member_id, gym_id, membership_plan_id, start_date, stripe_subscription_id)
+      VALUES (:memberId, :gymId, :membershipId, :startDate, :stripeSubscriptionId)
       """;
 
     var params = Map.of(
-      "memberId", memberId,
+      "memberId", memberId.id(),
+      "gymId", memberId.gymId(),
       "membershipId", membershipId,
       "startDate", LocalDate.now(),
       "stripeSubscriptionId", subscriptionId
@@ -54,15 +52,16 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public void cancelMembership(UUID memberId, String membershipId, Integer cancellationReasonId) {
+  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) {
     var sql = """
       UPDATE memberships
       SET end_date = CURRENT_DATE, cancellation_reason_id = :cancellationReasonId
-      WHERE member_id = :memberId AND membership_plan_id = :membershipId
+      WHERE member_id = :memberId AND gym_id = :gymId AND membership_plan_id = :membershipId
       """;
 
     var params = Map.of(
-      "memberId", memberId,
+      "memberId", memberId.id(),
+      "gymId", memberId.gymId(),
       "membershipId", membershipId,
       "cancellationReasonId", cancellationReasonId
     );
@@ -70,23 +69,24 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public boolean hasMembership(UUID memberId, String membershipId) {
+  public boolean hasMembership(Member.Id memberId, String membershipId) {
     var sql = """
       SELECT COUNT(1)
       FROM memberships
-      WHERE member_id = :memberId AND membership_plan_id = :membershipId
+      WHERE member_id = :memberId AND gym_id = :gymId AND membership_plan_id = :membershipId
       AND start_date <= CURRENT_DATE AND (end_date IS NULL OR end_date >= CURRENT_DATE)
       """;
 
     var params = Map.of(
-      "memberId", memberId,
+      "memberId", memberId.id(),
+      "gymId", memberId.gymId(),
       "membershipId", membershipId
     );
 
     return Optional.ofNullable(jdbc.queryForObject(sql, params, Integer.class)).orElse(0) > 0;
   }
 
-  public List<Integer> getMembership(UUID memberId, Integer gymId) {
+  public List<Integer> getMembership(Member.Id memberId) {
     var sql = """
       SELECT mpb.branch_id
       FROM memberships m
@@ -97,8 +97,8 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId,
-      "gymId", gymId
+      "memberId", memberId.id(),
+      "gymId", memberId.gymId()
     );
 
     return jdbc.queryForList(sql, params, Integer.class);
@@ -115,15 +115,16 @@ public class MembershipsRepository {
     return jdbc.queryForObject(sql, params, String.class);
   }
 
-  public String getStripeSubscriptionId(UUID memberId, String membershipId) {
+  public String getStripeSubscriptionId(Member.Id memberId, String membershipId) {
     var sql = """
         SELECT stripe_subscription_id
         FROM memberships
-        WHERE member_id = :memberId AND membership_plan_id = :membershipId
+        WHERE member_id = :memberId AND gym_id = :gymId AND membership_plan_id = :membershipId
       """;
 
     var params = Map.of(
-      "memberId", memberId,
+      "memberId", memberId.id(),
+      "gymId", memberId.gymId(),
       "membershipId", membershipId
     );
 

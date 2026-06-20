@@ -91,7 +91,7 @@ public class InvoiceRepository {
     var invoiceMO = new InvoiceMO();
     invoiceMO.setId(invoice.getId());
     invoiceMO.setGymId(gymId);
-    invoiceMO.setMemberId(membersRepository.getId(invoice.getCustomer()));
+    invoiceMO.setMemberId(membersRepository.getId(invoice.getCustomer()).id());
     invoiceMO.setSeries(series);
     invoiceMO.setNumber(this.nextNumber(gymId, series).toString());
     invoiceMO.setStripeInvoiceNumber(invoice.getNumber());

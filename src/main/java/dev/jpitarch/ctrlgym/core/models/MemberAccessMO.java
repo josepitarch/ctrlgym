@@ -25,6 +25,10 @@ public class MemberAccessMO {
   @JsonProperty("user_id")
   private UUID memberId;
 
+  @Column(name = "gym_id")
+  @JsonProperty("gym_id")
+  private Integer gymId;
+
   @Column(name = "direction")
   @JsonProperty("direction")
   private Integer direction;

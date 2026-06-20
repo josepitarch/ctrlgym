@@ -25,9 +25,9 @@ public class CustomerService {
 
   private final MembersRepository membersRepository;
 
-  public String create(UUID memberId) throws StripeException {
+  public String create(Member.Id memberId) throws StripeException {
     Member member = membersRepository.getById(memberId);
-    Integer gymId = member.getGymId();
+    Integer gymId = member.getId().gymId();
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(gymsRepository.getStripeAccountId(gymId))

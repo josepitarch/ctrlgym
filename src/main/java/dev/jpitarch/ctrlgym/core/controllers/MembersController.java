@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.google.zxing.WriterException;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.domain.Workout;
@@ -33,8 +34,8 @@ public class MembersController {
   private final RoutinesService routinesService;
 
   @GetMapping(value = "/{memberId}/accesses")
-  public List<MemberAccess> getAccesses(@PathVariable UUID memberId) {
-    return membersService.getAccesses(memberId);
+  public List<MemberAccess> getAccesses(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return membersService.getAccesses(Member.Id.of(memberId, gymId));
   }
 
   @PostMapping("/{memberId}/routines")
@@ -68,13 +69,13 @@ public class MembersController {
 
   @PostMapping(value = "/{memberId}/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
   public ResponseEntity<byte[]> generateQr(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID memberId, @RequestParam Integer gymId) throws WriterException, IOException {
-    byte[] qrImage = membersService.generateQrCode(memberId, gymId);
+    byte[] qrImage = membersService.generateQrCode(Member.Id.of(memberId, gymId));
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
 
   @GetMapping(value = "/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
-  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable UUID invoiceId) throws IOException {
-    byte[] pdfReport = membersService.getInvoiceReport(memberId, invoiceId);
+  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable UUID invoiceId, @RequestParam Integer gymId) throws IOException {
+    byte[] pdfReport = membersService.getInvoiceReport(Member.Id.of(memberId, gymId), invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
   }
 

@@ -99,6 +99,7 @@ public class WebhookService {
   private dev.jpitarch.ctrlgym.core.domain.Invoice mapToInvoice(InvoiceMO invoiceMO) {
     Member member = membersRepository.getById(invoiceMO.getMemberId());
     return dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
+      .id(invoiceMO.getId())
       .name(member.getName())
       .firstSurname(member.getFirstSurname())
       .secondSurname(member.getSecondSurname())

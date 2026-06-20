@@ -20,18 +20,20 @@ public class MembersRepository {
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
-  public Member getById(UUID id) {
+  public Member getById(Member.Id memberId) {
     var sql = """
       SELECT id, gym_id, email, name, first_surname, second_surname, avatar_url, gender, birth_date, postal_code, created_at, stripe_customer_id, stripe_payment_method_id
       FROM members
-      WHERE id = :id
+      WHERE id = :id AND gym_id = :gymId
       """;
 
-    var params = Map.of("id", id);
+    var params = Map.of(
+      "id", memberId.id(),
+      "gymId", memberId.gymId()
+    );
 
     return jdbc.queryForObject(sql, params, (rs, _) -> Member.builder()
-      .id(UUID.fromString(rs.getString("id")))
-      .gymId(rs.getInt("gym_id"))
+      .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
       .email(rs.getString("email"))
       .name(rs.getString("name"))
       .firstSurname(rs.getString("first_surname"))
@@ -40,39 +42,48 @@ public class MembersRepository {
     );
   }
 
-  public Optional<String> getStripeCustomerId(UUID id) {
+  public Optional<String> getStripeCustomerId(Member.Id memberId) {
     var sql = """
       SELECT stripe_customer_id
       FROM members
-      WHERE id = :id
+      WHERE id = :id  AND gym_id = :gymId
       """;
 
-    var params = Map.of("id", id);
+    var params = Map.of(
+      "id", memberId.id(),
+      "gymId", memberId.gymId()
+    );
 
     return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
   }
 
-  public UUID getId(String stripeCustomerId) {
+  public Member.Id getId(String stripeCustomerId) {
     var sql = """
-        SELECT id
+        SELECT id, gym_id
         FROM members
         WHERE stripe_customer_id = :stripeCustomerId
       """;
 
     var params = Map.of("stripeCustomerId", stripeCustomerId);
 
-    return this.jdbc.queryForObject(sql, params, UUID.class);
+    return this.jdbc.queryForObject(sql, params, (rs, _) -> Member.Id.of(
+      UUID.fromString(rs.getString("id")),
+      rs.getInt("gym_id"))
+    );
 
   }
 
-  public Optional<String> getPaymentMethodId(UUID id) {
+  public Optional<String> getPaymentMethodId(Member.Id id) {
     var sql = """
       SELECT stripe_payment_method_id
       FROM members
-      WHERE id = :id
+      WHERE id = :id AND gym_id = :gymId
       """;
 
-    var params = Map.of("id", id);
+    var params = Map.of(
+      "id", id,
+      "gymId", id.gymId()
+    );
 
     return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
   }
@@ -89,15 +100,16 @@ public class MembersRepository {
     return this.jdbc.queryForObject(sql, params, Integer.class);
   }
 
-  public void saveCustomerId(UUID id, String customerId) {
+  public void saveCustomerId(Member.Id memberId, String customerId) {
     var sql = """
       UPDATE members
       SET stripe_customer_id = :customerId
-      WHERE id = :id
+      WHERE id = :id AND gym_id = :gymId
       """;
 
     var params = Map.of(
-      "id", id,
+      "id", memberId.id(),
+      "gymId", memberId.gymId(),
       "customerId", customerId
     );
 
@@ -156,7 +168,7 @@ public class MembersRepository {
       );
       """;
 
-    return jdbc.query(sql, (rs, rowNum) -> new String[]{
+    return jdbc.query(sql, (rs, _) -> new String[]{
       rs.getString("gender"),
       rs.getString("postal_code"),
       rs.getString("age_range"),
@@ -177,8 +189,8 @@ public class MembersRepository {
     ));
   }
 
-  public List<MemberAccess> getMemberAccessesByMemberId(UUID memberId) {
-    return memberAccessJpaRepository.findByMemberId(memberId)
+  public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
+    return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.id(), memberId.gymId())
       .stream()
       .map(memberAccess -> MemberAccess.builder()
         .branchId(memberAccess.getGymBranchId())

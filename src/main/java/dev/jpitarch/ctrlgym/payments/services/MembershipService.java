@@ -5,6 +5,7 @@ import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
@@ -77,9 +78,8 @@ public class MembershipService {
     membershipsRepository.createMembershipPlan(product.getId(), gymBranchId, product.getName(), price.getId(), price.getUnitAmountDecimal().doubleValue(), mapRecurring(price.getRecurring().getInterval()));
   }
 
-  public SetupIntentResponse createSetupIntent(UUID memberId) throws StripeException {
-    Integer gymId = membersRepository.getGymId(memberId);
-    String accountId = gymsRepository.getStripeAccountId(gymId);
+  public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
+    String accountId = gymsRepository.getStripeAccountId(memberId.gymId());
     String customerId = membersRepository.getStripeCustomerId(memberId).orElseGet(() -> {
       try {
         return customerService.create(memberId);
@@ -103,13 +103,12 @@ public class MembershipService {
     return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
   }
 
-  public void initializeMembership(UUID memberId, String membershipId) throws StripeException {
+  public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
     if (membershipsRepository.hasMembership(memberId, membershipId)) {
       throw new IllegalStateException("Member " + memberId + " already has membership " + membershipId);
     }
 
-    Integer gymId = membersRepository.getGymId(memberId);
-    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
+    String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
     String stripePriceId = membershipsRepository.getStripePriceId(membershipId);
     Optional<String> paymentMethodId = membersRepository.getPaymentMethodId(memberId);
     Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
@@ -150,20 +149,19 @@ public class MembershipService {
       )
       .setBillingCycleAnchor(billingAnchorTimestamp)
       .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
-      .setMetadata(Map.of("gymId", gymId.toString()))
+      .setMetadata(Map.of("gymId", memberId.gymId().toString()))
       .build();
 
     var subscription = Subscription.create(subscriptionParams, requestOptions);
     membershipsRepository.initializeMembership(memberId, membershipId, subscription.getId());
   }
 
-  public void cancelMembership(UUID memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
+  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
     if (!membershipsRepository.hasMembership(memberId, membershipId)) {
       throw new IllegalStateException("Membership " + membershipId + " not found for member " + membershipId);
     }
 
-    Integer gymId = membersRepository.getGymId(memberId);
-    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
+    String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
     String subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId, membershipId);
 
     var requestOptions = RequestOptions.builder()

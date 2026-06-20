@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Member {
 
-  private UUID id;
+  private Id id;
 
   private String name;
 
@@ -31,6 +31,12 @@ public class Member {
 
   private Integer postalCode;
 
-  private Integer gymId;
+  public record Id(UUID id, Integer gymId) {
+
+    public static Id of(UUID id, Integer gymId) {
+      return new Id(id, gymId);
+    }
+
+  }
 
 }

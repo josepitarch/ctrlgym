@@ -20,7 +20,7 @@ public class CustomersController {
   @PostMapping("")
   public ResponseEntity<String> create() throws StripeException {
     //TODO
-    customerService.create(UUID.randomUUID());
+    //customerService.create(UUID.randomUUID());
     return ResponseEntity.noContent().build();
   }
 

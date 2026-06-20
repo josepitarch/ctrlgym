@@ -5,6 +5,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -36,8 +37,8 @@ public class GenerateAccessQrService {
 
   private static final int QR_SIZE = 300;
 
-  public byte[] generateQrCode(UUID memberId, Integer gymId) throws WriterException, IOException {
-    var memberships = membershipsRepository.getMembership(memberId, gymId);
+  public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
+    var memberships = membershipsRepository.getMembership(memberId);
     if (CollectionUtils.isEmpty(memberships)) {
       throw new IllegalStateException("Member has no accesses for the gym");
     }
@@ -52,10 +53,10 @@ public class GenerateAccessQrService {
   }
 
   //TODO: hacer firma asimétrica
-  private String generateQrToken(UUID memberId, List<Integer> gymIds) {
-    Instant now = Instant.now();
+  private String generateQrToken(Member.Id memberId, List<Integer> gymIds) {
+    var now = Instant.now();
     return Jwts.builder()
-      .subject(memberId.toString())
+      .subject(memberId.id().toString())
       .claim("gym_branches", gymIds)
       .issuedAt(Date.from(now))
       .expiration(Date.from(now.plusSeconds(expirationSeconds)))

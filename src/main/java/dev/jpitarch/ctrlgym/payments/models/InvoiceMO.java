@@ -1,7 +1,9 @@
 package dev.jpitarch.ctrlgym.payments.models;
 
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -25,9 +27,11 @@ public class InvoiceMO {
   @Column(name = "id")
   private String id;
 
+  @Getter(AccessLevel.NONE)
   @Column(name = "gym_id", nullable = false)
   private Integer gymId;
 
+  @Getter(AccessLevel.NONE)
   @Column(name = "member_id", nullable = false)
   private UUID memberId;
 
@@ -72,6 +76,10 @@ public class InvoiceMO {
 
   @Column(name = "stripe_invoice_number", nullable = false, length = 50)
   private String stripeInvoiceNumber;
+
+  public Member.Id getMemberId() {
+    return Member.Id.of(memberId, gymId);
+  }
 
   @Override
   public final boolean equals(Object o) {

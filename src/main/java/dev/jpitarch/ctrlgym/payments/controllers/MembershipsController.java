@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.payments.dto.*;
 import dev.jpitarch.ctrlgym.payments.services.MembershipService;
 import dev.jpitarch.ctrlgym.payments.services.WebhookService;
@@ -35,21 +36,21 @@ public class MembershipsController {
   }
 
   @PostMapping("/members/{memberId}/payment-methods")
-  public ResponseEntity<SetupIntentResponse> createIntent(@PathVariable UUID memberId) throws StripeException {
-    SetupIntentResponse response = membershipService.createSetupIntent(memberId);
+  public ResponseEntity<SetupIntentResponse> createIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
+    SetupIntentResponse response = membershipService.createSetupIntent(Member.Id.of(memberId, gymId));
 
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/members/{memberId}/memberships/{membershipId}")
-  public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId) throws StripeException {
-    membershipService.initializeMembership(memberId, membershipId);
+  public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId) throws StripeException {
+    membershipService.initializeMembership(Member.Id.of(memberId, gymId), membershipId);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/members/{memberId}/memberships/{membershipId}")
-  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer cancellationReasonId) throws StripeException {
-    membershipService.cancelMembership(memberId, membershipId, cancellationReasonId);
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId, @RequestParam Integer cancellationReasonId) throws StripeException {
+    membershipService.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId);
     return ResponseEntity.noContent().build();
   }
 

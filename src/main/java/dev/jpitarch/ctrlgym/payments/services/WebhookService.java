@@ -56,16 +56,16 @@ public class WebhookService {
   }
 
   private void handleSetupIntentCreated(SetupIntent setupIntent) {
-    log.info("SetupIntent with id {} of customer {} is created", setupIntent.getId(), setupIntent.getCustomer());
+    log.info("SetupIntent with memberId {} of customer {} is created", setupIntent.getId(), setupIntent.getCustomer());
   }
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
-    log.info("SetupIntent with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
+    log.info("SetupIntent with memberId {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
   private void handleInvoiceCreated(Invoice invoice, String accountId) {
-    log.info("Creating invoice with id {}...", invoice.getId());
+    log.info("Creating invoice with memberId {}...", invoice.getId());
     invoiceRepository.create(invoice, accountId);
   }
 
@@ -75,19 +75,19 @@ public class WebhookService {
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {
-    log.info("Marking invoice with id {} as paid...", invoice.getId());
+    log.info("Marking invoice with memberId {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice);
 
     var invoiceMO = invoiceRepository
       .getInvoice(invoice.getId())
-      .orElseThrow(() -> new IllegalArgumentException("Invoice with id " + invoice.getId() + " does not exist"));
+      .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
 
     eventPublisher.publishEvent(this.mapToInvoice(invoiceMO));
   }
 
   private void handlePaymentFailed(Invoice invoice) {
     //TODO: push notification
-    log.info("Marking invoice with id {} failed...", invoice.getId());
+    log.info("Marking invoice with memberId {} failed...", invoice.getId());
     invoiceRepository.markAsFailed(invoice);
   }
 

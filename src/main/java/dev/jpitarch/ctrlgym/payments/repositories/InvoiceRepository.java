@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.payments.repositories;
 
 import com.stripe.model.Invoice;
 import com.stripe.model.PaymentIntent;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
@@ -9,6 +10,8 @@ import dev.jpitarch.ctrlgym.payments.models.InvoiceMO;
 import dev.jpitarch.ctrlgym.payments.repositories.jpa.InvoiceJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -35,6 +38,23 @@ public class InvoiceRepository {
 
   public Optional<InvoiceMO> getInvoice(String id) {
     return invoiceJpaRepository.findById(id);
+  }
+
+  public Page<dev.jpitarch.ctrlgym.core.domain.Invoice> findByMemberId(Member.Id memberId, Pageable pageable) {
+    return invoiceJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId(), pageable)
+      .map(this::mapToDomain);
+  }
+
+  private dev.jpitarch.ctrlgym.core.domain.Invoice mapToDomain(InvoiceMO invoiceMO) {
+    return dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
+      .id(invoiceMO.getId())
+      .series(invoiceMO.getSeries())
+      .number(invoiceMO.getNumber())
+      .issueAt(invoiceMO.getIssueAt())
+      .subtotal(invoiceMO.getSubtotal())
+      .tax(invoiceMO.getTax())
+      .total(invoiceMO.getTotal())
+      .build();
   }
 
   public void create(Invoice invoice, String stripeAccountId) {
@@ -78,7 +98,7 @@ public class InvoiceRepository {
       .findById(id)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
-    log.info("Saving id of Verifactu to invoice with id {}: {}", id, verifactuId);
+    log.info("Saving memberId of Verifactu to invoice with memberId {}: {}", id, verifactuId);
 
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
     invoiceMO.setVerifactuId(verifactuId);
@@ -91,7 +111,7 @@ public class InvoiceRepository {
     var invoiceMO = new InvoiceMO();
     invoiceMO.setId(invoice.getId());
     invoiceMO.setGymId(gymId);
-    invoiceMO.setMemberId(membersRepository.getId(invoice.getCustomer()).id());
+    invoiceMO.setMemberId(membersRepository.getId(invoice.getCustomer()).memberId());
     invoiceMO.setSeries(series);
     invoiceMO.setNumber(this.nextNumber(gymId, series).toString());
     invoiceMO.setStripeInvoiceNumber(invoice.getNumber());

@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,8 +21,10 @@ public class Invoice {
 
   private String name;
 
+  @JsonProperty("first_surname")
   private String firstSurname;
 
+  @JsonProperty("second_surname")
   private String secondSurname;
 
   private String nif;
@@ -30,6 +33,7 @@ public class Invoice {
 
   private String number;
 
+  @JsonProperty("issue_at")
   private LocalDate issueAt;
 
   private BigDecimal subtotal;

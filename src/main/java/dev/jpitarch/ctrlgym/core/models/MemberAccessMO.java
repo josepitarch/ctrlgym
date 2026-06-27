@@ -19,6 +19,7 @@ public class MemberAccessMO {
   private Long id;
 
   @Column(name = "gym_branch_id")
+  @JsonProperty("gym_branch_id")
   private Integer gymBranchId;
 
   @Column(name = "member_id")

@@ -35,12 +35,6 @@ public class MembershipsController {
     return ResponseEntity.noContent().build();
   }
 
-  @PostMapping("/members/{memberId}/payment-methods")
-  public ResponseEntity<SetupIntentResponse> createIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
-    SetupIntentResponse response = membershipService.createSetupIntent(Member.Id.of(memberId, gymId));
-
-    return ResponseEntity.ok(response);
-  }
 
   @PostMapping("/members/{memberId}/memberships/{membershipId}")
   public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId) throws StripeException {

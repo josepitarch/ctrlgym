@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class Routine {
   @AllArgsConstructor
   public static class Day {
 
+    @JsonProperty("day_number")
     private Integer dayNumber;
 
     private String name;
@@ -39,6 +41,7 @@ public class Routine {
 
       private String name;
 
+      @JsonProperty("muscle_group")
       private String muscleGroup;
 
       private Integer position;

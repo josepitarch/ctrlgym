@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class Expense {
 
   private Integer id;
 
+  @JsonProperty("category_id")
   private Integer categoryId;
 
   private Nature nature;
@@ -22,6 +24,7 @@ public class Expense {
 
   private Recurrence recurrence;
 
+  @JsonProperty("expected_amount")
   private Double expectedAmount;
 
   public enum Nature {

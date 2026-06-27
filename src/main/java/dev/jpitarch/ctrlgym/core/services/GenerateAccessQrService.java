@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +55,7 @@ public class GenerateAccessQrService {
   private String generateQrToken(Member.Id memberId, List<Integer> gymIds) {
     var now = Instant.now();
     return Jwts.builder()
-      .subject(memberId.id().toString())
+      .subject(memberId.memberId().toString())
       .claim("gym_branches", gymIds)
       .issuedAt(Date.from(now))
       .expiration(Date.from(now.plusSeconds(expirationSeconds)))

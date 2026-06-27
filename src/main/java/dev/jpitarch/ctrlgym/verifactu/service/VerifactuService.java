@@ -53,7 +53,7 @@ public class VerifactuService {
       .totalAmount(invoice.getTotal().toString())
       .build();
 
-    log.info("Calling to Verifacti for invoice with id {}...", invoice.getId());
+    log.info("Calling to Verifacti for invoice with memberId {}...", invoice.getId());
 
     var response = restClient.post()
       .uri("/create")

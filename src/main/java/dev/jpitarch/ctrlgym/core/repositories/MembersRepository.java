@@ -3,8 +3,11 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
+import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberDistribution;
+import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,30 +19,54 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MembersRepository {
 
+  private final MemberJpaRepository jpaRepository;
+
   private final NamedParameterJdbcTemplate jdbc;
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
+  public boolean exists(Member.Id memberId) {
+    return jpaRepository.existsById(new MemberMO.ID(memberId.memberId(), memberId.gymId()));
+  }
+
   public Member getById(Member.Id memberId) {
-    var sql = """
-      SELECT id, gym_id, email, name, first_surname, second_surname, avatar_url, gender, birth_date, postal_code, created_at, stripe_customer_id, stripe_payment_method_id
-      FROM members
-      WHERE id = :id AND gym_id = :gymId
-      """;
+    var memberMOId = new MemberMO.ID(memberId.memberId(), memberId.gymId());
+    MemberMO memberMO = jpaRepository.findById(memberMOId)
+      .orElseThrow(() -> new RuntimeException("Member not found with memberId: " + memberId.memberId() + " and gymId: " + memberId.gymId()));
 
-    var params = Map.of(
-      "id", memberId.id(),
-      "gymId", memberId.gymId()
-    );
+    return Member.builder()
+      .id(memberId)
+      .email(memberMO.getEmail())
+      .name(memberMO.getName())
+      .firstSurname(memberMO.getFirstSurname())
+      .secondSurname(memberMO.getSecondSurname())
+      .gender(Gender.fromCode(memberMO.getGender()))
+      .birthDate(memberMO.getBirthDate())
+      .address(Member.Address.builder().postalCode(memberMO.getPostalCode()).build())
+      .build();
+  }
 
-    return jdbc.queryForObject(sql, params, (rs, _) -> Member.builder()
-      .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
-      .email(rs.getString("email"))
-      .name(rs.getString("name"))
-      .firstSurname(rs.getString("first_surname"))
-      .secondSurname(rs.getString("second_surname"))
-      .build()
-    );
+  public void save(Member member) {
+    MemberMO memberMO = new MemberMO();
+    memberMO.setId(member.getId().memberId());
+    memberMO.setGymId(member.getId().gymId());
+    memberMO.setName(member.getName());
+    memberMO.setFirstSurname(member.getFirstSurname());
+    memberMO.setSecondSurname(member.getSecondSurname());
+    memberMO.setEmail(member.getEmail());
+    memberMO.setGender(member.getGender().name());
+    memberMO.setBirthDate(member.getBirthDate());
+
+    if (member.getAddress() != null) {
+      var address = member.getAddress();
+      memberMO.setStreet(address.getStreet());
+      memberMO.setCity(address.getCity());
+      memberMO.setState(address.getState());
+      memberMO.setPostalCode(address.getPostalCode());
+      memberMO.setCountry(address.getCountry());
+    }
+
+    jpaRepository.save(memberMO);
   }
 
   public Optional<String> getStripeCustomerId(Member.Id memberId) {
@@ -50,7 +77,7 @@ public class MembersRepository {
       """;
 
     var params = Map.of(
-      "id", memberId.id(),
+      "id", memberId.memberId(),
       "gymId", memberId.gymId()
     );
 
@@ -88,32 +115,9 @@ public class MembersRepository {
     return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
   }
 
-  public Integer getGymId(UUID id) {
-    var sql = """
-        SELECT gym_id
-        FROM members
-        WHERE id = :id
-      """;
-
-    var params = Map.of("id", id);
-
-    return this.jdbc.queryForObject(sql, params, Integer.class);
-  }
-
   public void saveCustomerId(Member.Id memberId, String customerId) {
-    var sql = """
-      UPDATE members
-      SET stripe_customer_id = :customerId
-      WHERE id = :id AND gym_id = :gymId
-      """;
-
-    var params = Map.of(
-      "id", memberId.id(),
-      "gymId", memberId.gymId(),
-      "customerId", customerId
-    );
-
-    this.jdbc.update(sql, params);
+    MemberMO member = jpaRepository.getReferenceById(new MemberMO.ID(memberId.memberId(), memberId.gymId()));
+    member.setStripeCustomerId(customerId);
   }
 
   public void savePaymentMethodId(String customerId, String paymentMethodId) {
@@ -190,7 +194,7 @@ public class MembersRepository {
   }
 
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
-    return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.id(), memberId.gymId())
+    return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()
       .map(memberAccess -> MemberAccess.builder()
         .branchId(memberAccess.getGymBranchId())

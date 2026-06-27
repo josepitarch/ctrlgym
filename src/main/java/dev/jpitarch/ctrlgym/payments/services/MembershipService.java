@@ -78,30 +78,7 @@ public class MembershipService {
     membershipsRepository.createMembershipPlan(product.getId(), gymBranchId, product.getName(), price.getId(), price.getUnitAmountDecimal().doubleValue(), mapRecurring(price.getRecurring().getInterval()));
   }
 
-  public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
-    String accountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String customerId = membersRepository.getStripeCustomerId(memberId).orElseGet(() -> {
-      try {
-        return customerService.create(memberId);
-      } catch (StripeException e) {
-        throw new RuntimeException(e);
-      }
-    });
 
-    var requestOptions = RequestOptions.builder()
-      .setStripeAccount(accountId)
-      .build();
-
-    var params = SetupIntentCreateParams.builder()
-      .setCustomer(customerId)
-      .addPaymentMethodType("sepa_debit")
-      .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION) // <- no requiere confirmación del usuario en ese momento. Se cobrará en el futuro
-      .build();
-
-    var setupIntent = SetupIntent.create(params, requestOptions);
-
-    return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
-  }
 
   public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
     if (membershipsRepository.hasMembership(memberId, membershipId)) {

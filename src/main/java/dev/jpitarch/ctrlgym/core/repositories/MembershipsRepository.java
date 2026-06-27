@@ -10,7 +10,6 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,7 +42,7 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId.id(),
+      "memberId", memberId.memberId(),
       "gymId", memberId.gymId(),
       "membershipId", membershipId,
       "startDate", LocalDate.now(),
@@ -60,7 +59,7 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId.id(),
+      "memberId", memberId.memberId(),
       "gymId", memberId.gymId(),
       "membershipId", membershipId,
       "cancellationReasonId", cancellationReasonId
@@ -78,7 +77,7 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId.id(),
+      "memberId", memberId.memberId(),
       "gymId", memberId.gymId(),
       "membershipId", membershipId
     );
@@ -97,7 +96,7 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId.id(),
+      "memberId", memberId.memberId(),
       "gymId", memberId.gymId()
     );
 
@@ -123,7 +122,7 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId.id(),
+      "memberId", memberId.memberId(),
       "gymId", memberId.gymId(),
       "membershipId", membershipId
     );

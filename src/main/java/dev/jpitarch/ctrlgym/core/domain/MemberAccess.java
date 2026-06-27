@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class MemberAccess {
 
+  @JsonProperty("branch_id")
   private Integer branchId;
 
   private Direction direction;

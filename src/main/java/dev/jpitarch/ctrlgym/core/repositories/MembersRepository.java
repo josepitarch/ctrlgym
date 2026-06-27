@@ -31,11 +31,14 @@ public class MembersRepository {
 
   public Member getById(Member.Id memberId) {
     var memberMOId = new MemberMO.ID(memberId.memberId(), memberId.gymId());
-    MemberMO memberMO = jpaRepository.findById(memberMOId)
-      .orElseThrow(() -> new RuntimeException("Member not found with memberId: " + memberId.memberId() + " and gymId: " + memberId.gymId()));
+
+    MemberMO memberMO = jpaRepository
+      .findById(memberMOId)
+      .orElseThrow(() -> new RuntimeException("Member with id %s does not exists".formatted(memberId)));
 
     return Member.builder()
       .id(memberId)
+      .nif(memberMO.getNif())
       .email(memberMO.getEmail())
       .name(memberMO.getName())
       .firstSurname(memberMO.getFirstSurname())

@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
@@ -9,15 +10,14 @@ import dev.jpitarch.ctrlgym.core.domain.Workout;
 import dev.jpitarch.ctrlgym.core.services.MembersService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.core.services.WorkoutsService;
-import dev.jpitarch.ctrlgym.payments.dto.CreateCustomerRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -35,10 +35,11 @@ public class MembersController {
 
   private final RoutinesService routinesService;
 
-  @PostMapping("")
-  public ResponseEntity<String> create(@RequestBody CreateCustomerRequest request, @RequestParam Integer gymId) throws StripeException {
-    //membersService.create(request);
-    return ResponseEntity.noContent().build();
+  @PostMapping("/{memberId}")
+  public ResponseEntity<String> create(@PathVariable UUID memberId, @RequestBody Member member, @RequestParam Integer gymId) throws StripeException {
+    member.setId(Member.Id.of(memberId, gymId));
+    membersService.create(member);
+    return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @GetMapping("/{memberId}")
@@ -92,7 +93,9 @@ public class MembersController {
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
   }
 
-  public record RoutineRequest(Routine routine, @com.fasterxml.jackson.annotation.JsonProperty("member_id") UUID memberId, @com.fasterxml.jackson.annotation.JsonProperty("gym_id") Integer gymId) {
+  public record RoutineRequest(Routine routine,
+                               @JsonProperty("member_id") UUID memberId,
+                               @JsonProperty("gym_id") Integer gymId) {
   }
 
 

@@ -20,6 +20,8 @@ public class Member {
 
   private Id id;
 
+  private String nif;
+
   private String name;
 
   @JsonProperty("first_surname")

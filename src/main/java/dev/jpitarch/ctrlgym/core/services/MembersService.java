@@ -4,11 +4,9 @@ import com.google.zxing.WriterException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.payments.dto.CreateCustomerRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,10 +26,14 @@ public class MembersService {
 
   public void create(Member member) {
     if (!membersRepository.exists(member.getId())) {
-      throw new RuntimeException("Member does not exist");
+      throw new RuntimeException("Member with id %s does not exist".formatted(member.getId()));
     }
     membersRepository.save(member);
     publisher.publishEvent(member);
+  }
+
+  public Member getMember(Member.Id memberId) {
+    return membersRepository.getById(memberId);
   }
 
 
@@ -45,10 +47,6 @@ public class MembersService {
 
   public byte[] getInvoiceReport(Member.Id memberId, UUID invoiceId) throws IOException {
     return generateInvoiceReportService.generate(memberId, invoiceId);
-  }
-
-  public Member getMember(Member.Id memberId) {
-    return membersRepository.getById(memberId);
   }
 
 }

@@ -21,7 +21,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -52,16 +55,22 @@ public class MembersController {
     return membersService.getAccesses(Member.Id.of(memberId, gymId));
   }
 
+  @GetMapping(value = "/{memberId}/attendaces/summary")
+  public Map<LocalDate, Boolean> getAttendanceSummary(@PathVariable UUID memberId, @RequestParam Integer gymId,
+                                                      @RequestParam LocalDate from, @RequestParam(required = false) LocalDate to) {
+    return membersService.getAttendanceSummary(Member.Id.of(memberId, gymId), from, Optional.ofNullable(to).orElse(LocalDate.now()));
+  }
+
   @PostMapping("/{memberId}/routines")
-  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody RoutineRequest request) {
+  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody RoutineRequest request, @RequestParam Integer gymId) {
     Routine routine = request.routine();
-    routinesService.create(routine, memberId);
+    routinesService.create(routine, Member.Id.of(memberId, gymId));
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @GetMapping(value = "/{memberId}/routines")
-  public Page<Routine> getRoutines(@PathVariable UUID memberId, Pageable pageable) {
-    return routinesService.getRoutines(memberId, pageable);
+  public Page<Routine> getRoutines(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
+    return routinesService.getRoutines(Member.Id.of(memberId, gymId), pageable);
   }
 
   @DeleteMapping("/{memberId}/routines/{routineId}")

@@ -16,7 +16,6 @@ import java.time.LocalDate;
 public class Invoice {
 
   public static final Integer TAX = 21;
-
   private String id;
 
   private String name;

@@ -15,11 +15,7 @@ import java.util.UUID;
 @Repository
 public interface RoutineJpaRepository extends JpaRepository<RoutineMO, Integer> {
 
-  Page<RoutineMO> findByMemberId(UUID memberId, Pageable pageable);
-
-  List<RoutineMO> findByGymId(Integer gymId);
-
-  List<RoutineMO> findByMemberIdOrGymId(UUID memberId, Integer gymId);
+  Page<RoutineMO> findByMemberIdAndGymId(UUID memberId, Integer gymId, Pageable pageable);
 
   @Query("SELECT r FROM RoutineDayMO r WHERE r.routine.id = :routineId AND r.dayNumber = :dayNumber")
   RoutineDayMO findDay(Integer routineId, Short dayNumber);

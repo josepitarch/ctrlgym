@@ -9,8 +9,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +49,23 @@ public class MembersService {
 
   public List<MemberAccess> getAccesses(Member.Id memberId) {
     return membersRepository.getMemberAccessesByMemberId(memberId);
+  }
+
+  public Map<LocalDate, Boolean> getAttendanceSummary(Member.Id memberId, LocalDate from, LocalDate to) {
+    OffsetDateTime fromDt = from.atStartOfDay().atOffset(ZoneOffset.UTC);
+    OffsetDateTime toDt = to.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+
+    var accesses = membersRepository.getMemberAccessesByMemberIdAndDateRange(memberId, fromDt, toDt);
+
+    var accessedDates = accesses.stream()
+      .map(access -> access.getTimestamp().toLocalDate())
+      .collect(Collectors.toSet());
+
+    return from.datesUntil(to.plusDays(1))
+      .collect(Collectors.toMap(
+        date -> date,
+        accessedDates::contains
+      ));
   }
 
   public byte[] getInvoiceReport(Member.Id memberId, UUID invoiceId) throws IOException {

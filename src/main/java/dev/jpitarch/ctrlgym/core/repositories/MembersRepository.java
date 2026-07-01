@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -198,6 +200,18 @@ public class MembersRepository {
 
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
     return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
+      .stream()
+      .map(memberAccess -> MemberAccess.builder()
+        .branchId(memberAccess.getGymBranchId())
+        .direction(mapDirection(memberAccess.getDirection()))
+        .timestamp(memberAccess.getCreatedAt())
+        .build()
+      )
+      .toList();
+  }
+
+  public List<MemberAccess> getMemberAccessesByMemberIdAndDateRange(Member.Id memberId, OffsetDateTime from, OffsetDateTime to) {
+    return memberAccessJpaRepository.findByMemberIdAndGymIdAndDateRange(memberId.memberId(), memberId.gymId(), from, to)
       .stream()
       .map(memberAccess -> MemberAccess.builder()
         .branchId(memberAccess.getGymBranchId())

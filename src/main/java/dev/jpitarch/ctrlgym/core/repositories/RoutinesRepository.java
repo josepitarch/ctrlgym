@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.domain.Routine.Day.Exercise.Set;
 import dev.jpitarch.ctrlgym.core.models.RoutineDayExerciseMO;
@@ -23,11 +24,11 @@ public class RoutinesRepository {
 
   private final RoutineJpaRepository routineJpaRepository;
 
-  public Routine save(Routine routine, UUID memberId, Integer gymId) {
+  public Routine save(Routine routine, Member.Id memberId) {
     RoutineMO routineMO = new RoutineMO();
     routineMO.setName(routine.getName());
-    routineMO.setMemberId(memberId);
-    routineMO.setGymId(gymId);
+    routineMO.setMemberId(memberId.memberId());
+    routineMO.setGymId(memberId.gymId());
     routineMO.setCreatedAt(Instant.now());
 
     if (routine.getDays() != null) {
@@ -58,8 +59,8 @@ public class RoutinesRepository {
     routineJpaRepository.deleteById(id);
   }
 
-  public Page<Routine> findByMemberId(UUID memberId, Pageable pageable) {
-    return routineJpaRepository.findByMemberId(memberId, pageable).map(this::mapToDomain);
+  public Page<Routine> findByMemberId(Member.Id memberId, Pageable pageable) {
+    return routineJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId(), pageable).map(this::mapToDomain);
   }
 
   private Routine mapToDomain(RoutineMO routineMO) {

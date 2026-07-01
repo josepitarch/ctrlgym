@@ -1,8 +1,8 @@
 package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.payments.dto.InvoiceSummary;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import dev.jpitarch.ctrlgym.payments.services.InvoicesService;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +28,14 @@ public class InvoicesController {
   }
 
   @GetMapping("/members/{memberId}/invoices")
-  public Page<Invoice> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
-    return invoicesService.getInvoices(Member.Id.of(memberId, gymId), pageable);
+  public Page<InvoiceSummary> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
+    return invoicesService.getInvoices(Member.Id.of(memberId, gymId), pageable)
+        .map(invoice -> new InvoiceSummary(
+            invoice.getId(),
+            invoice.getIssueAt(),
+            null,
+            invoice.getTotal()
+        ));
   }
 
 }

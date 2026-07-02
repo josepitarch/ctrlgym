@@ -4,12 +4,15 @@ import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.repositories.RoutinesRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoutinesService {
@@ -17,14 +20,17 @@ public class RoutinesService {
   private final RoutinesRepository routinesRepository;
 
   public Routine create(Routine routine, Member.Id memberId) {
+    log.info("Creating a routine for member {}... ", memberId);
     return routinesRepository.save(routine, memberId);
   }
 
-  public Page<Routine> getRoutines(Member.Id memberId, Pageable pageable) {
-    return routinesRepository.findByMemberId(memberId, pageable);
+  public List<Routine> getRoutines(Member.Id memberId) {
+    log.info("Retrieving routines for member {}...", memberId);
+    return routinesRepository.findByMemberId(memberId);
   }
 
-  public void delete(Integer id) {
+  public void delete(Integer id, Member.Id memberId) {
+    log.info("Deleting routine with id {} for member {}... ", id, memberId);
     routinesRepository.deleteById(id);
   }
 

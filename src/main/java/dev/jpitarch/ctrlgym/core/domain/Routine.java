@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,27 +43,19 @@ public class Routine {
       private String name;
 
       @JsonProperty("muscle_group")
-      private String muscleGroup;
+      private MuscleGroup muscleGroup;
 
       private Integer position;
 
-      private List<Set> sets;
+      private Integer sets;
+
+      private Integer reps;
 
       @Override
       public int compareTo(Exercise o) {
         return this.name.compareTo(o.name);
       }
 
-      @Data
-      @Builder
-      @AllArgsConstructor
-      public static class Set {
-
-        private Integer number;
-
-        private Integer repetition;
-
-      }
 
     }
 

@@ -69,13 +69,13 @@ public class MembersController {
   }
 
   @GetMapping(value = "/{memberId}/routines")
-  public Page<Routine> getRoutines(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
-    return routinesService.getRoutines(Member.Id.of(memberId, gymId), pageable);
+  public List<Routine> getRoutines(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return routinesService.getRoutines(Member.Id.of(memberId, gymId));
   }
 
   @DeleteMapping("/{memberId}/routines/{routineId}")
-  public ResponseEntity<Void> delete(@PathVariable Integer routineId) {
-    routinesService.delete(routineId);
+  public ResponseEntity<Void> delete(@PathVariable UUID memberId, @PathVariable Integer routineId, @RequestParam Integer gymId) {
+    routinesService.delete(routineId, Member.Id.of(memberId, gymId));
     return ResponseEntity.noContent().build();
   }
 

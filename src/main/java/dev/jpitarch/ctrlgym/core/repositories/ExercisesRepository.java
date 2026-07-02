@@ -27,6 +27,7 @@ public class ExercisesRepository {
       .name(exerciseMO.getName())
       .description(exerciseMO.getDescription())
       .muscleGroup(exerciseMO.getMuscleGroup())
+      .image(exerciseMO.getImage())
       .build();
   }
 

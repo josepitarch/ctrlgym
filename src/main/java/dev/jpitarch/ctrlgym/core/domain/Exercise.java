@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.net.URI;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,5 +23,7 @@ public class Exercise {
 
   @JsonProperty("muscle_group")
   private MuscleGroup muscleGroup;
+
+  private String image;
 
 }

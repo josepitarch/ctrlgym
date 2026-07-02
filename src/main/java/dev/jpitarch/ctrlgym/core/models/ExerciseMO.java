@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.net.URI;
+
 @Getter
 @Setter
 @Entity
@@ -27,6 +29,9 @@ public class ExerciseMO {
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "muscle_group", columnDefinition = "muscle_group not null")
   private MuscleGroup muscleGroup;
+
+  @Column(name = "image")
+  private String image;
 
   @Column(name = "gym_id")
   private Integer gymId;

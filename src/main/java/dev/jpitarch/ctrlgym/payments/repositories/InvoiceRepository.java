@@ -36,8 +36,8 @@ public class InvoiceRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public Optional<InvoiceMO> getInvoice(String id) {
-    return invoiceJpaRepository.findById(id);
+  public Optional<dev.jpitarch.ctrlgym.core.domain.Invoice> getInvoice(String id) {
+    return invoiceJpaRepository.findById(id).map(this::mapToDomain);
   }
 
   public Page<dev.jpitarch.ctrlgym.core.domain.Invoice> findByMemberId(Member.Id memberId, Pageable pageable) {

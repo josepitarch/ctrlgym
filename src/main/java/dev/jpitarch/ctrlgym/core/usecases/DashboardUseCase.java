@@ -16,7 +16,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DashboardUseCase {
 
-  private final GymBranchOccupancyRepository gymBranchOccupancyRepository;
+  private final GymsRepository gymsRepository;
 
   private final MembershipsRepository membershipsRepository;
 
@@ -27,7 +27,7 @@ public class DashboardUseCase {
   private final MembersRepository membersRepository;
 
   public List<Map<String, Integer>> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
-    return gymBranchOccupancyRepository.getOccupancies(gymBranchId, datePeriod, granularity);
+    return gymsRepository.getOccupancies(gymBranchId, datePeriod, granularity);
   }
 
   public List<Map<YearMonth, Integer>> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {

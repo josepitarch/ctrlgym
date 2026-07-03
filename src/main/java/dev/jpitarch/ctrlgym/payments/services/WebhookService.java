@@ -78,11 +78,12 @@ public class WebhookService {
     log.info("Marking invoice with memberId {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice);
 
-    var invoiceMO = invoiceRepository
+    dev.jpitarch.ctrlgym.core.domain.Invoice inv = invoiceRepository
       .getInvoice(invoice.getId())
       .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
 
-    eventPublisher.publishEvent(this.mapToInvoice(invoiceMO));
+    //TODO: retrieve name, surnames and nif
+    eventPublisher.publishEvent(inv);
   }
 
   private void handlePaymentFailed(Invoice invoice) {
@@ -96,21 +97,5 @@ public class WebhookService {
     return (T) event.getDataObjectDeserializer().getObject().orElseThrow();
   }
 
-  private dev.jpitarch.ctrlgym.core.domain.Invoice mapToInvoice(InvoiceMO invoiceMO) {
-    Member member = membersRepository.getById(invoiceMO.getMemberId());
-    return dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
-      .id(invoiceMO.getId())
-      .name(member.getName())
-      .firstSurname(member.getFirstSurname())
-      .secondSurname(member.getSecondSurname())
-      .nif("45911747K") //TODO
-      .series(invoiceMO.getSeries())
-      .number(invoiceMO.getNumber())
-      .issueAt(invoiceMO.getIssueAt())
-      .subtotal(invoiceMO.getSubtotal())
-      .tax(invoiceMO.getTax())
-      .total(invoiceMO.getTotal())
-      .build();
-  }
 
 }

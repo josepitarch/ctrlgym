@@ -96,11 +96,6 @@ public class MembersController {
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
 
-  @GetMapping(value = "/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
-  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable UUID invoiceId, @RequestParam Integer gymId) throws IOException {
-    byte[] pdfReport = membersService.getInvoiceReport(Member.Id.of(memberId, gymId), invoiceId);
-    return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
-  }
 
   public record RoutineRequest(Routine routine,
                                @JsonProperty("member_id") UUID memberId,

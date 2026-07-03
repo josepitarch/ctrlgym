@@ -4,13 +4,13 @@ import com.google.zxing.WriterException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.payments.services.GenerateInvoiceReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -42,7 +42,6 @@ public class MembersService {
     return membersRepository.getById(memberId);
   }
 
-
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
     return generateAccessQrService.generateQrCode(memberId);
   }
@@ -68,8 +67,5 @@ public class MembersService {
       ));
   }
 
-  public byte[] getInvoiceReport(Member.Id memberId, UUID invoiceId) throws IOException {
-    return generateInvoiceReportService.generate(memberId, invoiceId);
-  }
 
 }

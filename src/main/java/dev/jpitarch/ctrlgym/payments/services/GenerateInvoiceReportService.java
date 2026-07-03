@@ -1,6 +1,7 @@
-package dev.jpitarch.ctrlgym.core.services;
+package dev.jpitarch.ctrlgym.payments.services;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.verifactu.service.VerifactuService;
 import lombok.RequiredArgsConstructor;
@@ -151,8 +152,8 @@ public class GenerateInvoiceReportService {
     </html>
     """;
 
-  public byte[] generate(Member.Id memberId, UUID invoiceId) throws IOException {
-    String qrUrl = verifactuService.getStatus(memberId.gymId(), invoiceId).getQr();
+  public byte[] generate(Member.Id memberId, Invoice invoice) throws IOException {
+    String qrUrl = verifactuService.getStatus(memberId.gymId(), UUID.fromString("ef9136a0-c55a-4569-8db3-6eeb7a2ce9c0")).getQr();
 
     try (var os = new ByteArrayOutputStream()) {
       var html = DEFAULT_HTML.replace("{{QR_CODE_BASE64}}", qrUrl);

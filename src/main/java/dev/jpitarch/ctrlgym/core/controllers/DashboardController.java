@@ -16,56 +16,54 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1")
+@RequestMapping("/v1/dashboard")
 public class DashboardController {
 
   private final DashboardUseCase useCase;
 
-  private final ObjectMapper objectMapper =  new ObjectMapper();
-
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/occupancy")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/occupancy")
   public List<Map<String, Integer>> getOccupancies(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam Granularity granularity) {
     return useCase.getOccupancies(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to), granularity);
   }
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships")
   public List<Map<YearMonth, Integer>> getMemberships(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam MembershipFlow flow) {
     return useCase.getMemberships(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to), flow);
   }
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships/seniority-avg")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/seniority-avg")
   public Integer getMembershipSeniorityAverage(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
     return useCase.getMembershipSeniorityAverage(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to));
   }
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships/cohorts")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cohorts")
   public List<Cohort> getCohorts(@PathVariable int gymId, @PathVariable int branchId) {
     return useCase.getCohorts(GymBranchId.of(gymId, branchId));
   }
 
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/memberships/cancellation-reasons")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cancellation-reasons")
   public List<Map<String, Integer>> getCancellationReasons(@PathVariable int gymId, @PathVariable int branchId) {
     return useCase.getCancellationReasons(GymBranchId.of(gymId, branchId));
   }
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/expenses")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/expenses")
   public List<Expense> getExpenses(@PathVariable int gymId, @PathVariable int branchId) {
     return useCase.getExpenses(GymBranchId.of(gymId, branchId));
   }
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/cash-flow")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/cash-flow")
   public Map<String, List<Map<YearMonth, Double>>> getCashFlow(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
     return useCase.getCashFlow(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to));
   }
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/members")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/members")
   public List<Member> getMembers(@PathVariable int gymId, @PathVariable int branchId) {
     return useCase.getMembers(GymBranchId.of(gymId, branchId));
   }
 
 
-  @GetMapping("/dashboard/gyms/{gymId}/branches/{branchId}/members/distribution")
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/members/distribution")
   public Map<MemberDistribution, List<String[]>> getMembersDistribution(@PathVariable int gymId, @PathVariable int branchId) {
     return useCase.getMembersDistribution(GymBranchId.of(gymId, branchId));
   }

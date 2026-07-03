@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
+import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.SetupIntent;
 import com.stripe.net.RequestOptions;
@@ -11,10 +12,15 @@ import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.UUID;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InvoicesService {
@@ -23,9 +29,9 @@ public class InvoicesService {
 
   private final MembersRepository membersRepository;
 
-  private final CustomerService customerService;
-
   private final InvoiceRepository invoiceRepository;
+
+  private final GenerateInvoiceReportService generateInvoiceReportService;
 
   public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
     String accountId = gymsRepository.getStripeAccountId(memberId.gymId());
@@ -49,4 +55,12 @@ public class InvoicesService {
   public Page<Invoice> getInvoices(Member.Id memberId, Pageable pageable) {
     return invoiceRepository.findByMemberId(memberId, pageable);
   }
+
+  public byte[] getInvoiceReport(Member.Id memberId, String invoiceId) throws IOException {
+    Invoice invoice = invoiceRepository.getInvoice(invoiceId).orElseThrow();
+    log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
+    return generateInvoiceReportService.generate(memberId, invoice);
+  }
+
+
 }

@@ -56,6 +56,7 @@ public class MembershipsRepository {
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()
       .map(m -> Membership.builder()
+        .id(m.getId().intValue())
         .interval(Membership.Recurring.from(m.getNextBillingDate() != null ? "MONTHLY" : null))
         .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
         .nextBillingDate(m.getNextBillingDate())

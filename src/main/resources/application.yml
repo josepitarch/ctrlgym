@@ -23,3 +23,7 @@ stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   whsec-connected-account: ${STRIPE_WEBHOOK_SECRET_CONNECTED_ACCOUNT}
   whsec-account: ${STRIPE_WEBHOOK_SECRET}
+
+qr:
+  jwt-secret: "tu-clave-secreta-muy-larga-de-al-menos-256-bits-aqui"
+  expiration-seconds: 10

@@ -10,6 +10,7 @@ import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GenerateAccessQrService {
@@ -37,13 +39,15 @@ public class GenerateAccessQrService {
   private static final int QR_SIZE = 300;
 
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
-    var memberships = membershipsRepository.getAccessibleBranches(memberId);
-    if (CollectionUtils.isEmpty(memberships)) {
+    List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId);
+    if (CollectionUtils.isEmpty(branches)) {
       throw new IllegalStateException("Member has no accesses for the gym");
     }
+
+    log.info("Generating QR code for member {}: {}", memberId, branches);
+
     var qrCodeWriter = new QRCodeWriter();
-    var data = this.generateQrToken(memberId, memberships);
-    System.out.println(data);
+    var data = this.generateQrToken(memberId, branches);
     BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
 
     var pngOutputStream = new ByteArrayOutputStream();

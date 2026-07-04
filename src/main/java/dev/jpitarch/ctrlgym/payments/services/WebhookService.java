@@ -78,6 +78,8 @@ public class WebhookService {
     log.info("Marking invoice with memberId {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice);
 
+    //TODO: setear next_billing_date en función del Recurring
+
     dev.jpitarch.ctrlgym.core.domain.Invoice inv = invoiceRepository
       .getInvoice(invoice.getId())
       .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));

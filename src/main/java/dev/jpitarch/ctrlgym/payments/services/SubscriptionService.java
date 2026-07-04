@@ -10,7 +10,6 @@ import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +19,16 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class MembershipService {
+public class SubscriptionService {
 
   private final GymsRepository gymsRepository;
 
   private final MembersRepository membersRepository;
 
   private final MembershipsRepository membershipsRepository;
-
-  private final CustomerService customerService;
 
   public void createTaxRate() throws StripeException {
     var taxRateParams = TaxRateCreateParams.builder()
@@ -47,9 +43,9 @@ public class MembershipService {
     TaxRate.create(taxRateParams);
   }
 
+  //TODO: revisar si el core de este caso de uso ha de estar aquí
   public void createMembership(GymBranchId gymBranchId, String membershipName, double amount) throws StripeException {
-
-    var stripeAccountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
+    String stripeAccountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
@@ -81,7 +77,7 @@ public class MembershipService {
 
 
   public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
-    if (membershipsRepository.hasMembership(memberId, membershipId)) {
+    if (membershipsRepository.hasActiveMembership(memberId, membershipId)) {
       throw new IllegalStateException("Member " + memberId + " already has membership " + membershipId);
     }
 
@@ -134,7 +130,7 @@ public class MembershipService {
   }
 
   public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
-    if (!membershipsRepository.hasMembership(memberId, membershipId)) {
+    if (!membershipsRepository.hasActiveMembership(memberId, membershipId)) {
       throw new IllegalStateException("Membership " + membershipId + " not found for member " + membershipId);
     }
 

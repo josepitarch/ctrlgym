@@ -37,7 +37,7 @@ public class GenerateAccessQrService {
   private static final int QR_SIZE = 300;
 
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
-    var memberships = membershipsRepository.getMembership(memberId);
+    var memberships = membershipsRepository.getAccessibleBranches(memberId);
     if (CollectionUtils.isEmpty(memberships)) {
       throw new IllegalStateException("Member has no accesses for the gym");
     }

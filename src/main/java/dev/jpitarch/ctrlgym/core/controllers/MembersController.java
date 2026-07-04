@@ -3,11 +3,9 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
-import dev.jpitarch.ctrlgym.core.domain.Routine;
-import dev.jpitarch.ctrlgym.core.domain.Workout;
+import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.services.MembersService;
+import dev.jpitarch.ctrlgym.core.services.MembershipService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.core.services.WorkoutsService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +32,8 @@ public class MembersController {
 
   private final MembersService membersService;
 
+  private final MembershipService membershipService;
+
   private final WorkoutsService workoutsService;
 
   private final RoutinesService routinesService;
@@ -46,19 +46,24 @@ public class MembersController {
   }
 
   @GetMapping("/{memberId}")
-  public Member getMember(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return membersService.getMember(Member.Id.of(memberId, gymId));
+  public ResponseEntity<Member> getMember(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return ResponseEntity.ok(membersService.getMember(Member.Id.of(memberId, gymId)));
+  }
+
+  @GetMapping("/{memberId}/memberships")
+  public ResponseEntity<List<Membership>> getMemberships(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return ResponseEntity.ok(membershipService.getMemberships(Member.Id.of(memberId, gymId)));
   }
 
   @GetMapping(value = "/{memberId}/accesses")
-  public List<MemberAccess> getAccesses(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return membersService.getAccesses(Member.Id.of(memberId, gymId));
+  public ResponseEntity<List<MemberAccess>> getAccesses(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return ResponseEntity.ok(membersService.getAccesses(Member.Id.of(memberId, gymId)));
   }
 
   @GetMapping(value = "/{memberId}/attendaces/summary")
-  public Map<LocalDate, Boolean> getAttendanceSummary(@PathVariable UUID memberId, @RequestParam Integer gymId,
-                                                      @RequestParam LocalDate from, @RequestParam(required = false) LocalDate to) {
-    return membersService.getAttendanceSummary(Member.Id.of(memberId, gymId), from, Optional.ofNullable(to).orElse(LocalDate.now()));
+  public ResponseEntity<Map<LocalDate, Boolean>> getAttendanceSummary(@PathVariable UUID memberId, @RequestParam Integer gymId,
+                                                                      @RequestParam LocalDate from, @RequestParam(required = false) LocalDate to) {
+    return ResponseEntity.ok(membersService.getAttendanceSummary(Member.Id.of(memberId, gymId), from, Optional.ofNullable(to).orElse(LocalDate.now())));
   }
 
   @PostMapping("/{memberId}/routines")
@@ -69,8 +74,8 @@ public class MembersController {
   }
 
   @GetMapping(value = "/{memberId}/routines")
-  public List<Routine> getRoutines(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return routinesService.getRoutines(Member.Id.of(memberId, gymId));
+  public ResponseEntity<List<Routine>> getRoutines(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return ResponseEntity.ok(routinesService.getRoutines(Member.Id.of(memberId, gymId)));
   }
 
   @DeleteMapping("/{memberId}/routines/{routineId}")
@@ -86,8 +91,8 @@ public class MembersController {
   }
 
   @GetMapping(value = "/{memberId}/workouts")
-  public Page<Workout> getWorkouts(@PathVariable UUID memberId, Pageable pageable) {
-    return workoutsService.getWorkouts(memberId, pageable);
+  public ResponseEntity<Page<Workout>> getWorkouts(@PathVariable UUID memberId, Pageable pageable) {
+    return ResponseEntity.ok(workoutsService.getWorkouts(memberId, pageable));
   }
 
   @PostMapping(value = "/{memberId}/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
@@ -97,9 +102,9 @@ public class MembersController {
   }
 
 
-  public record RoutineRequest(Routine routine,
-                               @JsonProperty("member_id") UUID memberId,
-                               @JsonProperty("gym_id") Integer gymId) {
+  private record RoutineRequest(Routine routine,
+                                @JsonProperty("member_id") UUID memberId,
+                                @JsonProperty("gym_id") Integer gymId) {
   }
 
 

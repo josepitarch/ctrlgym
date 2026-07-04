@@ -3,8 +3,7 @@ package dev.jpitarch.ctrlgym.payments.controllers;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.payments.dto.*;
-import dev.jpitarch.ctrlgym.payments.services.MembershipService;
+import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import dev.jpitarch.ctrlgym.payments.services.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MembershipsController {
 
-  private final MembershipService membershipService;
+  private final SubscriptionService subscriptionService;
 
   private final WebhookService webhookService;
 
@@ -30,7 +29,7 @@ public class MembershipsController {
     String membershipName = request.get("membershipName");
     double unitAmount = Double.parseDouble(request.get("unitAmount"));
 
-    membershipService.createMembership(GymBranchId.of(gymId, 1000), membershipName, unitAmount);
+    subscriptionService.createMembership(GymBranchId.of(gymId, 1000), membershipName, unitAmount);
 
     return ResponseEntity.noContent().build();
   }
@@ -38,13 +37,13 @@ public class MembershipsController {
 
   @PostMapping("/members/{memberId}/memberships/{membershipId}")
   public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId) throws StripeException {
-    membershipService.initializeMembership(Member.Id.of(memberId, gymId), membershipId);
+    subscriptionService.initializeMembership(Member.Id.of(memberId, gymId), membershipId);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/members/{memberId}/memberships/{membershipId}")
   public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId, @RequestParam Integer cancellationReasonId) throws StripeException {
-    membershipService.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId);
+    subscriptionService.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId);
     return ResponseEntity.noContent().build();
   }
 

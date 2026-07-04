@@ -30,14 +30,14 @@ public class InvoicesController {
   }
 
   @GetMapping("/members/{memberId}/invoices")
-  public Page<InvoiceSummary> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
-    return invoicesService.getInvoices(Member.Id.of(memberId, gymId), pageable)
+  public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
+    return ResponseEntity.ok(invoicesService.getInvoices(Member.Id.of(memberId, gymId), pageable)
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
         null,
         invoice.getTotal()
-      ));
+      )));
   }
 
   @GetMapping(value = "/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)

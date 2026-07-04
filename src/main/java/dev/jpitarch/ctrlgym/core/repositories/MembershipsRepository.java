@@ -1,6 +1,8 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.models.MembershipMO;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,8 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class MembershipsRepository {
+
+  private final MembershipJpaRepository jpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
 
@@ -36,56 +40,44 @@ public class MembershipsRepository {
   }
 
   public void initializeMembership(Member.Id memberId, String membershipId, String subscriptionId) {
-    var sql = """
-      INSERT INTO memberships (member_id, gym_id, membership_plan_id, start_date, stripe_subscription_id)
-      VALUES (:memberId, :gymId, :membershipId, :startDate, :stripeSubscriptionId)
-      """;
+    MembershipMO membership = new MembershipMO();
+    membership.setMemberId(memberId.memberId());
+    membership.setGymId(memberId.gymId());
+    membership.setMembershipPlanId(membershipId);
+    membership.setStartDate(LocalDate.now());
+    membership.setStripeSubscriptionId(subscriptionId);
+    membership.setAutoRenew(true);
 
-    var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId(),
-      "membershipId", membershipId,
-      "startDate", LocalDate.now(),
-      "stripeSubscriptionId", subscriptionId
-    );
-    jdbc.update(sql, params);
+    jpaRepository.save(membership);
+  }
+
+  public List<Membership> getMemberships(Member.Id memberId) {
+    return jpaRepository
+      .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
+      .stream()
+      .map(m -> Membership.builder()
+        .interval(Membership.Recurring.from(m.getNextBillingDate() != null ? "MONTHLY" : null))
+        .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
+        .nextBillingDate(m.getNextBillingDate())
+        .build())
+      .toList();
   }
 
   public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) {
-    var sql = """
-      UPDATE memberships
-      SET end_date = CURRENT_DATE, cancellation_reason_id = :cancellationReasonId
-      WHERE member_id = :memberId AND gym_id = :gymId AND membership_plan_id = :membershipId
-      """;
-
-    var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId(),
-      "membershipId", membershipId,
-      "cancellationReasonId", cancellationReasonId
-    );
-
-    jdbc.update(sql, params);
+    jpaRepository
+      .findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(memberId.memberId(), memberId.gymId(), membershipId)
+      .ifPresent(m -> {
+        m.setEndDate(LocalDate.now());
+        m.setCancellationReasonId(cancellationReasonId);
+        jpaRepository.save(m);
+      });
   }
 
-  public boolean hasMembership(Member.Id memberId, String membershipId) {
-    var sql = """
-      SELECT COUNT(1)
-      FROM memberships
-      WHERE member_id = :memberId AND gym_id = :gymId AND membership_plan_id = :membershipId
-      AND start_date <= CURRENT_DATE AND (end_date IS NULL OR end_date >= CURRENT_DATE)
-      """;
-
-    var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId(),
-      "membershipId", membershipId
-    );
-
-    return Optional.ofNullable(jdbc.queryForObject(sql, params, Integer.class)).orElse(0) > 0;
+  public boolean hasActiveMembership(Member.Id memberId, String membershipId) {
+    return jpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipId);
   }
 
-  public List<Integer> getMembership(Member.Id memberId) {
+  public List<Integer> getAccessibleBranches(Member.Id memberId) {
     var sql = """
       SELECT mpb.branch_id
       FROM memberships m

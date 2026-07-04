@@ -18,6 +18,20 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "routines")
+@NamedEntityGraph(
+  name = "RoutineMO.withAllRelations",
+  attributeNodes = {
+    @NamedAttributeNode(value = "days", subgraph = "days-with-exercises")
+  },
+  subgraphs = {
+    @NamedSubgraph(name = "days-with-exercises", attributeNodes = {
+      @NamedAttributeNode(value = "exercises", subgraph = "exercises-with-sets")
+    }),
+    @NamedSubgraph(name = "exercises-with-sets", attributeNodes = {
+      @NamedAttributeNode("sets")
+    })
+  }
+)
 public class RoutineMO {
 
   @Id

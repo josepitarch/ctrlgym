@@ -2,10 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
-import dev.jpitarch.ctrlgym.core.models.ExerciseMO;
-import dev.jpitarch.ctrlgym.core.models.RoutineDayExerciseMO;
-import dev.jpitarch.ctrlgym.core.models.RoutineDayMO;
-import dev.jpitarch.ctrlgym.core.models.RoutineMO;
+import dev.jpitarch.ctrlgym.core.models.*;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +41,13 @@ public class RoutinesRepository {
             var exerciseMO = new RoutineDayExerciseMO();
             exerciseMO.setExerciseId(exercise.getId());
             exerciseMO.setPosition(exercise.getPosition().shortValue());
-            exerciseMO.setSets((short) 4);
-            exerciseMO.setReps((short) 10);
+            for (var set : exercise.getSets()) {
+              var setMO = new RoutineDayExerciseSetMO();
+              setMO.setExercise(exerciseMO);
+              setMO.setSet(set.getNumber());
+              setMO.setReps(set.getRepetition());
+              exerciseMO.addSet(setMO);
+            }
             dayMO.addExercise(exerciseMO);
           }
         }
@@ -78,13 +80,20 @@ public class RoutinesRepository {
 
         for (RoutineDayExerciseMO exerciseMO : dayMO.getExercises()) {
 
+          List<Routine.Day.Exercise.Set> sets = new ArrayList<>();
+          for (RoutineDayExerciseSetMO setMO : exerciseMO.getSets()) {
+            sets.add(Routine.Day.Exercise.Set.builder()
+              .number(setMO.getSet())
+              .repetition(setMO.getReps())
+              .build());
+          }
+
           exercises.add(Routine.Day.Exercise.builder()
             .id(exerciseMO.getExerciseId())
             .name(exercisesMO.stream().filter(e -> e.getId().equals(exerciseMO.getExerciseId())).findFirst().map(ExerciseMO::getName).orElse(null))
             .muscleGroup(exercisesMO.stream().filter(e -> e.getId().equals(exerciseMO.getExerciseId())).findFirst().map(ExerciseMO::getMuscleGroup).orElse(null))
             .position(exerciseMO.getPosition().intValue())
-            .sets(exerciseMO.getSets().intValue())
-            .reps(exerciseMO.getReps().intValue())
+            .sets(sets)
             .build());
         }
 

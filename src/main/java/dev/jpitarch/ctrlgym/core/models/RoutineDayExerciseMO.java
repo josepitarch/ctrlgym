@@ -27,22 +27,24 @@ public class RoutineDayExerciseMO {
   private Integer exerciseId;
 
   @OnDelete(action = OnDeleteAction.CASCADE)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "routine_id", referencedColumnName = "routine_id", nullable = false)
   @JoinColumn(name = "day_number", referencedColumnName = "day_number", nullable = false)
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private RoutineDayMO day;
 
   @Column(name = "position", nullable = false)
   private Short position;
 
-  @Column(name = "sets", nullable = false)
-  private Short sets;
-
-  @Column(name = "reps", nullable = false)
-  private Short reps;
+  @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<RoutineDayExerciseSetMO> sets = new ArrayList<>();
 
   @Column(name = "rest_seconds", precision = 5, scale = 1)
   private BigDecimal restSeconds;
+
+  public void addSet(RoutineDayExerciseSetMO set) {
+    sets.add(set);
+    set.setExercise(this);
+  }
 
 
   @Getter

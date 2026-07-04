@@ -47,15 +47,23 @@ public class Routine {
 
       private Integer position;
 
-      private Integer sets;
-
-      private Integer reps;
+      private List<Set> sets;
 
       @Override
       public int compareTo(Exercise o) {
         return this.name.compareTo(o.name);
       }
 
+      @Data
+      @Builder
+      @AllArgsConstructor
+      public static class Set {
+
+        private Short number;
+
+        private Short repetition;
+
+      }
 
     }
 

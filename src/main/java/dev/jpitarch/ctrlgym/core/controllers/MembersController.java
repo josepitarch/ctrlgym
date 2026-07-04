@@ -67,8 +67,7 @@ public class MembersController {
   }
 
   @PostMapping("/{memberId}/routines")
-  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody RoutineRequest request, @RequestParam Integer gymId) {
-    Routine routine = request.routine();
+  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Routine routine, @RequestParam Integer gymId) {
     routinesService.create(routine, Member.Id.of(memberId, gymId));
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
@@ -100,12 +99,5 @@ public class MembersController {
     byte[] qrImage = membersService.generateQrCode(Member.Id.of(memberId, gymId));
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
-
-
-  private record RoutineRequest(Routine routine,
-                                @JsonProperty("member_id") UUID memberId,
-                                @JsonProperty("gym_id") Integer gymId) {
-  }
-
-
+  
 }

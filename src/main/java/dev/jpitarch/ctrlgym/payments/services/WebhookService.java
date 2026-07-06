@@ -23,8 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class WebhookService {
 
-  private static final String WEBHOOK_EVENTS_DIR = "webhook-events";
-
   @Value("${stripe.whsec-account}")
   private String webhookSecret;
 

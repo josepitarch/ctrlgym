@@ -1,0 +1,21 @@
+server:
+  port: 0
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://test.auth.com
+
+stripe:
+  secret-key: test-key
+  whsec-connected-account: test-whsec
+  whsec-account: test-whsec
+
+qr:
+  jwt-secret: test-secret-key-that-is-at-least-256-bits-long-for-hs256
+  expiration-seconds: 10

@@ -1,9 +1,12 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipCancellationReasonJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +21,8 @@ import java.util.Optional;
 public class MembershipsRepository {
 
   private final MembershipJpaRepository jpaRepository;
+
+  private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
 
@@ -94,6 +99,21 @@ public class MembershipsRepository {
     );
 
     return jdbc.queryForList(sql, params, Integer.class);
+  }
+
+  public List<MembershipCancellationReason> getCancellationReasons(String language) {
+    return cancellationReasonJpaRepository.findByLanguageCode(language)
+      .stream()
+      .map(this::toDomain)
+      .toList();
+  }
+
+  private MembershipCancellationReason toDomain(MembershipCancellationReasonTranslationMO translation) {
+    return MembershipCancellationReason.builder()
+      .id(translation.getCancellationReason().getId())
+      .name(translation.getName())
+      .description(translation.getDescription())
+      .build();
   }
 
   public String getStripePriceId(String id) {

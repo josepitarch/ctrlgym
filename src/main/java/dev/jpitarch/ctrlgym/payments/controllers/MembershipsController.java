@@ -18,21 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MembershipsController {
 
-  private final SubscriptionService subscriptionService;
-
   private final WebhookService webhookService;
-  private final MembershipService membershipService;
-
-  @PostMapping("/products")
-  public ResponseEntity<Void> createProduct(@RequestBody Map<String, String> request) throws StripeException {
-    int gymId = Integer.parseInt(request.get("gymId"));
-    String membershipName = request.get("membershipName");
-    double unitAmount = Double.parseDouble(request.get("unitAmount"));
-
-    subscriptionService.createProduct(GymBranchId.of(gymId, 1000), membershipName, unitAmount);
-
-    return ResponseEntity.noContent().build();
-  }
 
   @PostMapping("/webhook")
   public ResponseEntity<String> handleWebhook(

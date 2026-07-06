@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
+import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
@@ -31,7 +32,7 @@ public class GymController {
   }
 
   @PostMapping("/{gymId}/memberships/plans")
-  public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody CreateMembershipPlanRequest request) {
+  public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody CreateMembershipPlanRequest request) throws StripeException {
     useCase.createMembershipPlan(gymId, request);
     return ResponseEntity.noContent().build();
   }

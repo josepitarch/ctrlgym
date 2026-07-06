@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/memberships/cancellation-reasons")
 @RequiredArgsConstructor
 public class MembershipController {
 
   private final MembershipService membershipService;
 
-  @GetMapping
+  @GetMapping("/v1/memberships/cancellation-reasons")
   public ResponseEntity<List<MembershipCancellationReason>> getAll() {
     return ResponseEntity.ok(membershipService.getCancellationReasons());
   }

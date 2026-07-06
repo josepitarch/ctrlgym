@@ -50,7 +50,20 @@ public class MembersController {
     return ResponseEntity.ok(membersService.getMember(Member.Id.of(memberId, gymId)));
   }
 
-  @GetMapping("/{memberId}/memberships")
+  @PostMapping("/{memberId}/memberships/{membershipId}")
+  public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId) throws StripeException {
+    membershipService.initializeMembership(Member.Id.of(memberId, gymId), membershipId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{memberId}/memberships/{membershipId}")
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId, @RequestParam Integer cancellationReasonId) throws StripeException {
+    membershipService.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId);
+    return ResponseEntity.noContent().build();
+  }
+
+
+  @GetMapping("/memberships")
   public ResponseEntity<List<Membership>> getMemberships(@PathVariable UUID memberId, @RequestParam Integer gymId) {
     return ResponseEntity.ok(membershipService.getMemberships(Member.Id.of(memberId, gymId)));
   }
@@ -99,5 +112,5 @@ public class MembersController {
     byte[] qrImage = membersService.generateQrCode(Member.Id.of(memberId, gymId));
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
-  
+
 }

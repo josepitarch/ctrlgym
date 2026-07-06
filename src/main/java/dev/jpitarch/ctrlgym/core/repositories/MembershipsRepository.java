@@ -5,8 +5,8 @@ import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationM
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipCancellationReasonJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -14,31 +14,32 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class MembershipsRepository {
 
-  private final MembershipJpaRepository jpaRepository;
+  private final MembershipJpaRepository membershipJpaRepository;
+
+  private final MembershipPlanJpaRepository membershipPlanJpaRepository;
 
   private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public void createMembershipPlan(String id, GymBranchId gymBranchId, String membershipName, String priceId, double price, Membership.Recurring recurring) {
+  public void createMembershipPlan(MembershipPlan membershipPlan, Integer gymId) {
     var sql = """
       INSERT INTO membership_plans (id, gym_id, name, stripe_price_id, price, billing_period, active, created_at)
       VALUES (:id, :gymId, :name, :priceId, :price, :billingPeriod, true, CURRENT_DATE)
       """;
 
     var params = Map.of(
-      "id", id,
-      "gymId", gymBranchId.gymId(),
-      "name", membershipName,
-      "priceId", priceId,
-      "price", price,
-      "billingPeriod", recurring.name()
+      "id", membershipPlan.getId(),
+      "gymId", gymId,
+      "name", membershipPlan.getName(),
+      "priceId", membershipPlan.getStripePriceId(),
+      "price", membershipPlan.getPrice(),
+      "billingPeriod", membershipPlan.getRecurring().name()
     );
 
     jdbc.update(sql, params);
@@ -53,11 +54,11 @@ public class MembershipsRepository {
     membership.setStripeSubscriptionId(subscriptionId);
     membership.setAutoRenew(true);
 
-    jpaRepository.save(membership);
+    membershipJpaRepository.save(membership);
   }
 
   public List<Membership> getMemberships(Member.Id memberId) {
-    return jpaRepository
+    return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()
       .map(m -> Membership.builder()
@@ -70,17 +71,17 @@ public class MembershipsRepository {
   }
 
   public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) {
-    jpaRepository
+    membershipJpaRepository
       .findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(memberId.memberId(), memberId.gymId(), membershipId)
       .ifPresent(m -> {
         m.setEndDate(LocalDate.now());
         m.setCancellationReasonId(cancellationReasonId);
-        jpaRepository.save(m);
+        membershipJpaRepository.save(m);
       });
   }
 
   public boolean hasActiveMembership(Member.Id memberId, String membershipId) {
-    return jpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipId);
+    return membershipJpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipId);
   }
 
   public List<Integer> getAccessibleBranches(Member.Id memberId) {

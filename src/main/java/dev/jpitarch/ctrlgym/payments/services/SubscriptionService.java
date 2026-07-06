@@ -7,8 +7,9 @@ import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
+import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
+import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,34 +26,18 @@ public class SubscriptionService {
 
   private final GymsRepository gymsRepository;
 
-  private final MembersRepository membersRepository;
-
   private final MembershipsRepository membershipsRepository;
 
-  public void createTaxRate() throws StripeException {
-    var taxRateParams = TaxRateCreateParams.builder()
-      .setDisplayName("IVA")
-      .setPercentage(new BigDecimal("21"))
-      .setInclusive(true)
-      .setCountry("ES")
-      .setJurisdiction("ES")
-      .setDescription("IVA español 21%")
-      .build();
-
-    TaxRate.create(taxRateParams);
-  }
-
-  //TODO: revisar si el core de este caso de uso ha de estar aquí
-  public void createMembership(GymBranchId gymBranchId, String membershipName, double amount) throws StripeException {
-    String stripeAccountId = gymsRepository.getStripeAccountId(gymBranchId.gymId());
+  public MembershipPlan createProduct(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {
+    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
       .build();
 
     var productParams = ProductCreateParams.builder()
-      .setName(membershipName)
-      .putMetadata("gymId", String.valueOf(gymBranchId.gymId()))
+      .setName(request.name())
+      .putMetadata("gymId", String.valueOf(gymId))
       .build();
 
     var product = Product.create(productParams, requestOptions);
@@ -61,7 +45,7 @@ public class SubscriptionService {
     var priceParams = PriceCreateParams.builder()
       .setProduct(product.getId())
       .setCurrency("eur")
-      .setUnitAmountDecimal(BigDecimal.valueOf(amount * 100)) //Stripe trabaja con céntimos
+      .setUnitAmountDecimal(BigDecimal.valueOf(request.price() * 100)) //Stripe trabaja con céntimos
       .setRecurring(
         PriceCreateParams.Recurring.builder()
           .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
@@ -70,28 +54,20 @@ public class SubscriptionService {
       .build();
 
     var price = Price.create(priceParams, requestOptions);
+    return MembershipPlan.builder()
+      .id(product.getId())
+      .name(product.getName())
+      .price(price.getUnitAmountDecimal().doubleValue())
+      .recurring(mapRecurring(price.getRecurring().getInterval()))
+      .stripePriceId(price.getId())
+      .build();
 
-    membershipsRepository.createMembershipPlan(product.getId(), gymBranchId, product.getName(), price.getId(), price.getUnitAmountDecimal().doubleValue(), mapRecurring(price.getRecurring().getInterval()));
   }
 
 
-
-  public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
-    if (membershipsRepository.hasActiveMembership(memberId, membershipId)) {
-      throw new IllegalStateException("Member " + memberId + " already has membership " + membershipId);
-    }
-
-    String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String stripePriceId = membershipsRepository.getStripePriceId(membershipId);
-    Optional<String> paymentMethodId = membersRepository.getPaymentMethodId(memberId);
-    Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
-
-    if (paymentMethodId.isEmpty() || customerId.isEmpty()) {
-      throw new IllegalStateException("Customer or payment method not found for member " + memberId);
-    }
-
+  public String createSubscription(Member.Id memberId, Map<String, String> props) throws StripeException {
     var requestOptions = RequestOptions.builder()
-      .setStripeAccount(stripeAccountId)
+      .setStripeAccount(props.get("stripeAccountId"))
       .build();
 
     LocalDate firstDayOfNextMonth = LocalDate.now().withDayOfMonth(1).plusMonths(1);
@@ -101,17 +77,17 @@ public class SubscriptionService {
 
     var customerUpdateParams = CustomerUpdateParams.builder()
       .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
-        .setDefaultPaymentMethod(paymentMethodId.get())
+        .setDefaultPaymentMethod(props.get("paymentMethodId"))
         .build()
       )
       .build();
 
-    Customer.retrieve(customerId.get(), requestOptions).update(customerUpdateParams, requestOptions);
+    Customer.retrieve(props.get("customerId"), requestOptions).update(customerUpdateParams, requestOptions);
 
     var subscriptionParams = SubscriptionCreateParams.builder()
-      .setCustomer(customerId.get())
+      .setCustomer(props.get("customerId"))
       .addItem(SubscriptionCreateParams.Item.builder()
-        .setPrice(stripePriceId)
+        .setPrice(props.get("stripePriceId"))
         .build()
       )
       .setApplicationFeePercent(new BigDecimal("0.0"))
@@ -126,16 +102,12 @@ public class SubscriptionService {
       .build();
 
     var subscription = Subscription.create(subscriptionParams, requestOptions);
-    membershipsRepository.initializeMembership(memberId, membershipId, subscription.getId());
+    return subscription.getId();
   }
 
-  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
-    if (!membershipsRepository.hasActiveMembership(memberId, membershipId)) {
-      throw new IllegalStateException("Membership " + membershipId + " not found for member " + membershipId);
-    }
-
-    String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId, membershipId);
+  public void cancelSubscription(Map<String, String> props) throws StripeException {
+    String stripeAccountId = props.get("stripeAccountId");
+    String subscriptionId = props.get("subscriptionId");
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
@@ -143,7 +115,6 @@ public class SubscriptionService {
 
     var subscription = Subscription.retrieve(subscriptionId, requestOptions);
     subscription.cancel(SubscriptionCancelParams.builder().build(), requestOptions);
-    membershipsRepository.cancelMembership(memberId, membershipId, cancellationReasonId);
   }
 
   private Membership.Recurring mapRecurring(String interval) {
@@ -151,6 +122,19 @@ public class SubscriptionService {
       case "MONTH" -> Membership.Recurring.MONTHLY;
       default -> throw new IllegalStateException("Unexpected value: " + interval);
     };
+  }
+
+  public void createTaxRate() throws StripeException {
+    var taxRateParams = TaxRateCreateParams.builder()
+      .setDisplayName("IVA")
+      .setPercentage(new BigDecimal("21"))
+      .setInclusive(true)
+      .setCountry("ES")
+      .setJurisdiction("ES")
+      .setDescription("IVA español 21%")
+      .build();
+
+    TaxRate.create(taxRateParams);
   }
 
 }

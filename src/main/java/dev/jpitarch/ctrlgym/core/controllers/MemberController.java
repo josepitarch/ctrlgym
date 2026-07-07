@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
@@ -25,7 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/members")
 @RequiredArgsConstructor
-public class MembersController {
+public class MemberController {
 
   private final MemberUseCase memberUseCase;
 

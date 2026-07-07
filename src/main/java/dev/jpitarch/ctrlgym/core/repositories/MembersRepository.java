@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberDistribution;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
@@ -36,7 +37,7 @@ public class MembersRepository {
 
     MemberMO memberMO = jpaRepository
       .findById(memberMOId)
-      .orElseThrow(() -> new RuntimeException("Member with id %s does not exists".formatted(memberId)));
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
 
     return Member.builder()
       .id(memberId)

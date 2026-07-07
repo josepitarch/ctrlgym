@@ -3,10 +3,7 @@ package dev.jpitarch.ctrlgym.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.jspecify.annotations.NonNull;
 
 import java.time.LocalDate;
@@ -14,6 +11,7 @@ import java.util.UUID;
 
 @Data
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class Member {

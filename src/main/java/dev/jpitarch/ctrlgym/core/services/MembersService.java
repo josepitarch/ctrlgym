@@ -3,9 +3,12 @@ package dev.jpitarch.ctrlgym.core.services;
 import com.google.zxing.WriterException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
+import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.payments.services.GenerateInvoiceReportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MembersService {
@@ -30,8 +34,11 @@ public class MembersService {
 
   public void create(Member member) {
     if (!membersRepository.exists(member.getId())) {
-      throw new RuntimeException("Member with id %s does not exist".formatted(member.getId()));
+      throw new MemberNotFoundException(member.getId());
     }
+
+    log.info("Setting member with id {} from {} to {}", member.getId(), MemberStatus.AUTH, MemberStatus.MEMBER);
+
     membersRepository.save(member);
     publisher.publishEvent(member);
   }
@@ -55,14 +62,14 @@ public class MembersService {
     var accesses = membersRepository.getMemberAccessesByMemberIdAndDateRange(memberId, fromDt, toDt);
 
     var accessedDates = accesses.stream()
-      .map(access -> access.getTimestamp().toLocalDate())
-      .collect(Collectors.toSet());
+            .map(access -> access.getTimestamp().toLocalDate())
+            .collect(Collectors.toSet());
 
     return from.datesUntil(to.plusDays(1))
-      .collect(Collectors.toMap(
-        date -> date,
-        accessedDates::contains
-      ));
+            .collect(Collectors.toMap(
+                    date -> date,
+                    accessedDates::contains
+            ));
   }
 
 

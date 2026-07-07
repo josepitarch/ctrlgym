@@ -19,6 +19,9 @@ public class MembershipPlanMO {
   @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private String id;
 
+  @Column(name = "gym_id")
+  private Integer gymId;
+
   @Column(name = "name", nullable = false, length = 100)
   private String name;
 

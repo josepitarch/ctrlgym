@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,13 +31,13 @@ public class MembershipService {
 
   private final SubscriptionService subscriptionService;
 
-  public void initialize(Member.Id memberId, String membershipId) throws StripeException {
-    if (membershipsRepository.hasActiveMembership(memberId, membershipId)) {
-      throw new IllegalStateException("Member " + memberId + " already has membership " + membershipId);
+  public void initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
+    if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
+      throw new IllegalStateException("Member " + memberId + " already has membership " + membershipPlanId);
     }
 
     String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String stripePriceId = membershipsRepository.getStripePriceId(membershipId);
+    String stripePriceId = membershipsRepository.getStripePriceId(membershipPlanId);
     Optional<String> paymentMethodId = membersRepository.getPaymentMethodId(memberId);
     Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
 
@@ -51,8 +52,16 @@ public class MembershipService {
       "customerId", customerId.get()
     );
 
-    String subscriptionId = subscriptionService.createSubscription(memberId, props);
-    membershipsRepository.save(memberId, membershipId, subscriptionId);
+    String subscriptionId = subscriptionService.create(memberId, props);
+    membershipsRepository.save(memberId, membershipPlanId, subscriptionId, calculateNextBillingDate());
+  }
+
+  private LocalDate calculateNextBillingDate() {
+    var today = LocalDate.now();
+    if (today.getDayOfMonth() == 1) {
+      return today.plusMonths(1).withDayOfMonth(1);
+    }
+    return today.plusMonths(2).withDayOfMonth(1);
   }
 
   public void cancel(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
@@ -68,7 +77,7 @@ public class MembershipService {
       "subscriptionId", subscriptionId
     );
 
-    subscriptionService.cancelSubscription(props);
+    subscriptionService.cancel(props);
     membershipsRepository.setCancellationReasonId(memberId, membershipId, cancellationReasonId);
   }
 

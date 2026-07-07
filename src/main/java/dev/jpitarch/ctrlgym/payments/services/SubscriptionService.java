@@ -4,13 +4,11 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +23,6 @@ import java.util.Map;
 public class SubscriptionService {
 
   private final GymsRepository gymsRepository;
-
-  private final MembershipsRepository membershipsRepository;
 
   public MembershipPlan createProduct(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {
     String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
@@ -61,11 +57,10 @@ public class SubscriptionService {
       .recurring(mapRecurring(price.getRecurring().getInterval()))
       .stripePriceId(price.getId())
       .build();
-
   }
 
 
-  public String createSubscription(Member.Id memberId, Map<String, String> props) throws StripeException {
+  public String create(Member.Id memberId, Map<String, String> props) throws StripeException {
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(props.get("stripeAccountId"))
       .build();
@@ -105,7 +100,7 @@ public class SubscriptionService {
     return subscription.getId();
   }
 
-  public void cancelSubscription(Map<String, String> props) throws StripeException {
+  public void cancel(Map<String, String> props) throws StripeException {
     String stripeAccountId = props.get("stripeAccountId");
     String subscriptionId = props.get("subscriptionId");
 

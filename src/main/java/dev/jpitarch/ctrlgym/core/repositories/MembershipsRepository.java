@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
+import dev.jpitarch.ctrlgym.core.models.MembershipPlanMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipCancellationReasonJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
@@ -45,25 +46,27 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public void save(Member.Id memberId, String membershipId, String subscriptionId) {
+  public void save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
     MembershipMO membership = new MembershipMO();
     membership.setMemberId(memberId.memberId());
     membership.setGymId(memberId.gymId());
-    membership.setMembershipPlanId(membershipId);
+    membership.setMembershipPlanId(membershipPlanId);
     membership.setStartDate(LocalDate.now());
     membership.setStripeSubscriptionId(subscriptionId);
     membership.setAutoRenew(true);
+    membership.setNextBillingDate(nextBillingDate);
 
     membershipJpaRepository.save(membership);
   }
 
   public List<Membership> getMemberships(Member.Id memberId) {
+    List<MembershipPlanMO> plans = membershipPlanJpaRepository.findByGymId(memberId.gymId());
     return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()
       .map(m -> Membership.builder()
         .id(m.getId().intValue())
-        .interval(Membership.Recurring.from(m.getNextBillingDate() != null ? "MONTHLY" : null))
+        .interval(Membership.Recurring.from("MONTHLY")) //TODO
         .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
         .nextBillingDate(m.getNextBillingDate())
         .build())

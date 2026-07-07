@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
+import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,7 @@ class MembersControllerGetMemberTest extends BaseIntegrationTest {
     member.setState("Test State");
     member.setPostalCode(12345);
     member.setCountry("Test Country");
+    member.setStatus(MemberStatus.MEMBER);
 
     memberJpaRepository.save(member);
   }
@@ -47,17 +49,17 @@ class MembersControllerGetMemberTest extends BaseIntegrationTest {
   @Test
   void getMember_returnsMember() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}", memberId)
-        .param("gymId", gymId.toString())
-        .contentType(MediaType.APPLICATION_JSON))
-      .andExpect(status().isOk())
-      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id.member_id").value(memberId.toString()))
-      .andExpect(jsonPath("$.id.gym_id").value(gymId))
-      .andExpect(jsonPath("$.name").value("John"))
-      .andExpect(jsonPath("$.first_surname").value("Doe"))
-      .andExpect(jsonPath("$.second_surname").value("Smith"))
-      .andExpect(jsonPath("$.email").value("john.doe@example.com"))
-      .andExpect(jsonPath("$.gender").value("MALE"));
+                    .param("gymId", gymId.toString())
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id.member_id").value(memberId.toString()))
+            .andExpect(jsonPath("$.id.gym_id").value(gymId))
+            .andExpect(jsonPath("$.name").value("John"))
+            .andExpect(jsonPath("$.first_surname").value("Doe"))
+            .andExpect(jsonPath("$.second_surname").value("Smith"))
+            .andExpect(jsonPath("$.email").value("john.doe@example.com"))
+            .andExpect(jsonPath("$.gender").value("MALE"));
   }
 
   @Test
@@ -65,8 +67,8 @@ class MembersControllerGetMemberTest extends BaseIntegrationTest {
     UUID nonExistentId = UUID.randomUUID();
 
     mockMvc.perform(get("/v1/members/{memberId}", nonExistentId)
-        .param("gymId", gymId.toString())
-        .contentType(MediaType.APPLICATION_JSON))
-      .andExpect(status().isInternalServerError());
+                    .param("gymId", gymId.toString())
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError());
   }
 }

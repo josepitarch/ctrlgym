@@ -21,7 +21,7 @@ public abstract class BaseIntegrationTest {
   @Container
   @ServiceConnection
   static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17.6")
-          ;//.withInitScripts("schema.sql", "data.sql");
+          .withInitScripts("schema.sql", "data.sql");
 
   @Autowired
   protected MockMvc mockMvc;

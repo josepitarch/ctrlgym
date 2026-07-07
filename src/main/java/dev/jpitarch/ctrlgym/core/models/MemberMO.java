@@ -1,9 +1,12 @@
 package dev.jpitarch.ctrlgym.core.models;
 
+import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -70,6 +73,11 @@ public class MemberMO {
   @Column(name = "created_at")
   private OffsetDateTime createdAt;
 
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(name = "status", nullable = false)
+  private MemberStatus status;
+
   @Column(name = "stripe_customer_id", length = Integer.MAX_VALUE)
   private String stripeCustomerId;
 
@@ -86,7 +94,7 @@ public class MemberMO {
     if (thisEffectiveClass != oEffectiveClass) return false;
     MemberMO memberMO = (MemberMO) o;
     return getId() != null && Objects.equals(getId(), memberMO.getId())
-      && getGymId() != null && Objects.equals(getGymId(), memberMO.getGymId());
+            && getGymId() != null && Objects.equals(getGymId(), memberMO.getGymId());
   }
 
   @Override

@@ -26,8 +26,6 @@ public class MembersService {
 
   private final GenerateAccessQrService generateAccessQrService;
 
-  private final GenerateInvoiceReportService generateInvoiceReportService;
-
   private final ApplicationEventPublisher publisher;
 
   public void create(Member member) {

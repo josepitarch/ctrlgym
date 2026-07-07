@@ -49,7 +49,7 @@ public class GymBranchHeartbeatMO {
 
   @Column(name = "cpu_percent")
   @JsonProperty("cpu_percent")
-  private Double cpuPercent;
+  private BigDecimal cpuPercent;
 
   @Column(name = "memory_percent")
   @JsonProperty("memory_percent")

@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.models.GymBranchHeartbeatMO;
@@ -55,6 +56,17 @@ public class GymController {
   public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody CreateMembershipPlanRequest request) throws StripeException {
     useCase.createMembershipPlan(gymId, request);
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/{gymId}/memberships/plans")
+  public ResponseEntity<List<MembershipPlan>> getMembershipPlans(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getMembershipPlans(gymId));
+  }
+
+  @DeleteMapping("/{gymId}/memberships/plans/{planId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteMembershipPlan(@PathVariable Integer gymId, @PathVariable String planId) throws StripeException {
+    useCase.deleteMembershipPlan(planId, gymId);
   }
 
   @PostMapping("/{gymId}/branches/{gymBranchId}/heartbeat")

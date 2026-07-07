@@ -120,6 +120,25 @@ public class MembershipsRepository {
       .build();
   }
 
+  public List<MembershipPlan> getMembershipPlans(Integer gymId) {
+    return membershipPlanJpaRepository.findByGymId(gymId)
+      .stream()
+      .map(plan -> MembershipPlan.builder()
+        .id(plan.getId())
+        .name(plan.getName())
+        .price(plan.getPrice().doubleValue())
+        .recurring(Membership.Recurring.from(plan.getBillingPeriod()))
+        .stripePriceId(plan.getStripePriceId())
+        .build())
+      .toList();
+  }
+
+  public void deleteMembershipPlan(String planId, Integer gymId) {
+    var sql = "DELETE FROM membership_plans WHERE id = :id AND gym_id = :gymId";
+    var params = Map.of("id", planId, "gymId", gymId);
+    jdbc.update(sql, params);
+  }
+
   public String getStripePriceId(String id) {
     var sql = """
       SELECT stripe_price_id

@@ -33,6 +33,14 @@ public class GymUseCase {
     membershipsRepository.createMembershipPlan(membershipPlan, gymId);
   }
 
+  public List<MembershipPlan> getMembershipPlans(Integer gymId) {
+    return membershipsRepository.getMembershipPlans(gymId);
+  }
+
+  public void deleteMembershipPlan(String planId, Integer gymId) throws StripeException {
+    subscriptionService.deleteProduct(gymId, planId);
+    membershipsRepository.deleteMembershipPlan(planId, gymId);
+  }
 
   public CurrentOccupancy getCurrentOccupancy(GymBranchId gymBranchId) {
     GymBranch gymBranch = gymsRepository.getGymBranch(gymBranchId);

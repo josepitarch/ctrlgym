@@ -59,6 +59,15 @@ public class SubscriptionService {
       .build();
   }
 
+  public void deleteProduct(Integer gymId, String productId) throws StripeException {
+    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
+
+    var requestOptions = RequestOptions.builder()
+      .setStripeAccount(stripeAccountId)
+      .build();
+
+    Product.retrieve(productId, requestOptions).delete(requestOptions);
+  }
 
   public String create(Member.Id memberId, Map<String, String> props) throws StripeException {
     var requestOptions = RequestOptions.builder()
@@ -108,8 +117,7 @@ public class SubscriptionService {
       .setStripeAccount(stripeAccountId)
       .build();
 
-    var subscription = Subscription.retrieve(subscriptionId, requestOptions);
-    subscription.cancel(SubscriptionCancelParams.builder().build(), requestOptions);
+    Subscription.retrieve(subscriptionId, requestOptions).cancel();
   }
 
   private Membership.Recurring mapRecurring(String interval) {

@@ -9,4 +9,6 @@ public interface MembershipPlanJpaRepository extends JpaRepository<MembershipPla
 
   List<MembershipPlanMO> findByGymId(Integer gymId);
 
+  void deleteByIdAndGymId(String id, Integer gymId);
+
 }

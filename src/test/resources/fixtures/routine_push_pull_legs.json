@@ -1,0 +1,51 @@
+{
+  "name": "Push Pull Legs",
+  "days": [
+    {
+      "day_number": 1,
+      "name": "Push",
+      "description": "Chest, shoulders and triceps",
+      "exercises": [
+        {
+          "id": 1,
+          "name": "Press de banca",
+          "muscle_group": "CHEST",
+          "position": 1,
+          "sets": [
+            { "number": 1, "repetition": 10 },
+            { "number": 2, "repetition": 8 },
+            { "number": 3, "repetition": 8 }
+          ]
+        },
+        {
+          "id": 8,
+          "name": "Press inclinado con mancuernas",
+          "muscle_group": "CHEST",
+          "position": 2,
+          "sets": [
+            { "number": 1, "repetition": 10 },
+            { "number": 2, "repetition": 10 }
+          ]
+        }
+      ]
+    },
+    {
+      "day_number": 2,
+      "name": "Pull",
+      "description": "Back and biceps",
+      "exercises": [
+        {
+          "id": 2,
+          "name": "Dominadas",
+          "muscle_group": "BACK",
+          "position": 1,
+          "sets": [
+            { "number": 1, "repetition": 8 },
+            { "number": 2, "repetition": 8 },
+            { "number": 3, "repetition": 6 }
+          ]
+        }
+      ]
+    }
+  ]
+}

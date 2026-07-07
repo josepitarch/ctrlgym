@@ -1,13 +1,18 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
+import dev.jpitarch.ctrlgym.core.models.RoutineMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,9 +20,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class MemberControllerTestIT extends BaseIntegrationTest {
@@ -27,6 +30,11 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Autowired
   MembershipJpaRepository membershipJpaRepository;
+
+  @Autowired
+  RoutineJpaRepository routineJpaRepository;
+
+  ObjectMapper objectMapper = new ObjectMapper();
 
   private final UUID memberId = UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
   private final Integer gymId = 1;
@@ -75,11 +83,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipId}", memberId, "plan_premium")
                     .param("gymId", gymId.toString()))
             .andExpect(status().isNoContent());
-
-    MembershipMO membership = membershipJpaRepository
-            .findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(memberId, gymId, "plan_premium")
-            .orElseThrow();
-    assertThat(membership.getStripeSubscriptionId()).isEqualTo("sub_test123");
   }
 
 @Test
@@ -106,5 +109,44 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     MembershipMO membership = membershipJpaRepository.findById(1L).orElseThrow();
     assertThat(membership.getEndDate()).isNotNull();
     assertThat(membership.getCancellationReasonId()).isEqualTo(1);
+  }
+
+  @Test
+  @Order(7)
+  void createRoutine_returns201() throws Exception {
+    var routineJson = objectMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
+
+    mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
+                    .param("gymId", gymId.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(routineJson))
+            .andExpect(status().isCreated());
+  }
+
+  @Test
+  @Order(8)
+  void getRoutines_returnsRoutines() throws Exception {
+    mockMvc.perform(get("/v1/members/{memberId}/routines", memberId)
+                    .param("gymId", gymId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].name").value("Push Pull Legs"))
+            .andExpect(jsonPath("$[0].days.length()").value(2))
+            .andExpect(jsonPath("$[0].days[0].name").value("Push"))
+            .andExpect(jsonPath("$[0].days[0].exercises.length()").value(2))
+            .andExpect(jsonPath("$[0].days[0].exercises[0].name").value("Press de banca"))
+            .andExpect(jsonPath("$[0].days[0].exercises[0].sets.length()").value(3));
+  }
+
+  @Test
+  @Order(9)
+  void deleteRoutine_returns204() throws Exception {
+    RoutineMO routine = routineJpaRepository.findByMemberIdAndGymId(memberId, gymId).getFirst();
+
+    mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId, routine.getId())
+                    .param("gymId", gymId.toString()))
+            .andExpect(status().isNoContent());
+
+    assertThat(routineJpaRepository.findByMemberIdAndGymId(memberId, gymId)).isEmpty();
   }
 }

@@ -5,12 +5,15 @@ import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.GenerateInvoiceReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -27,6 +30,8 @@ import java.util.stream.Collectors;
 public class MembersService {
 
   private final MembersRepository membersRepository;
+
+  private final MembershipsRepository membershipsRepository;
 
   private final GenerateAccessQrService generateAccessQrService;
 
@@ -48,7 +53,13 @@ public class MembersService {
   }
 
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
-    return generateAccessQrService.generateQrCode(memberId);
+    List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId);
+
+    if (CollectionUtils.isEmpty(branches)) throw new MemberWithoutAccessException(memberId);
+
+    log.info("Generating QR code for member {}: {}", memberId, branches);
+
+    return generateAccessQrService.generateQrCode(memberId, branches);
   }
 
   public List<MemberAccess> getAccesses(Member.Id memberId) {

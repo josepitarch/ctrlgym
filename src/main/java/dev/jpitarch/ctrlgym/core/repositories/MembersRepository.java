@@ -114,7 +114,7 @@ public class MembersRepository {
       """;
 
     var params = Map.of(
-      "id", id,
+      "id", id.memberId(),
       "gymId", id.gymId()
     );
 

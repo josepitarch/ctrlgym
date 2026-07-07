@@ -6,6 +6,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -38,14 +39,7 @@ public class GenerateAccessQrService {
 
   private static final int QR_SIZE = 300;
 
-  public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
-    List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId);
-    if (CollectionUtils.isEmpty(branches)) {
-      throw new IllegalStateException("Member has no accesses for the gym");
-    }
-
-    log.info("Generating QR code for member {}: {}", memberId, branches);
-
+  public byte[] generateQrCode(Member.Id memberId, List<Integer> branches) throws WriterException, IOException {
     var qrCodeWriter = new QRCodeWriter();
     var data = this.generateQrToken(memberId, branches);
     BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
@@ -59,12 +53,12 @@ public class GenerateAccessQrService {
   private String generateQrToken(Member.Id memberId, List<Integer> gymIds) {
     var now = Instant.now();
     return Jwts.builder()
-      .subject(memberId.memberId().toString())
-      .claim("gym_branches", gymIds)
-      .issuedAt(Date.from(now))
-      .expiration(Date.from(now.plusSeconds(expirationSeconds)))
-      .signWith(getSigningKey(), Jwts.SIG.HS256)
-      .compact();
+            .subject(memberId.memberId().toString())
+            .claim("gym_branches", gymIds)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plusSeconds(expirationSeconds)))
+            .signWith(getSigningKey(), Jwts.SIG.HS256)
+            .compact();
   }
 
   private SecretKey getSigningKey() {

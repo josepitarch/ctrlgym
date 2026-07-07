@@ -47,7 +47,7 @@ public class MembershipsRepository {
   }
 
   public void save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
-    MembershipMO membership = new MembershipMO();
+    var membership = new MembershipMO();
     membership.setMemberId(memberId.memberId());
     membership.setGymId(memberId.gymId());
     membership.setMembershipPlanId(membershipPlanId);

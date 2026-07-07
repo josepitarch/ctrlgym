@@ -52,6 +52,8 @@ public class MembershipService {
       "customerId", customerId.get()
     );
 
+    log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
+
     String subscriptionId = subscriptionService.create(memberId, props);
     membershipsRepository.save(memberId, membershipPlanId, subscriptionId, calculateNextBillingDate());
   }
@@ -66,16 +68,15 @@ public class MembershipService {
 
   public void cancel(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
     if (!membershipsRepository.hasActiveMembership(memberId, membershipId)) {
-      throw new IllegalStateException("Membership " + membershipId + " not found for member " + membershipId);
+      throw new IllegalStateException("Membership with id " + membershipId + " not found for member with id " + memberId);
     }
 
-    String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId, membershipId);
-
     var props = Map.of(
-      "stripeAccountId", stripeAccountId,
-      "subscriptionId", subscriptionId
+      "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
+      "subscriptionId", membershipsRepository.getStripeSubscriptionId(memberId, membershipId)
     );
+
+    log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);
 
     subscriptionService.cancel(props);
     membershipsRepository.setCancellationReasonId(memberId, membershipId, cancellationReasonId);

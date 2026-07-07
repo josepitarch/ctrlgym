@@ -13,6 +13,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -25,7 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class GenerateAccessQrService {
 
@@ -34,8 +35,6 @@ public class GenerateAccessQrService {
 
   @Value("${qr.expiration-seconds}")
   private int expirationSeconds;
-
-  private final MembershipsRepository membershipsRepository;
 
   private static final int QR_SIZE = 300;
 

@@ -42,7 +42,7 @@ public class MembersService {
       throw new MemberNotFoundException(member.getId());
     }
 
-    log.info("Setting member with id {} from {} to {}", member.getId(), MemberStatus.AUTH, MemberStatus.MEMBER);
+    log.info("Setting member with id {} from {} to {}...", member.getId(), MemberStatus.AUTH, MemberStatus.MEMBER);
 
     membersRepository.save(member);
     publisher.publishEvent(member);
@@ -57,7 +57,7 @@ public class MembersService {
 
     if (CollectionUtils.isEmpty(branches)) throw new MemberWithoutAccessException(memberId);
 
-    log.info("Generating QR code for member {}: {}", memberId, branches);
+    log.info("Generating QR code for member {}...: {}", memberId, branches);
 
     return generateAccessQrService.generateQrCode(memberId, branches);
   }

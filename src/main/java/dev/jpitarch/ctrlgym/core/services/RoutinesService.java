@@ -20,17 +20,17 @@ public class RoutinesService {
   private final RoutinesRepository routinesRepository;
 
   public Routine create(Routine routine, Member.Id memberId) {
-    log.info("Creating a routine for member {}... ", memberId);
+    log.info("Creating a routine for member with id {}... ", memberId);
     return routinesRepository.save(routine, memberId);
   }
 
   public List<Routine> getRoutines(Member.Id memberId) {
-    log.info("Retrieving routines for member {}...", memberId);
+    log.info("Retrieving routines for member  with id {}...", memberId);
     return routinesRepository.findByMemberId(memberId);
   }
 
   public void delete(Integer id, Member.Id memberId) {
-    log.info("Deleting routine with id {} for member {}... ", id, memberId);
+    log.info("Deleting routine with id {} for member with id {}... ", id, memberId);
     routinesRepository.deleteById(id);
   }
 

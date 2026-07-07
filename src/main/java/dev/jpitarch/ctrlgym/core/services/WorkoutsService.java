@@ -18,7 +18,7 @@ public class WorkoutsService {
   private final WorkoutsRepository workoutsRepository;
 
   public void create(Workout workout, UUID memberId) {
-    log.info("Creating workout for member {}...", memberId);
+    log.info("Creating workout for member with id {}...", memberId);
     workoutsRepository.save(workout, memberId);
   }
 

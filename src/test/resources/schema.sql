@@ -1,6 +1,4 @@
--- DROP SCHEMA public;
 
-CREATE SCHEMA public AUTHORIZATION pg_database_owner;
 
 -- DROP TYPE public.expense_frequency;
 
@@ -410,7 +408,7 @@ CREATE TABLE membership_plans
     created_at      date DEFAULT CURRENT_DATE NOT NULL,
     stripe_price_id text                      NOT NULL,
     CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
-                                                            ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
+        ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),
     CONSTRAINT membership_plans_stripe_price_id_uk UNIQUE (stripe_price_id),
     CONSTRAINT membership_plan_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
@@ -610,15 +608,6 @@ CREATE TABLE member_accesses
     CONSTRAINT member_accesses_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
 );
 
--- Table Triggers
-
-create trigger trg_update_gym_current_occupancy
-    after
-        insert
-    on
-        public.member_accesses
-    for each row
-execute function update_gym_branch_current_occupancy();
 
 
 -- public.routine_days definition
@@ -728,24 +717,24 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 AS
 $function$
 BEGIN
-    INSERT INTO public.members (id,
-                                gym_id,
-                                email,
-                                name,
-                                first_surname,
-                                second_surname,
-                                gender,
-                                status)
-    VALUES (NEW.id,
-            (NEW.raw_user_meta_data ->> 'gym_id')::int4,
-            NEW.email,
-            NEW.raw_user_meta_data ->> 'name',
-            NEW.raw_user_meta_data ->> 'first_surname',
-            NEW.raw_user_meta_data ->> 'second_surname',
-            (NEW.raw_user_meta_data ->> 'gender')::bpchar,
-            'AUTH');
+INSERT INTO public.members (id,
+                            gym_id,
+                            email,
+                            name,
+                            first_surname,
+                            second_surname,
+                            gender,
+                            status)
+VALUES (NEW.id,
+        (NEW.raw_user_meta_data ->> 'gym_id')::int4,
+        NEW.email,
+        NEW.raw_user_meta_data ->> 'name',
+        NEW.raw_user_meta_data ->> 'first_surname',
+        NEW.raw_user_meta_data ->> 'second_surname',
+        (NEW.raw_user_meta_data ->> 'gender')::bpchar,
+        'AUTH');
 
-    RETURN NEW;
+RETURN NEW;
 END;
 $function$
 ;
@@ -759,18 +748,28 @@ AS
 $function$
 BEGIN
 
-    UPDATE gym_branch_current_occupancy
-    SET count =
-            CASE
-                WHEN NEW.direction = 0
-                    THEN count + 1
-                WHEN NEW.direction = 1
-                    THEN GREATEST(count - 1, 0)
-                END
-    WHERE gym_branch_id = NEW.gym_branch_id;
+UPDATE gym_branch_current_occupancy
+SET count =
+        CASE
+            WHEN NEW.direction = 0
+                THEN count + 1
+            WHEN NEW.direction = 1
+                THEN GREATEST(count - 1, 0)
+            END
+WHERE gym_branch_id = NEW.gym_branch_id;
 
-    RETURN NEW;
+RETURN NEW;
 
 END;
 $function$
 ;
+
+-- Table Triggers
+
+create trigger trg_update_gym_current_occupancy
+    after
+        insert
+    on
+        public.member_accesses
+    for each row
+    execute function update_gym_branch_current_occupancy();

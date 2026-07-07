@@ -1,0 +1,84 @@
+package dev.jpitarch.ctrlgym.core.usecases;
+
+import com.google.zxing.WriterException;
+import com.stripe.exception.StripeException;
+import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.services.MembersService;
+import dev.jpitarch.ctrlgym.core.services.MembershipService;
+import dev.jpitarch.ctrlgym.core.services.RoutinesService;
+import dev.jpitarch.ctrlgym.core.services.WorkoutsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class MemberUseCase {
+
+  private final MembersService membersService;
+
+  private final MembershipService membershipService;
+
+  private final WorkoutsService workoutsService;
+
+  private final RoutinesService routinesService;
+
+  public void createMember(Member member) {
+    membersService.create(member);
+  }
+
+  public Member getMember(Member.Id memberId) {
+    return membersService.getMember(memberId);
+  }
+
+  public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
+    membershipService.initializeMembership(memberId, membershipId);
+  }
+
+  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
+    membershipService.cancelMembership(memberId, membershipId, cancellationReasonId);
+  }
+
+  public List<Membership> getMemberships(Member.Id memberId) {
+    return membershipService.getMemberships(memberId);
+  }
+
+  public List<MemberAccess> getAccesses(Member.Id memberId) {
+    return membersService.getAccesses(memberId);
+  }
+
+  public Map<LocalDate, Boolean> getAttendanceSummary(Member.Id memberId, LocalDate from, LocalDate to) {
+    return membersService.getAttendanceSummary(memberId, from, to);
+  }
+
+  public void createRoutine(Routine routine, Member.Id memberId) {
+    routinesService.create(routine, memberId);
+  }
+
+  public List<Routine> getRoutines(Member.Id memberId) {
+    return routinesService.getRoutines(memberId);
+  }
+
+  public void deleteRoutine(Integer routineId, Member.Id memberId) {
+    routinesService.delete(routineId, memberId);
+  }
+
+  public void createWorkout(Workout workout, UUID memberId) {
+    workoutsService.create(workout, memberId);
+  }
+
+  public Page<Workout> getWorkouts(UUID memberId, Pageable pageable) {
+    return workoutsService.getWorkouts(memberId, pageable);
+  }
+
+  public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
+    return membersService.generateQrCode(memberId);
+  }
+}

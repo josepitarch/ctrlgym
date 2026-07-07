@@ -53,7 +53,7 @@ public class MemberController {
   }
 
 
-  @GetMapping("/memberships")
+  @GetMapping("/{memberId}/memberships")
   public ResponseEntity<List<Membership>> getMemberships(@PathVariable UUID memberId, @RequestParam Integer gymId) {
     return ResponseEntity.ok(memberUseCase.getMemberships(Member.Id.of(memberId, gymId)));
   }

@@ -20,4 +20,5 @@ public class MembershipController {
   public ResponseEntity<List<MembershipCancellationReason>> getAll() {
     return ResponseEntity.ok(membershipService.getCancellationReasons());
   }
+
 }

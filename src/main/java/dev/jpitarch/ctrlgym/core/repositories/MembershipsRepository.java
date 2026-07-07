@@ -45,7 +45,7 @@ public class MembershipsRepository {
     jdbc.update(sql, params);
   }
 
-  public void initializeMembership(Member.Id memberId, String membershipId, String subscriptionId) {
+  public void save(Member.Id memberId, String membershipId, String subscriptionId) {
     MembershipMO membership = new MembershipMO();
     membership.setMemberId(memberId.memberId());
     membership.setGymId(memberId.gymId());
@@ -70,7 +70,7 @@ public class MembershipsRepository {
       .toList();
   }
 
-  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) {
+  public void setCancellationReasonId(Member.Id memberId, String membershipId, Integer cancellationReasonId) {
     membershipJpaRepository
       .findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(memberId.memberId(), memberId.gymId(), membershipId)
       .ifPresent(m -> {

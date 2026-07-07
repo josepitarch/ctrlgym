@@ -39,11 +39,11 @@ public class MemberUseCase {
   }
 
   public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
-    membershipService.initializeMembership(memberId, membershipId);
+    membershipService.initialize(memberId, membershipId);
   }
 
   public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
-    membershipService.cancelMembership(memberId, membershipId, cancellationReasonId);
+    membershipService.cancel(memberId, membershipId, cancellationReasonId);
   }
 
   public List<Membership> getMemberships(Member.Id memberId) {

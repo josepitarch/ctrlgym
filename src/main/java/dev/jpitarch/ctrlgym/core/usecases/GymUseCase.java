@@ -42,4 +42,13 @@ public class GymUseCase {
   public List<Exercise> getAll(Integer gymId) {
     return exercisesService.getAll(gymId);
   }
+
+  public Exercise createExercise(Integer gymId, Exercise exercise) {
+    return exercisesService.create(exercise, gymId);
+  }
+
+  public void deleteExercise(Integer exerciseId, Integer gymId) {
+    exercisesService.delete(exerciseId, gymId);
+  }
+
 }

@@ -35,10 +35,20 @@ public class GymController {
     return ResponseEntity.ok(useCase.getCurrentOccupancy(GymBranchId.of(gymId, branchId)));
   }
 
+  @PostMapping("/{gymId}/exercises")
+  public ResponseEntity<Exercise> createExercise(@PathVariable Integer gymId, @RequestBody Exercise exercise) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise));
+  }
 
   @GetMapping("/{gymId}/exercises")
   public ResponseEntity<List<Exercise>> getExercises(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getAll(gymId));
+  }
+
+  @DeleteMapping("/{gymId}/exercises/{exerciseId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteExercise(@PathVariable Integer gymId, @PathVariable Integer exerciseId) {
+    useCase.deleteExercise(exerciseId, gymId);
   }
 
   @PostMapping("/{gymId}/memberships/plans")

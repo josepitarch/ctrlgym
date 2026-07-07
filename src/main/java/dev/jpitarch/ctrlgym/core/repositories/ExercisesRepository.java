@@ -21,6 +21,21 @@ public class ExercisesRepository {
       .toList();
   }
 
+  public Exercise create(Exercise exercise, Integer gymId) {
+    var exerciseMO = new ExerciseMO();
+    exerciseMO.setName(exercise.getName());
+    exerciseMO.setDescription(exercise.getDescription());
+    exerciseMO.setMuscleGroup(exercise.getMuscleGroup());
+    exerciseMO.setImage(exercise.getImage());
+    exerciseMO.setGymId(gymId);
+    ExerciseMO saved = jpaRepository.save(exerciseMO);
+    return toDomain(saved);
+  }
+
+  public void delete(Integer exerciseId) {
+    jpaRepository.deleteById(exerciseId);
+  }
+
   private Exercise toDomain(ExerciseMO exerciseMO) {
     return Exercise.builder()
       .id(exerciseMO.getId())

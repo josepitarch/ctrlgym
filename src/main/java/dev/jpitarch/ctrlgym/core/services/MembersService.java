@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.google.zxing.WriterException;
+import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
@@ -8,11 +9,13 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.payments.services.GenerateInvoiceReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
@@ -35,17 +38,18 @@ public class MembersService {
 
   private final GenerateAccessQrService generateAccessQrService;
 
-  private final ApplicationEventPublisher publisher;
+  private final CustomerService customerService;
 
-  public void create(Member member) {
+  @Transactional
+  public void create(Member member) throws StripeException {
     if (!membersRepository.exists(member.getId())) {
       throw new MemberNotFoundException(member.getId());
     }
 
-    log.info("Setting member with id {} from {} to {}...", member.getId(), MemberStatus.AUTH, MemberStatus.MEMBER);
+    String customerId = customerService.create(member);
 
-    membersRepository.save(member);
-    publisher.publishEvent(member);
+    log.info("Setting member with id {} from {} to {}...", member.getId(), MemberStatus.AUTH, MemberStatus.MEMBER);
+    membersRepository.save(member, customerId);
   }
 
   public Member getMember(Member.Id memberId) {

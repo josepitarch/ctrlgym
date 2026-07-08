@@ -29,7 +29,7 @@ public class MemberController {
   private final MemberUseCase memberUseCase;
 
   @PostMapping("/{memberId}")
-  public ResponseEntity<String> create(@PathVariable UUID memberId, @RequestBody Member member, @RequestParam Integer gymId) throws StripeException {
+  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Member member, @RequestParam Integer gymId) throws StripeException {
     member.setId(Member.Id.of(memberId, gymId));
     memberUseCase.createMember(member);
     return new ResponseEntity<>(HttpStatus.CREATED);

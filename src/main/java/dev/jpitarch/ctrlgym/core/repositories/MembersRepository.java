@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberDistribution;
+import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
@@ -12,6 +13,7 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -46,22 +48,24 @@ public class MembersRepository {
       .name(memberMO.getName())
       .firstSurname(memberMO.getFirstSurname())
       .secondSurname(memberMO.getSecondSurname())
-      .gender(Gender.fromCode(memberMO.getGender()))
+      .gender(mapGender(memberMO.getGender()))
       .birthDate(memberMO.getBirthDate())
       .address(Member.Address.builder().postalCode(memberMO.getPostalCode()).build())
       .build();
   }
 
-  public void save(Member member) {
-    MemberMO memberMO = new MemberMO();
+  public void save(Member member, String customerId) {
+    var memberMO = new MemberMO();
     memberMO.setId(member.getId().memberId());
     memberMO.setGymId(member.getId().gymId());
     memberMO.setName(member.getName());
     memberMO.setFirstSurname(member.getFirstSurname());
     memberMO.setSecondSurname(member.getSecondSurname());
     memberMO.setEmail(member.getEmail());
-    memberMO.setGender(member.getGender().name());
+    memberMO.setGender(mapGender(member.getGender()));
     memberMO.setBirthDate(member.getBirthDate());
+    memberMO.setStatus(MemberStatus.MEMBER);
+    memberMO.setStripeCustomerId(customerId);
 
     if (member.getAddress() != null) {
       var address = member.getAddress();
@@ -121,9 +125,11 @@ public class MembersRepository {
     return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
   }
 
+  @Transactional
   public void saveCustomerId(Member.Id memberId, String customerId) {
-    MemberMO member = jpaRepository.getReferenceById(new MemberMO.ID(memberId.memberId(), memberId.gymId()));
+    MemberMO member = jpaRepository.findById(new MemberMO.ID(memberId.memberId(), memberId.gymId())).orElseThrow(() -> new MemberNotFoundException(memberId));
     member.setStripeCustomerId(customerId);
+    jpaRepository.save(member);
   }
 
   public void savePaymentMethodId(String customerId, String paymentMethodId) {
@@ -228,6 +234,21 @@ public class MembersRepository {
       case 0 -> MemberAccess.Direction.IN;
       case 1 -> MemberAccess.Direction.OUT;
       default -> throw new IllegalStateException("Unexpected value: " + direction);
+    };
+  }
+
+  private String mapGender(Gender gender) {
+    return switch (gender) {
+      case MALE -> "M";
+      case FEMALE -> "F";
+    };
+  }
+
+  private Gender mapGender(String gender) {
+    return switch (gender) {
+      case "M" -> Gender.MALE;
+      case "F" -> Gender.FEMALE;
+      default -> throw new IllegalStateException("Unexpected value: " + gender);
     };
   }
 }

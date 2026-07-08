@@ -5,6 +5,7 @@ import com.stripe.model.Customer;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,6 @@ public class CustomerService {
 
   private final GymsRepository gymsRepository;
 
-  private final MembersRepository membersRepository;
-
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public String create(Member member) throws StripeException {
     Integer gymId = member.getId().gymId();
 
@@ -54,10 +52,8 @@ public class CustomerService {
       ))
       .build();
 
-    log.info("Creating a customer with memberId {}...", member.getId());
-
+    log.info("Creating a customer with member with id {}...", member.getId());
     var customer = Customer.create(params, requestOptions);
-    membersRepository.saveCustomerId(member.getId(), customer.getId());
 
     return customer.getId();
   }

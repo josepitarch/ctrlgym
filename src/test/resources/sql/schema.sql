@@ -407,6 +407,7 @@ CREATE TABLE membership_plans
     active          bool DEFAULT true         NOT NULL,
     created_at      date DEFAULT CURRENT_DATE NOT NULL,
     stripe_price_id text                      NOT NULL,
+    deleted_at      date                      NULL,
     CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
         ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),

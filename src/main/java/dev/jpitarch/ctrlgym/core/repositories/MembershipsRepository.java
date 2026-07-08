@@ -134,9 +134,10 @@ public class MembershipsRepository {
   }
 
   public void deleteMembershipPlan(String planId, Integer gymId) {
-    var sql = "DELETE FROM membership_plans WHERE id = :id AND gym_id = :gymId";
-    var params = Map.of("id", planId, "gymId", gymId);
-    jdbc.update(sql, params);
+    MembershipPlanMO planMO = membershipPlanJpaRepository.findById(planId)
+      .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
+    planMO.setDeletedAt(LocalDate.now());
+    membershipPlanJpaRepository.save(planMO);
   }
 
   public String getStripePriceId(String id) {

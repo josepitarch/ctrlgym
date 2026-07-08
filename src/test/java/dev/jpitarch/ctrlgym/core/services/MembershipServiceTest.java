@@ -7,6 +7,7 @@ import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -43,6 +44,7 @@ class MembershipServiceTest {
   private final Member.Id memberId = new Member.Id(java.util.UUID.randomUUID(), 1);
 
   @ParameterizedTest
+  @DisplayName("Calculates correct next billing date")
   @CsvSource({
           "2026-07-01, 2026-08-01",
           "2026-07-02, 2026-09-01",

@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(1)
+  @DisplayName("Creates an exercise successfully")
   void createExercise_returns201() throws Exception {
     var exercise = Exercise.builder()
       .name("Curl de biceps")
@@ -56,6 +58,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(2)
+  @DisplayName("Returns all gym exercises")
   void getExercises_returnsAllExercises() throws Exception {
     mockMvc.perform(get("/v1/gyms/{gymId}/exercises", 1)
         .contentType(MediaType.APPLICATION_JSON))
@@ -67,6 +70,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(3)
+  @DisplayName("Deletes an exercise successfully")
   void deleteExercise_returns204() throws Exception {
     mockMvc.perform(delete("/v1/gyms/{gymId}/exercises/{exerciseId}", 1, 21))
       .andExpect(status().isNoContent());
@@ -76,6 +80,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(4)
+  @DisplayName("Creates a membership plan successfully")
   void createMembershipPlan_returns204() throws Exception {
     var request = new CreateMembershipPlanRequest("Premium Plan", 49.99, null);
 
@@ -98,6 +103,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(5)
+  @DisplayName("Returns all membership plans")
   void getMembershipPlans_returnsAllPlans() throws Exception {
     mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans", 1)
         .contentType(MediaType.APPLICATION_JSON))
@@ -114,11 +120,13 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(6)
+  @DisplayName("Deletes a membership plan successfully")
   void deleteMembershipPlan_returns204() throws Exception {
     mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", 1, "new_plan_id"))
       .andExpect(status().isNoContent());
 
     assertThat(membershipPlanJpaRepository.findById("new_plan_id")).isEmpty();
+    verify(subscriptionService).deleteProduct(1, "new_plan_id");
   }
 
 }

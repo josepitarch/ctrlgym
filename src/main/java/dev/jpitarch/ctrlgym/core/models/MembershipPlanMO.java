@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "membership_plans")
+@SQLRestriction("deleted_at IS NULL")
 public class MembershipPlanMO {
   @Id
   @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
@@ -42,7 +44,12 @@ public class MembershipPlanMO {
   @Column(name = "stripe_price_id", nullable = false)
   private String stripePriceId;
 
-  @OneToMany
-  private List<MembershipPlanBranchMO> branches = new ArrayList<>();
+  @Column(name = "deleted_at")
+  private LocalDate deletedAt;
+
+  //TODO
+
+//  @OneToMany
+  //private List<MembershipPlanBranchMO> branches = new ArrayList<>();
 
 }

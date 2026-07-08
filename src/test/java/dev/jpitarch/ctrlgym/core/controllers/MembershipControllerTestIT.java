@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MembershipControllerTestIT extends BaseIntegrationTest {
 
   @Test
+  @DisplayName("Returns all cancellation reasons")
   void getAllCancellationReasons_returnsAllReasons() throws Exception {
     mockMvc.perform(get("/v1/memberships/cancellation-reasons")
                     .contentType(MediaType.APPLICATION_JSON))

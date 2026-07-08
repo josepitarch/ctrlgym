@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.models.RoutineMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(1)
+  @DisplayName("Returns an existing member")
   void getMember_returnsMember() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}", memberId)
                     .param("gymId", gymId.toString())
@@ -58,6 +60,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(2)
+  @DisplayName("Returns 404 when member not found")
   void getMember_returns404_whenMemberNotFound() throws Exception {
     var nonExistentId = UUID.randomUUID();
 
@@ -69,6 +72,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(3)
+  @DisplayName("Returns 409 when generating QR without active membership")
   void generateQr_returns409_whenMemberHasNoActiveMembership() throws Exception {
     mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId)
                     .param("gymId", gymId.toString()))
@@ -77,6 +81,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(4)
+  @DisplayName("Initializes membership successfully")
   void initializeMembership_returns204_whenSuccessful() throws Exception {
     when(subscriptionService.create(any(), any())).thenReturn("sub_test123");
 
@@ -87,6 +92,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
 @Test
   @Order(5)
+  @DisplayName("Returns all memberships for a member")
   void getMemberships_returnsAllMemberships() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}/memberships", memberId)
                     .param("gymId", gymId.toString()))
@@ -100,6 +106,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(6)
+  @DisplayName("Cancels membership successfully")
   void cancelMembership_returns204() throws Exception {
     mockMvc.perform(patch("/v1/members/{memberId}/memberships/{membershipId}", memberId, "plan_basic")
                     .param("gymId", gymId.toString())
@@ -113,6 +120,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(7)
+  @DisplayName("Creates a routine successfully")
   void createRoutine_returns201() throws Exception {
     var routineJson = objectMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
 
@@ -125,6 +133,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(8)
+  @DisplayName("Returns member routines")
   void getRoutines_returnsRoutines() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}/routines", memberId)
                     .param("gymId", gymId.toString()))
@@ -140,6 +149,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(9)
+  @DisplayName("Deletes a routine successfully")
   void deleteRoutine_returns204() throws Exception {
     RoutineMO routine = routineJpaRepository.findByMemberIdAndGymId(memberId, gymId).getFirst();
 

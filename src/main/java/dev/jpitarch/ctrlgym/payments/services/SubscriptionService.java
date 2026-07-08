@@ -10,6 +10,8 @@ import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
@@ -36,6 +39,8 @@ public class SubscriptionService {
       .putMetadata("gymId", String.valueOf(gymId))
       .build();
 
+    log.info("Creating product for gymId {} with name {}", gymId, request.name());
+
     var product = Product.create(productParams, requestOptions);
 
     var priceParams = PriceCreateParams.builder()
@@ -49,7 +54,10 @@ public class SubscriptionService {
       )
       .build();
 
+    log.info("Creating price for product with id {} with amount {}", product.getId(), request.price());
+
     var price = Price.create(priceParams, requestOptions);
+
     return MembershipPlan.builder()
       .id(product.getId())
       .name(product.getName())
@@ -66,7 +74,19 @@ public class SubscriptionService {
       .setStripeAccount(stripeAccountId)
       .build();
 
-    Product.retrieve(productId, requestOptions).delete(requestOptions);
+    log.info("Deleting product for gym wit id {} with product with id {}", gymId, productId);
+
+    var priceParams = PriceUpdateParams.builder()
+      .setActive(false)
+      .build();
+
+    Price.retrieve(productId, requestOptions).update(priceParams, requestOptions);
+
+    var productParams = ProductUpdateParams.builder()
+      .setActive(false)
+      .build();
+
+    Product.retrieve(productId, requestOptions).update(productParams, requestOptions);
   }
 
   public String create(Member.Id memberId, Map<String, String> props) throws StripeException {

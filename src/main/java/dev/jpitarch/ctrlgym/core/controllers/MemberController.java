@@ -47,8 +47,11 @@ public class MemberController {
   }
 
   @PatchMapping("/{memberId}/memberships/{membershipId}")
-  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId, @RequestParam Integer cancellationReasonId) throws StripeException {
-    memberUseCase.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId);
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId,
+                                               @RequestParam Integer cancellationReasonId,
+                                               @RequestBody String comment
+                                               ) throws StripeException {
+    memberUseCase.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId, comment);
     return ResponseEntity.noContent().build();
   }
 

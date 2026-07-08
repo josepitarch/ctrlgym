@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
@@ -8,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
+import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
@@ -27,6 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class GymControllerTestIT extends BaseIntegrationTest {
 
   @MockitoBean
+  ProductService productService;
+
+  @MockitoBean
   SubscriptionService subscriptionService;
 
   @Autowired
@@ -35,7 +40,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Autowired
   MembershipPlanJpaRepository membershipPlanJpaRepository;
 
-  ObjectMapper objectMapper = new ObjectMapper();
+  JsonMapper objectMapper = new JsonMapper();
 
   @Test
   @Order(1)
@@ -84,7 +89,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   void createMembershipPlan_returns204() throws Exception {
     var request = new CreateMembershipPlanRequest("Premium Plan", 49.99, null);
 
-    when(subscriptionService.createProduct(eq(1), any(CreateMembershipPlanRequest.class)))
+    when(productService.create(eq(1), any(CreateMembershipPlanRequest.class)))
       .thenReturn(MembershipPlan.builder()
         .id("new_plan_id")
         .name("Premium Plan")
@@ -98,7 +103,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isNoContent());
 
-    verify(subscriptionService).createProduct(eq(1), any(CreateMembershipPlanRequest.class));
+    verify(productService).create(eq(1), any(CreateMembershipPlanRequest.class));
   }
 
   @Test
@@ -126,7 +131,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
       .andExpect(status().isNoContent());
 
     assertThat(membershipPlanJpaRepository.findById("new_plan_id")).isEmpty();
-    verify(subscriptionService).deleteProduct(1, "new_plan_id");
+    verify(productService).delete(1, "new_plan_id");
   }
 
 }

@@ -73,12 +73,13 @@ public class MembershipsRepository {
       .toList();
   }
 
-  public void setCancellationReasonId(Member.Id memberId, String membershipId, Integer cancellationReasonId) {
+  public void setCancellationReasonId(Member.Id memberId, String membershipId, Integer cancellationReasonId, String comment) {
     membershipJpaRepository
       .findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(memberId.memberId(), memberId.gymId(), membershipId)
       .ifPresent(m -> {
         m.setEndDate(LocalDate.now());
         m.setCancellationReasonId(cancellationReasonId);
+        m.setCancellationComment(comment);
         membershipJpaRepository.save(m);
       });
   }

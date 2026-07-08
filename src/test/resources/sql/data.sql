@@ -119,11 +119,13 @@ VALUES (1, 'es', 'Alquiler del local del gimnasio', null),
        (7, 'es', 'Licencias y SaaS', null),
        (8, 'es', 'Otros gastos', null);
 
-INSERT INTO "public"."members" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "avatar_url", "gender", "birth_date", "postal_code", "created_at", "stripe_customer_id", "stripe_payment_method_id", "nif", "street", "city", "state", "country", "status")
-VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', null, 'M', '1990-05-15', 12345, now(), 'cus_test123', 'pm_test456', '12345678A', '123 Main St', 'Test City', 'Test State', 'Test Country', 'MEMBER');
+INSERT INTO "public"."members" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "created_at",  "stripe_payment_method_id", "status")
+VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', now(), 'pm_test456',  'AUTH');
 
-INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at", "stripe_price_id")
+INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
+                                         "stripe_price_id")
 VALUES ('plan_basic', 1, 'Basic', 29.99, 'MONTHLY', true, '2026-01-01', 'price_basic123');
 
-INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at", "stripe_price_id")
+INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
+                                         "stripe_price_id")
 VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'price_premium456');

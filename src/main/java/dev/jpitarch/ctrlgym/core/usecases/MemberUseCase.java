@@ -44,8 +44,8 @@ public class MemberUseCase {
     membershipService.initialize(memberId, membershipId);
   }
 
-  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
-    membershipService.cancel(memberId, membershipId, cancellationReasonId);
+  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId, String comment) throws StripeException {
+    membershipService.cancel(memberId, membershipId, cancellationReasonId, comment);
   }
 
   public List<Membership> getMemberships(Member.Id memberId) {

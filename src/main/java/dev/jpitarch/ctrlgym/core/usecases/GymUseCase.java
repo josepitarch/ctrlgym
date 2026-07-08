@@ -10,6 +10,7 @@ import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
+import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,10 +27,10 @@ public class GymUseCase {
 
   private final MembershipsRepository membershipsRepository;
 
-  private final SubscriptionService subscriptionService;
+  private final ProductService productService;
 
   public void createMembershipPlan(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {
-    MembershipPlan membershipPlan = subscriptionService.createProduct(gymId, request);
+    MembershipPlan membershipPlan = productService.create(gymId, request);
     membershipsRepository.createMembershipPlan(membershipPlan, gymId);
   }
 
@@ -38,7 +39,7 @@ public class GymUseCase {
   }
 
   public void deleteMembershipPlan(String planId, Integer gymId) throws StripeException {
-    subscriptionService.deleteProduct(gymId, planId);
+    productService.delete(gymId, planId);
     membershipsRepository.deleteMembershipPlan(planId, gymId);
   }
 

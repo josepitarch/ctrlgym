@@ -46,5 +46,8 @@ public class MembershipMO {
   @Column(name = "stripe_subscription_id")
   private String stripeSubscriptionId;
 
+  @Column(name = "cancellation_comment")
+  private String cancellationComment;
+
 
 }

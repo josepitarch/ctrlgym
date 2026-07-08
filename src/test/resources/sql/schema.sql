@@ -1,5 +1,3 @@
-
-
 -- DROP TYPE public.expense_frequency;
 
 CREATE TYPE public.expense_frequency AS ENUM (
@@ -339,7 +337,7 @@ CREATE TABLE members
     first_surname            varchar(20)          NULL,
     second_surname           varchar(20)          NULL,
     avatar_url               text                 NULL,
-    gender                   bpchar(1)            NOT NULL,
+    gender                   bpchar(1)            NULL,
     birth_date               date                 NULL,
     postal_code              int4                 NULL,
     created_at               timestamptz DEFAULT now() NULL,
@@ -409,7 +407,7 @@ CREATE TABLE membership_plans
     stripe_price_id text                      NOT NULL,
     deleted_at      date                      NULL,
     CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
-        ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
+                                                            ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),
     CONSTRAINT membership_plans_stripe_price_id_uk UNIQUE (stripe_price_id),
     CONSTRAINT membership_plan_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
@@ -434,6 +432,7 @@ CREATE TABLE memberships
     auto_renew             bool DEFAULT true                                                                                                        NOT NULL,
     cancellation_reason_id int4                                                                                                                     NULL,
     stripe_subscription_id text                                                                                                                     NULL,
+    cancellation_comment   text                                                                                                                     null,
     CONSTRAINT membership_pkey PRIMARY KEY (id),
     CONSTRAINT memberships_stripe_subscription_id_uk UNIQUE (stripe_subscription_id),
     CONSTRAINT memberships_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
@@ -718,24 +717,24 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 AS
 $function$
 BEGIN
-INSERT INTO public.members (id,
-                            gym_id,
-                            email,
-                            name,
-                            first_surname,
-                            second_surname,
-                            gender,
-                            status)
-VALUES (NEW.id,
-        (NEW.raw_user_meta_data ->> 'gym_id')::int4,
-        NEW.email,
-        NEW.raw_user_meta_data ->> 'name',
-        NEW.raw_user_meta_data ->> 'first_surname',
-        NEW.raw_user_meta_data ->> 'second_surname',
-        (NEW.raw_user_meta_data ->> 'gender')::bpchar,
-        'AUTH');
+    INSERT INTO public.members (id,
+                                gym_id,
+                                email,
+                                name,
+                                first_surname,
+                                second_surname,
+                                gender,
+                                status)
+    VALUES (NEW.id,
+            (NEW.raw_user_meta_data ->> 'gym_id')::int4,
+            NEW.email,
+            NEW.raw_user_meta_data ->> 'name',
+            NEW.raw_user_meta_data ->> 'first_surname',
+            NEW.raw_user_meta_data ->> 'second_surname',
+            (NEW.raw_user_meta_data ->> 'gender')::bpchar,
+            'AUTH');
 
-RETURN NEW;
+    RETURN NEW;
 END;
 $function$
 ;
@@ -749,17 +748,17 @@ AS
 $function$
 BEGIN
 
-UPDATE gym_branch_current_occupancy
-SET count =
-        CASE
-            WHEN NEW.direction = 0
-                THEN count + 1
-            WHEN NEW.direction = 1
-                THEN GREATEST(count - 1, 0)
-            END
-WHERE gym_branch_id = NEW.gym_branch_id;
+    UPDATE gym_branch_current_occupancy
+    SET count =
+            CASE
+                WHEN NEW.direction = 0
+                    THEN count + 1
+                WHEN NEW.direction = 1
+                    THEN GREATEST(count - 1, 0)
+                END
+    WHERE gym_branch_id = NEW.gym_branch_id;
 
-RETURN NEW;
+    RETURN NEW;
 
 END;
 $function$
@@ -773,4 +772,4 @@ create trigger trg_update_gym_current_occupancy
     on
         public.member_accesses
     for each row
-    execute function update_gym_branch_current_occupancy();
+execute function update_gym_branch_current_occupancy();

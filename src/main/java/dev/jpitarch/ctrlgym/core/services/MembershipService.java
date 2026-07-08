@@ -66,7 +66,7 @@ public class MembershipService {
     return today.plusMonths(2).withDayOfMonth(1);
   }
 
-  public void cancel(Member.Id memberId, String membershipId, Integer cancellationReasonId) throws StripeException {
+  public void cancel(Member.Id memberId, String membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     if (!membershipsRepository.hasActiveMembership(memberId, membershipId)) {
       throw new IllegalStateException("Membership with id " + membershipId + " not found for member with id " + memberId);
     }
@@ -79,7 +79,7 @@ public class MembershipService {
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);
 
     subscriptionService.cancel(props);
-    membershipsRepository.setCancellationReasonId(memberId, membershipId, cancellationReasonId);
+    membershipsRepository.setCancellationReasonId(memberId, membershipId, cancellationReasonId, comment);
   }
 
   public List<Membership> getMemberships(Member.Id memberId) {

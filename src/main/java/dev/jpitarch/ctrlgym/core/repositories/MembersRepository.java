@@ -15,7 +15,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,18 +79,11 @@ public class MembersRepository {
   }
 
   public Optional<String> getStripeCustomerId(Member.Id memberId) {
-    var sql = """
-      SELECT stripe_customer_id
-      FROM members
-      WHERE id = :id  AND gym_id = :gymId
-      """;
+    return jpaRepository.getStripeCustomerId(memberId.memberId(), memberId.gymId());
+  }
 
-    var params = Map.of(
-      "id", memberId.memberId(),
-      "gymId", memberId.gymId()
-    );
-
-    return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
+  public Optional<String> getPaymentMethodId(Member.Id id) {
+    return jpaRepository.getStripePaymentMethodId(id.memberId(), id.gymId());
   }
 
   public Member.Id getId(String stripeCustomerId) {
@@ -110,27 +102,6 @@ public class MembersRepository {
 
   }
 
-  public Optional<String> getPaymentMethodId(Member.Id id) {
-    var sql = """
-      SELECT stripe_payment_method_id
-      FROM members
-      WHERE id = :id AND gym_id = :gymId
-      """;
-
-    var params = Map.of(
-      "id", id.memberId(),
-      "gymId", id.gymId()
-    );
-
-    return Optional.ofNullable(this.jdbc.queryForObject(sql, params, String.class));
-  }
-
-  @Transactional
-  public void saveCustomerId(Member.Id memberId, String customerId) {
-    MemberMO member = jpaRepository.findById(new MemberMO.ID(memberId.memberId(), memberId.gymId())).orElseThrow(() -> new MemberNotFoundException(memberId));
-    member.setStripeCustomerId(customerId);
-    jpaRepository.save(member);
-  }
 
   public void savePaymentMethodId(String customerId, String paymentMethodId) {
     var sql = """

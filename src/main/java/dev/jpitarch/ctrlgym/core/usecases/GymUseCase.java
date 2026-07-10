@@ -1,10 +1,7 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.Exercise;
-import dev.jpitarch.ctrlgym.core.domain.GymBranch;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
+import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
@@ -31,6 +28,10 @@ public class GymUseCase {
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
+  }
+
+  public List<Member> getMembers(GymBranchId gymBranchId) {
+    return gymsRepository.getMembers(gymBranchId);
   }
 
   public void createMembershipPlan(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {

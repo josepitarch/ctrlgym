@@ -1,10 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.Exercise;
-import dev.jpitarch.ctrlgym.core.domain.GymBranch;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
+import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.models.GymBranchHeartbeatMO;
@@ -19,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,6 +31,11 @@ public class GymController {
   @GetMapping("/{gymId}/branches")
   public ResponseEntity<List<GymBranch>> getBranches(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getBranches(gymId));
+  }
+
+  @GetMapping("/{gymId}/branches/{branchId}/members")
+  public ResponseEntity<List<Member>> getMembers(@PathVariable int gymId, @PathVariable int branchId) {
+    return ResponseEntity.ok(useCase.getMembers(GymBranchId.of(gymId, branchId)));
   }
 
   @GetMapping("/{gymId}/branches/{branchId}/occupancy")

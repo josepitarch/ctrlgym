@@ -11,6 +11,7 @@ import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,23 +117,6 @@ public class MembersRepository {
     );
 
     this.jdbc.update(sql, params);
-  }
-
-  public List<Member> getMembers(GymBranchId gymBranchId) {
-    var sql = """
-      SELECT m.id, m.name, m.first_surname, m.second_surname, m.email, m.gender, m.birth_date, m.postal_code, m.gym_id
-      FROM members m
-      JOIN memberships ms ON m.id = ms.member_id
-      JOIN membership_plan_branches mpb ON ms.membership_plan_id = mpb.membership_plan_id
-      WHERE m.gym_id = :gymId AND mpb.branch_id = :gymBranchId
-      """;
-
-    var params = Map.of(
-      "gymId", gymBranchId.gymId(),
-      "gymBranchId", gymBranchId.branchId()
-    );
-
-    return jdbc.queryForList(sql, params, Member.class);
   }
 
   public Map<MemberDistribution, List<String[]>> getDistribution(GymBranchId gymBranchId) {

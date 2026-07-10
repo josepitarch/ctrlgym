@@ -20,10 +20,16 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 //@Import(TestSecurityConfig.class)
 public abstract class BaseIntegrationTest {
 
+  /*
+  TODO
+  parece ser que esto hace que la instancia se comparata entre la misma clase de tests
+  pero por cada una de ellas se vuelve a levantar una
+   */
+
   @Container
   @ServiceConnection
   static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17.6")
-          .withInitScripts("sql/schema.sql", "sql/data.sql");
+    .withInitScripts("sql/schema.sql", "sql/data.sql");
 
   @Autowired
   protected MockMvc mockMvc;

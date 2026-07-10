@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
@@ -24,7 +23,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class GymControllerTestIT extends BaseIntegrationTest {
 
@@ -132,6 +132,19 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
     assertThat(membershipPlanJpaRepository.findById("new_plan_id")).isEmpty();
     verify(productService).delete(1, "new_plan_id");
+  }
+
+  @Test
+  @Order(7)
+  @DisplayName("Returns members of a branch")
+  void getBranchMembers_returnsMembers() throws Exception {
+    mockMvc.perform(get("/v1/gyms/{gymId}/branches/{branchId}/members", 1, 1)
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.length()").value(1))
+      .andExpect(jsonPath("$[0].name").value("John"))
+      .andExpect(jsonPath("$[0].first_surname").value("Doe"))
+      .andExpect(jsonPath("$[0].email").value("john.doe@example.com"));
   }
 
 }

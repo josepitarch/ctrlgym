@@ -3,14 +3,18 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranch;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.models.GymMO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -93,6 +97,35 @@ public class GymsRepository {
     );
   }
 
+  public List<Member>getMembers(GymBranchId gymBranchId) {
+    var sql = """
+      SELECT m.id, m.name, m.first_surname, m.second_surname, m.email, m.gender, m.birth_date, m.postal_code, m.gym_id, m.nif
+      FROM members m
+      JOIN memberships ms ON m.id = ms.member_id
+      JOIN membership_plan_branches mpb ON ms.membership_plan_id = mpb.membership_plan_id
+      WHERE m.gym_id = :gymId AND mpb.branch_id = :gymBranchId
+      """;
+
+    var params = Map.of(
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId()
+    );
+
+    return jdbc.query(sql, params, (rs, rowNum) -> Member.builder()
+      .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
+      .name(rs.getString("name"))
+      .nif(rs.getString("nif"))
+      .firstSurname(rs.getString("first_surname"))
+      .secondSurname(rs.getString("second_surname"))
+      .email(rs.getString("email"))
+      .gender(mapGender(rs.getString("gender")))
+      .birthDate(LocalDate.parse(rs.getString("birth_date")))
+      .address(new Member.Address(null, null, null, rs.getInt("postal_code"), null))
+      .build()
+    );
+  }
+
+
   public Short getCurrentOccupancy(GymBranchId gymBranchId) {
     var sql = """
           SELECT count
@@ -137,6 +170,21 @@ public class GymsRepository {
       case DAILY -> "day";
       case WEEKLY -> "week";
       case MONTHLY -> "month";
+    };
+  }
+
+  private String mapGender(Gender gender) {
+    return switch (gender) {
+      case MALE -> "M";
+      case FEMALE -> "F";
+    };
+  }
+
+  private Gender mapGender(String gender) {
+    return switch (gender) {
+      case "M" -> Gender.MALE;
+      case "F" -> Gender.FEMALE;
+      default -> throw new IllegalStateException("Unexpected value: " + gender);
     };
   }
 

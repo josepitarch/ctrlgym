@@ -64,10 +64,6 @@ public class DashboardUseCase {
     );
   }
 
-  public List<Member> getMembers(GymBranchId gymBranchId) {
-    return membersRepository.getMembers(gymBranchId);
-  }
-
   public Map<MemberDistribution, List<String[]>> getMembersDistribution(GymBranchId gymBranchId) {
     return membersRepository.getDistribution(gymBranchId);
   }

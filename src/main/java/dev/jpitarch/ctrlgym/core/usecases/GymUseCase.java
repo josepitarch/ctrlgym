@@ -29,6 +29,10 @@ public class GymUseCase {
 
   private final ProductService productService;
 
+  public List<GymBranch> getBranches(Integer gymId) {
+    return gymsRepository.getBranches(gymId);
+  }
+
   public void createMembershipPlan(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {
     MembershipPlan membershipPlan = productService.create(gymId, request);
     membershipsRepository.createMembershipPlan(membershipPlan, gymId);

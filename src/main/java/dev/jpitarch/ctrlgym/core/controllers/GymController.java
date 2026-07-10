@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
+import dev.jpitarch.ctrlgym.core.domain.GymBranch;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
@@ -30,6 +31,11 @@ public class GymController {
   private final GymHeartbeatJpaRepository gymHeartbeatJpaRepository;
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
+
+  @GetMapping("/{gymId}/branches")
+  public ResponseEntity<List<GymBranch>> getBranches(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getBranches(gymId));
+  }
 
   @GetMapping("/{gymId}/branches/{branchId}/occupancy")
   public ResponseEntity<CurrentOccupancy> getCurrentOccupancy(@PathVariable Integer gymId, @PathVariable Integer branchId) {

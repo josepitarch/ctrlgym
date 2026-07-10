@@ -4,6 +4,7 @@ import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranch;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
+import dev.jpitarch.ctrlgym.core.models.GymMO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GymsRepository {
 
+  private final GymRepositoryJpaRepository jpaRepository;
+
   private final NamedParameterJdbcTemplate jdbc;
+
+  public List<GymBranch> getBranches(Integer gymId) {
+    GymMO gymMO = jpaRepository.findById(gymId).orElseThrow();
+
+    return gymMO.getBranches().stream().map(branchMO -> GymBranch.builder()
+      .id(branchMO.getId())
+      .name(branchMO.getName())
+      .capacity(branchMO.getCapacity())
+      .peakHour(new GymBranch.PeakHour(branchMO.getPeakHourStart(), branchMO.getPeakHourEnd()))
+      .build())
+      .toList();
+  }
 
   public String getApiKey(Integer gymId) {
     var sql = """

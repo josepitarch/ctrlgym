@@ -334,7 +334,7 @@ public class MembershipsRepository {
                                                                (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
                                                                mb.start_date)))::int AS tenure_months
                                             FROM months m
-                                                     JOIN public.memberships mb
+                                                     LEFT JOIN public.memberships mb
                                                           ON mb.start_date <=
                                                              (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date
                                                               AND (mb.end_date IS NULL OR mb.end_date >=

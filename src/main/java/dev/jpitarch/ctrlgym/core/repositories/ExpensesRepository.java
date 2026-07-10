@@ -45,12 +45,30 @@ public class ExpensesRepository {
 
   public List<Map<YearMonth, Double>> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      SELECT DATE_TRUNC('month', expo.occurrence_date)::date AS month, SUM(expo.amount) AS total_expenses
-      FROM expenses exp
-      JOIN expense_occurrences expo ON exp.id = expo.expense_id
-      WHERE exp.gym_branch_id = :gymBranchId
-      AND start_date >= :from AND (end_date IS NULL OR end_date <= :to)
-      GROUP BY DATE_TRUNC('month', expo.occurrence_date)
+      WITH months AS (
+          SELECT generate_series(
+              date_trunc('month', CAST(:from AS date)),
+              date_trunc('month', CAST(:to AS date)),
+              INTERVAL '1 month'
+          )::date AS month
+      ),
+      expense_data AS (
+          SELECT
+              DATE_TRUNC('month', expo.occurrence_date)::date AS month,
+              expo.amount
+          FROM expenses exp
+          JOIN expense_occurrences expo ON exp.id = expo.expense_id
+          WHERE exp.gym_branch_id = :gymBranchId
+            AND exp.start_date >= :from
+            AND (exp.end_date IS NULL OR exp.end_date <= :to)
+      )
+      SELECT
+          m.month AS month,
+          COALESCE(SUM(ed.amount), 0) AS total_expenses
+      FROM months m
+      LEFT JOIN expense_data ed ON ed.month = m.month
+      GROUP BY m.month
+      ORDER BY m.month;
       """;
 
     var params = Map.of(

@@ -8,8 +8,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.YearMonth;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,7 +17,7 @@ public class InvoicesRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public List<Map<YearMonth, Double>> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       
        WITH months AS (
@@ -53,7 +53,7 @@ public class InvoicesRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var totalPayments = row.getDouble("total_payments");
-      return Map.of(YearMonth.from(month), totalPayments);
-    });
+      return Map.entry(YearMonth.from(month), totalPayments);
+    }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

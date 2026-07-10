@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
+import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.repositories.*;
 import lombok.RequiredArgsConstructor;
@@ -56,14 +57,11 @@ public class DashboardUseCase {
     return expensesRepository.getExpenses(gymBranchId);
   }
 
-  public Map<String, List<Map<YearMonth, Double>>> getCashFlow(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    var invoices = invoicesRepository.getTotalPerMonth(gymBranchId, datePeriod);
+  public CashFlow getCashFlow(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var expenses = expensesRepository.getTotalPerMonth(gymBranchId, datePeriod);
+    var revenues = invoicesRepository.getTotalPerMonth(gymBranchId, datePeriod);
 
-    return Map.of(
-      "EARNINGS", invoices,
-      "COSTS", expenses
-    );
+    return new CashFlow(expenses, revenues);
   }
 
   public MembersDistribution getMembersDistribution(GymBranchId gymBranchId) {

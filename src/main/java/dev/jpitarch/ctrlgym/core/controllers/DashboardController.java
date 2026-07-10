@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
+import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.usecases.DashboardUseCase;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class DashboardController {
   }
 
   @GetMapping("/gyms/{gymId}/branches/{branchId}/cash-flow")
-  public ResponseEntity<Map<String, List<Map<YearMonth, Double>>>> getCashFlow(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
+  public ResponseEntity<CashFlow> getCashFlow(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
     return ResponseEntity.ok(useCase.getCashFlow(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
   }
 

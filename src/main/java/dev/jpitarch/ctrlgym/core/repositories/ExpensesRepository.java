@@ -12,6 +12,7 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,7 +44,7 @@ public class ExpensesRepository {
     });
   }
 
-  public List<Map<YearMonth, Double>> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       WITH months AS (
           SELECT generate_series(
@@ -80,7 +81,7 @@ public class ExpensesRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var totalExpenses = row.getDouble("total_expenses");
-      return Map.of(YearMonth.from(month), totalExpenses);
-    });
+      return Map.entry(YearMonth.from(month), totalExpenses);
+    }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

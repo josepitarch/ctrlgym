@@ -22,8 +22,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1/members")
 @RequiredArgsConstructor
+@RequestMapping("/v1/members")
 public class MemberController {
 
   private final MemberUseCase memberUseCase;

@@ -4,17 +4,15 @@ import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberDistribution;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
+import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -50,7 +48,14 @@ public class MembersRepository {
       .secondSurname(memberMO.getSecondSurname())
       .gender(mapGender(memberMO.getGender()))
       .birthDate(memberMO.getBirthDate())
-      .address(Member.Address.builder().postalCode(memberMO.getPostalCode()).build())
+      .address(Member.Address.builder()
+        .street(memberMO.getStreet())
+        .city(memberMO.getCity())
+        .state(memberMO.getState())
+        .country(memberMO.getCountry())
+        .postalCode(memberMO.getPostalCode())
+        .build()
+      )
       .build();
   }
 
@@ -119,7 +124,7 @@ public class MembersRepository {
     this.jdbc.update(sql, params);
   }
 
-  public Map<MemberDistribution, List<String[]>> getDistribution(GymBranchId gymBranchId) {
+  public Map<MembersDistribution.Group, List<String[]>> getDistribution(GymBranchId gymBranchId) {
     var sql = """
       SELECT
         gender,
@@ -131,7 +136,14 @@ public class MembersRepository {
           ELSE '+45'
         END AS age_range,
         COUNT(*) AS total
-      FROM members
+      FROM members m
+      WHERE m.gym_id = :gymId
+      AND EXISTS (
+          SELECT 1
+          FROM memberships mb
+          WHERE m.id = mb.member_id AND m.gym_id = mb.gym_id
+          AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date > CURRENT_DATE)
+      )
       GROUP BY GROUPING SETS (
         (gender),
         (postal_code),
@@ -139,16 +151,21 @@ public class MembersRepository {
       );
       """;
 
-    return jdbc.query(sql, (rs, _) -> new String[]{
+    //TODO: faltaría chequear también el branch en principio
+    var params = Map.of(
+      "gymId", gymBranchId.gymId()
+    );
+
+    return jdbc.query(sql, params, (rs, _) -> new String[]{
       rs.getString("gender"),
       rs.getString("postal_code"),
       rs.getString("age_range"),
       String.valueOf(rs.getInt("total"))
     }).stream().collect(Collectors.groupingBy(
       row -> {
-        if (row[0] != null) return MemberDistribution.GENDER;
-        if (row[1] != null) return MemberDistribution.POSTAL_CODE;
-        if (row[2] != null) return MemberDistribution.AGE;
+        if (row[0] != null) return MembersDistribution.Group.GENDER;
+        if (row[1] != null) return MembersDistribution.Group.POSTAL_CODE;
+        if (row[2] != null) return MembersDistribution.Group.AGE;
         throw new RuntimeException("No distribution gender or postal code provided");
       }, Collectors.collectingAndThen(
         Collectors.toList(),

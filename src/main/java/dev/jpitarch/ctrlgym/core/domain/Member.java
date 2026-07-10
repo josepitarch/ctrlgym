@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import lombok.*;
 import org.jspecify.annotations.NonNull;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -19,6 +20,9 @@ public class Member {
   private Id id;
 
   private String nif;
+
+  @JsonProperty("avatar_url")
+  private URI avatarUrl;
 
   private String name;
 

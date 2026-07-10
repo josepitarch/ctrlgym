@@ -2,15 +2,17 @@ package dev.jpitarch.ctrlgym.core.usecases;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberDistribution;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
+import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class DashboardUseCase {
     return gymsRepository.getOccupancies(gymBranchId, datePeriod, granularity);
   }
 
-  public List<Map<YearMonth, Integer>> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {
+  public Map<YearMonth, Integer> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {
     return switch (flow) {
       case ACTIVE -> membershipsRepository.getCurrentCount(gymBranchId, datePeriod);
       case NEW -> membershipsRepository.getNewsCount(gymBranchId, datePeriod);
@@ -38,7 +40,7 @@ public class DashboardUseCase {
     };
   }
 
-  public Integer getMembershipSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getMembershipSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
     return membershipsRepository.getSeniorityAverage(gymBranchId, datePeriod);
   }
 
@@ -64,8 +66,20 @@ public class DashboardUseCase {
     );
   }
 
-  public Map<MemberDistribution, List<String[]>> getMembersDistribution(GymBranchId gymBranchId) {
-    return membersRepository.getDistribution(gymBranchId);
+  public MembersDistribution getMembersDistribution(GymBranchId gymBranchId) {
+    var distribution = membersRepository.getDistribution(gymBranchId);
+    var seniority = membershipsRepository.getSeniorityDistribution(gymBranchId);
+    return new MembersDistribution(
+      new MembersDistribution.Item(toMap(distribution.get(MembersDistribution.Group.POSTAL_CODE))),
+      new MembersDistribution.Item(toMap(distribution.get(MembersDistribution.Group.AGE))),
+      new MembersDistribution.Item(toMap(distribution.get(MembersDistribution.Group.GENDER))),
+      seniority
+    );
+  }
+
+  private Map<String, Integer> toMap(List<String[]> entries) {
+    if (entries == null) return Collections.emptyMap();
+    return entries.stream().collect(Collectors.toMap(e -> e[0], e -> Integer.parseInt(e[1])));
   }
 
 }

@@ -4,11 +4,11 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
+import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
-import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +32,10 @@ public class GymUseCase {
 
   public List<Member> getMembers(GymBranchId gymBranchId) {
     return gymsRepository.getMembers(gymBranchId);
+  }
+
+  public MemberRetention getMemberRetention(GymBranchId gymBranchId, Member.Id memberId) {
+    return new MemberRetention(memberId, 85, 2340, 14, 9);
   }
 
   public void createMembershipPlan(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {

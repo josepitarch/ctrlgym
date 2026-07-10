@@ -4,6 +4,7 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
+import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.models.GymBranchHeartbeatMO;
 import dev.jpitarch.ctrlgym.core.models.MemberAccessMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.GymHeartbeatJpaRepository;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,6 +38,11 @@ public class GymController {
   @GetMapping("/{gymId}/branches/{branchId}/members")
   public ResponseEntity<List<Member>> getMembers(@PathVariable int gymId, @PathVariable int branchId) {
     return ResponseEntity.ok(useCase.getMembers(GymBranchId.of(gymId, branchId)));
+  }
+
+  @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/retention")
+  public ResponseEntity<MemberRetention> getMemberRetention(@PathVariable int gymId, @PathVariable int branchId, @PathVariable UUID memberId) {
+    return ResponseEntity.ok(useCase.getMemberRetention(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId)));
   }
 
   @GetMapping("/{gymId}/branches/{branchId}/occupancy")

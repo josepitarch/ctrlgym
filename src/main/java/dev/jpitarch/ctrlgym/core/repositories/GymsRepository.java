@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,7 @@ public class GymsRepository {
 
   public List<Member>getMembers(GymBranchId gymBranchId) {
     var sql = """
-      SELECT m.id, m.name, m.first_surname, m.second_surname, m.email, m.gender, m.birth_date, m.postal_code, m.gym_id, m.nif
+      SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.street, m.state, m.city, m.postal_code, m.country, m.gym_id
       FROM members m
       JOIN memberships ms ON m.id = ms.member_id
       JOIN membership_plan_branches mpb ON ms.membership_plan_id = mpb.membership_plan_id
@@ -113,6 +114,7 @@ public class GymsRepository {
 
     return jdbc.query(sql, params, (rs, rowNum) -> Member.builder()
       .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
+      .avatarUrl(URI.create(rs.getString("avatar_url")))
       .name(rs.getString("name"))
       .nif(rs.getString("nif"))
       .firstSurname(rs.getString("first_surname"))
@@ -120,7 +122,7 @@ public class GymsRepository {
       .email(rs.getString("email"))
       .gender(mapGender(rs.getString("gender")))
       .birthDate(LocalDate.parse(rs.getString("birth_date")))
-      .address(new Member.Address(null, null, null, rs.getInt("postal_code"), null))
+      .address(new Member.Address(rs.getString("street"), rs.getString("city"), rs.getString("state"), rs.getInt("postal_code"), rs.getString("country")))
       .build()
     );
   }

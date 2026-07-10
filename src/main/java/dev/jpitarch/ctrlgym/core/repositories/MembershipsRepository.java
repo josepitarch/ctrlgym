@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.dto.MembershipSeniorityDistribution;
 import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipPlanMO;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,24 +29,6 @@ public class MembershipsRepository {
   private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
-
-  public void createMembershipPlan(MembershipPlan membershipPlan, Integer gymId) {
-    var sql = """
-      INSERT INTO membership_plans (id, gym_id, name, stripe_price_id, price, billing_period, active, created_at)
-      VALUES (:id, :gymId, :name, :priceId, :price, :billingPeriod, true, CURRENT_DATE)
-      """;
-
-    var params = Map.of(
-      "id", membershipPlan.getId(),
-      "gymId", gymId,
-      "name", membershipPlan.getName(),
-      "priceId", membershipPlan.getStripePriceId(),
-      "price", membershipPlan.getPrice(),
-      "billingPeriod", membershipPlan.getRecurring().name()
-    );
-
-    jdbc.update(sql, params);
-  }
 
   public void save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
     var membership = new MembershipMO();
@@ -121,6 +105,24 @@ public class MembershipsRepository {
       .build();
   }
 
+  public void createMembershipPlan(MembershipPlan membershipPlan, Integer gymId) {
+    var sql = """
+      INSERT INTO membership_plans (id, gym_id, name, stripe_price_id, price, billing_period, active, created_at)
+      VALUES (:id, :gymId, :name, :priceId, :price, :billingPeriod, true, CURRENT_DATE)
+      """;
+
+    var params = Map.of(
+      "id", membershipPlan.getId(),
+      "gymId", gymId,
+      "name", membershipPlan.getName(),
+      "priceId", membershipPlan.getStripePriceId(),
+      "price", membershipPlan.getPrice(),
+      "billingPeriod", membershipPlan.getRecurring().name()
+    );
+
+    jdbc.update(sql, params);
+  }
+
   public List<MembershipPlan> getMembershipPlans(Integer gymId) {
     return membershipPlanJpaRepository.findByGymId(gymId)
       .stream()
@@ -168,7 +170,7 @@ public class MembershipsRepository {
     return jdbc.queryForObject(sql, params, String.class);
   }
 
-  public List<Map<YearMonth, Integer>> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       SELECT
       month::date,
@@ -177,7 +179,7 @@ public class MembershipsRepository {
             :from::date,
             :to::date,
         INTERVAL '1 month'
-        )month
+      ) month
       LEFT JOIN memberships m
       ON m.gym_id = :gymId
       AND m.start_date <= month
@@ -195,12 +197,12 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var activeMemberships = row.getInt("active_memberships");
-      return Map.of(YearMonth.from(month), activeMemberships);
-    });
+      return Map.entry(YearMonth.from(month), activeMemberships);
+    }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
   }
 
-  public List<Map<YearMonth, Integer>> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       WITH months AS(
         SELECT generate_series(
@@ -236,16 +238,16 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var newMemberships = row.getInt("new_memberships");
-      return Map.of(YearMonth.from(month), newMemberships);
-    });
+      return Map.entry(YearMonth.from(month), newMemberships);
+    }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  public List<Map<YearMonth, Integer>> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       WITH months AS(
         SELECT generate_series(
           DATE_TRUNC('month', CAST(:from AS date)),
-      DATE_TRUNC('month', CAST(:to AS date)),
+          DATE_TRUNC('month', CAST(:to AS date)),
       INTERVAL '1 month'
             )::date AS month
         ),
@@ -275,26 +277,87 @@ public class MembershipsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var month = row.getDate("month").toLocalDate();
       var cancellations = row.getInt("cancellations");
-      return Map.of(YearMonth.from(month), cancellations);
-    });
+      return Map.entry(YearMonth.from(month), cancellations);
+    }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
   }
 
-  public Integer getSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public MembershipSeniorityDistribution getSeniorityDistribution(GymBranchId gymBranchId) {
     var sql = """
+      WITH membresias_vigentes AS (
+          SELECT
+              id,
+              member_id,
+              gym_id,
+              start_date,
+              (DATE_PART('year', AGE(CURRENT_DATE, start_date)) * 12
+                  + DATE_PART('month', AGE(CURRENT_DATE, start_date)))::int AS meses_antiguedad
+          FROM public.memberships
+          WHERE membership_plan_id in (SELECT membership_plan_id FROM membership_plan_branches WHERE branch_id = :gymBranchId)
+          AND (end_date IS NULL OR end_date >= CURRENT_DATE)
+      )
       SELECT
-      AVG(CURRENT_DATE - start_date) AS avg_days
-      FROM memberships
-      WHERE gym_id = :gymId
-      AND start_date <=CURRENT_DATE
-      AND(end_date IS NULL OR end_date >= CURRENT_DATE);
+          CASE
+              WHEN meses_antiguedad < 1              THEN '-1m'
+              WHEN meses_antiguedad BETWEEN 1 AND 3   THEN '1-3'
+              WHEN meses_antiguedad BETWEEN 4 AND 5   THEN '4-5m'
+              WHEN meses_antiguedad BETWEEN 6 AND 11  THEN '6-12m'
+              WHEN meses_antiguedad BETWEEN 12 AND 23 THEN '1-2y'
+              WHEN meses_antiguedad BETWEEN 24 AND 35 THEN '2-3y'
+              WHEN meses_antiguedad >= 36              THEN '+3y'
+              END AS rango_antiguedad,
+          COUNT(*) AS cantidad_membresias
+      FROM membresias_vigentes
+      GROUP BY rango_antiguedad
+      ORDER BY MIN(meses_antiguedad);
+      """;
+
+    var params = Map.of("gymBranchId", gymBranchId.branchId());
+
+    var result = jdbc.query(sql, params, (row, _) -> Map.entry(row.getString("rango_antiguedad"), row.getInt("cantidad_membresias")));
+    return new MembershipSeniorityDistribution(result.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+  }
+
+  public Map<YearMonth, Integer> getSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
+    var sql = """
+      WITH months AS (SELECT generate_series(
+                                     date_trunc('month', CAST(:from AS date)),
+                                     date_trunc('month', CAST(:to AS date)),
+                                     INTERVAL '1 month'
+                             )::date AS month_start),
+           active_memberships_per_month AS (SELECT m.month_start,
+                                                   mb.id,
+                                                   (DATE_PART('year', AGE(
+                                                           (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
+                                                           mb.start_date)) * 12
+                                                       + DATE_PART('month', AGE(
+                                                               (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
+                                                               mb.start_date)))::int AS tenure_months
+                                            FROM months m
+                                                     JOIN public.memberships mb
+                                                          ON mb.start_date <=
+                                                             (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date
+                                                              AND (mb.end_date IS NULL OR mb.end_date >=
+                                                                                          (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date))
+      SELECT TO_CHAR(month_start, 'YYYY-MM') AS month,
+             ROUND(AVG(tenure_months), 1)    AS average_tenure_months
+      FROM active_memberships_per_month
+      GROUP BY month_start
+      ORDER BY month_start;
+      
       """;
 
     var params = Map.of(
-      "gymId", gymBranchId.gymId()
+      "gymId", gymBranchId.gymId(),
+      "from", datePeriod.from(),
+      "to", datePeriod.to()
     );
 
-    return jdbc.query(sql, params, (row, _) -> row.getInt("avg_days")).stream().findFirst().orElse(0);
+    return jdbc.query(sql, params, (row, _) -> {
+      var month = YearMonth.parse(row.getString("month"));
+      var averageTenure = (int) Math.round(row.getDouble("average_tenure_months"));
+      return Map.entry(month, averageTenure);
+    }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {

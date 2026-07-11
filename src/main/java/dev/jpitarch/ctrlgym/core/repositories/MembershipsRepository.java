@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.MembershipSeniorityDistribution;
+import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipPlanMO;
@@ -421,6 +422,65 @@ public class MembershipsRepository {
       return new Cohort(YearMonth.from(cohortMonth), monthOffset, activeMembers, cohortSize, retentionRate);
     });
 
+  }
+
+  public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DatePeriod datePeriod) {
+    var sql = """
+      WITH months AS (
+          SELECT generate_series(
+                         date_trunc('month', CAST(:from AS date)),
+                         date_trunc('month', CAST(:to AS date)),
+                         INTERVAL '1 month'
+                  )::date AS month_start
+      ),
+           monthly_stats AS (
+               SELECT
+                   m.month_start,
+                   COUNT(*) FILTER (
+                       WHERE mb.start_date <= m.month_start
+                           AND (mb.end_date IS NULL OR mb.end_date >= m.month_start)
+                       ) AS active_at_start,
+                   COUNT(*) FILTER (
+                       WHERE mb.start_date <= m.month_start
+                           AND mb.end_date >= m.month_start
+                           AND mb.end_date < (m.month_start + INTERVAL '1 month')::date
+                       ) AS churned_during_month
+               FROM months m
+                         LEFT JOIN public.memberships mb
+                                   ON mb.gym_id = :gymId
+               GROUP BY m.month_start
+           )
+      SELECT
+          TO_CHAR(month_start, 'YYYY-MM') AS month,
+          CASE WHEN active_at_start > 0
+                   THEN ROUND(100.0 * churned_during_month / active_at_start, 1)
+               ELSE 0
+              END AS churn_percentage,
+          CASE WHEN active_at_start > 0
+                   THEN ROUND(100.0 - (100.0 * churned_during_month / active_at_start), 1)
+               ELSE 0
+              END AS retention_percentage
+      FROM monthly_stats
+      ORDER BY month_start;
+      """;
+
+    var params = Map.of(
+      "gymId", gymBranchId.gymId(),
+      "from", datePeriod.from(),
+      "to", datePeriod.to()
+    );
+
+    var results = jdbc.query(sql, params, (row, _) -> {
+      var month = YearMonth.parse(row.getString("month"));
+      double churnPercentage = row.getDouble("churn_percentage");
+      double retentionPercentage = row.getDouble("retention_percentage");
+      return Map.entry(month, new Double[]{ retentionPercentage, churnPercentage });
+    });
+
+    var retention = results.stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()[0]));
+    var churn = results.stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()[1]));
+
+    return new RetentionVsChurn(retention, churn);
   }
 
   public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId, DatePeriod datePeriod) {

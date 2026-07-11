@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
+import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.usecases.DashboardUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,12 @@ public class DashboardController {
   public ResponseEntity<List<Cohort>> getCohorts(@PathVariable int gymId, @PathVariable int branchId) {
     return ResponseEntity.ok(useCase.getCohorts(GymBranchId.of(gymId, branchId)));
   }
+
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/retention-vs-churn")
+  public ResponseEntity<RetentionVsChurn> getRetentionVsChurn(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
+    return ResponseEntity.ok(useCase.getRetentionVsChurn(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
+  }
+
 
   @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cancellation-reasons")
   public ResponseEntity<List<Map<String, Integer>>> getCancellationReasons(@PathVariable int gymId, @PathVariable int branchId) {

@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
+import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,10 @@ public class DashboardUseCase {
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {
     return membershipsRepository.getCohorts(gymBranchId);
+  }
+
+  public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DatePeriod datePeriod) {
+    return membershipsRepository.getRetentionVsChurn(gymBranchId, datePeriod);
   }
 
   public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId) {

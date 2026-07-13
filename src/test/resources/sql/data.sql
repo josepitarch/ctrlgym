@@ -1,5 +1,5 @@
 INSERT INTO "public"."gyms" ("id", "name", "verifacti_api_key", "stripe_account_id")
-VALUES (1, 'WolfGym', 'vf_test_it', 'stripe_account_id');
+VALUES (1, 'WolfGym', 'vf_test_it', 'acct_1TcURmFylbmcvw95');
 
 INSERT INTO "public"."exercises" ("name", "description", "muscle_group", "image", "gym_id")
 VALUES ('Press de banca', null, 'CHEST',
@@ -137,5 +137,5 @@ INSERT INTO "public"."membership_plan_branches" ("membership_plan_id", "branch_i
 VALUES ('plan_basic', 1),
        ('plan_premium', 1);
 
-INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
-VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_basic', '2026-01-01', null, '2026-02-01', true);
+--INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
+--VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);

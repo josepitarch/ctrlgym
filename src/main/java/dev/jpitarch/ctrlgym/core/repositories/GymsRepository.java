@@ -15,6 +15,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -114,7 +115,7 @@ public class GymsRepository {
 
     return jdbc.query(sql, params, (rs, rowNum) -> Member.builder()
       .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
-      .avatarUrl(URI.create(rs.getString("avatar_url")))
+      .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
       .name(rs.getString("name"))
       .nif(rs.getString("nif"))
       .firstSurname(rs.getString("first_surname"))

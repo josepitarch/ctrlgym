@@ -24,7 +24,7 @@ public class SecurityConfig {
     .cors(Customizer.withDefaults())
     .csrf(AbstractHttpConfigurer::disable)
     .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/public/**", "/v1/payments/webhook").permitAll()
+            .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
             .anyRequest().authenticated()
     )
     .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));

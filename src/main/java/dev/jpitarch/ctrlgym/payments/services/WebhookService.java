@@ -59,6 +59,7 @@ public class WebhookService {
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
     log.info("SetupIntent with memberId {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
+    //TODO: si ya tenía en método de pago hay que hacerle un detach para desvincularlo del Customer
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 

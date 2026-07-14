@@ -15,7 +15,7 @@ spring:
         jwt:
           issuer-uri: https://nkwsihnvnyduumdbopuf.supabase.co/auth/v1
   messages:
-    basename: messages/messages
+    basename: messages
     fallback-to-system-locale: false
     encoding: UTF-8
 server:

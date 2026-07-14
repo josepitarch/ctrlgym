@@ -7,12 +7,18 @@ import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.repositories.*;
+import dev.jpitarch.ctrlgym.core.dto.MembershipSeniorityDistribution;
+import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,6 +35,10 @@ public class DashboardUseCase {
   private final InvoicesRepository invoicesRepository;
 
   private final MembersRepository membersRepository;
+
+  private final PostalCodeJpaRepository postalCodeJpaRepository;
+
+  private final MessageSource messageSource;
 
   public List<Map<String, Integer>> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
     return gymsRepository.getOccupancies(gymBranchId, datePeriod, granularity);
@@ -73,11 +83,79 @@ public class DashboardUseCase {
     var distribution = membersRepository.getDistribution(gymBranchId);
     var seniority = membershipsRepository.getSeniorityDistribution(gymBranchId);
     return new MembersDistribution(
-      new MembersDistribution.Item(toMap(distribution.get(MembersDistribution.Group.POSTAL_CODE))),
-      new MembersDistribution.Item(toMap(distribution.get(MembersDistribution.Group.AGE))),
-      new MembersDistribution.Item(toMap(distribution.get(MembersDistribution.Group.GENDER))),
-      seniority
+      new MembersDistribution.Item(toPostalCodeMap(distribution.get(MembersDistribution.Group.POSTAL_CODE))),
+      new MembersDistribution.Item(toAgeMap(distribution.get(MembersDistribution.Group.AGE))),
+      new MembersDistribution.Item(toGenderMap(distribution.get(MembersDistribution.Group.GENDER))),
+      new MembershipSeniorityDistribution(toSeniorityMap(seniority.data()))
     );
+  }
+
+  private Map<String, Integer> toPostalCodeMap(List<String[]> entries) {
+    if (entries == null) return Collections.emptyMap();
+    return entries.stream().collect(Collectors.toMap(
+      e -> postalCodeJpaRepository.findByPostalCode(e[0])
+        .map(PostalCodeMO::getCity)
+        .orElse(e[0]),
+      e -> Integer.parseInt(e[1])
+    ));
+  }
+
+  private Map<String, Integer> toAgeMap(List<String[]> entries) {
+    if (entries == null) return Collections.emptyMap();
+    var locale = LocaleContextHolder.getLocale();
+    return entries.stream().collect(Collectors.toMap(
+      e -> resolveAgeLabel(e[0], locale),
+      e -> Integer.parseInt(e[1])
+    ));
+  }
+
+  private String resolveAgeLabel(String key, java.util.Locale locale) {
+    return switch (key) {
+      case "18-25" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{18, 25}, locale);
+      case "26-35" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{26, 35}, locale);
+      case "36-45" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{36, 45}, locale);
+      case "+45" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{45}, locale);
+      default -> key;
+    };
+  }
+
+  private Map<String, Integer> toGenderMap(List<String[]> entries) {
+    if (entries == null) return Collections.emptyMap();
+    var locale = LocaleContextHolder.getLocale();
+    return entries.stream().collect(Collectors.toMap(
+      e -> resolveGenderLabel(e[0], locale),
+      e -> Integer.parseInt(e[1])
+    ));
+  }
+
+  private String resolveGenderLabel(String key, java.util.Locale locale) {
+    return switch (key.toUpperCase()) {
+      case "M" -> messageSource.getMessage("dashboard.members.distribution.male", null, locale);
+      case "F" -> messageSource.getMessage("dashboard.members.distribution.female", null, locale);
+      default -> key;
+    };
+  }
+
+  private Map<String, Integer> toSeniorityMap(Map<String, Integer> seniority) {
+    if (seniority == null) return Collections.emptyMap();
+    return seniority.entrySet().stream().collect(Collectors.toMap(
+      e -> resolveSeniorityLabel(e.getKey()),
+      Map.Entry::getValue
+    ));
+  }
+
+  private String resolveSeniorityLabel(String key) {
+    var locale = LocaleContextHolder.getLocale();
+    return switch (key) {
+      case "-1m" -> messageSource.getMessage("dashboard.members.distribution.less-month", new Object[]{1}, locale);
+      case "1-3" -> messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{1, 3}, locale);
+      case "4-5m" -> messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{4, 5}, locale);
+      case "6-12m" -> messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{6, 12}, locale);
+      case "1-2y" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{1, 2}, locale);
+      case "2-3y" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{2, 3}, locale);
+      case "+3y" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{3}, locale);
+      default -> key;
+    };
   }
 
   private Map<String, Integer> toMap(List<String[]> entries) {

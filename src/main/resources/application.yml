@@ -9,12 +9,15 @@ spring:
   jpa:
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
-
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: https://nkwsihnvnyduumdbopuf.supabase.co/auth/v1
+  messages:
+    basename: messages/messages
+    fallback-to-system-locale: false
+    encoding: UTF-8
 server:
   port: 80
 

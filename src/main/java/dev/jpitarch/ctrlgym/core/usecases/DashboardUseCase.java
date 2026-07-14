@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.YearMonth;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,30 +81,31 @@ public class DashboardUseCase {
     var distribution = membersRepository.getDistribution(gymBranchId);
     var seniority = membershipsRepository.getSeniorityDistribution(gymBranchId);
     return new MembersDistribution(
-      new MembersDistribution.Item(toPostalCodeMap(distribution.get(MembersDistribution.Group.POSTAL_CODE))),
-      new MembersDistribution.Item(toAgeMap(distribution.get(MembersDistribution.Group.AGE))),
-      new MembersDistribution.Item(toGenderMap(distribution.get(MembersDistribution.Group.GENDER))),
-      new MembershipSeniorityDistribution(toSeniorityMap(seniority.data()))
+      new MembersDistribution.Item(toPostalCodeList(distribution.get(MembersDistribution.Group.POSTAL_CODE))),
+      new MembersDistribution.Item(toAgeList(distribution.get(MembersDistribution.Group.AGE))),
+      new MembersDistribution.Item(toGenderList(distribution.get(MembersDistribution.Group.GENDER))),
+      new MembershipSeniorityDistribution(toSeniorityList(seniority.data()))
     );
   }
 
-  private Map<String, Integer> toPostalCodeMap(List<String[]> entries) {
-    if (entries == null) return Collections.emptyMap();
-    return entries.stream().collect(Collectors.toMap(
-      e -> postalCodeJpaRepository.findByPostalCode(e[0])
-        .map(PostalCodeMO::getCity)
-        .orElse(e[0]),
-      e -> Integer.parseInt(e[1])
-    ));
+  private List<Object[]> toPostalCodeList(List<String[]> entries) {
+    if (entries == null) return Collections.emptyList();
+    return entries.stream()
+      .map(e -> new Object[]{
+        postalCodeJpaRepository.findByPostalCode(e[0])
+          .map(PostalCodeMO::getCity)
+          .orElse(e[0]),
+        Integer.parseInt(e[1])
+      })
+      .toList();
   }
 
-  private Map<String, Integer> toAgeMap(List<String[]> entries) {
-    if (entries == null) return Collections.emptyMap();
+  private List<Object[]> toAgeList(List<String[]> entries) {
+    if (entries == null) return Collections.emptyList();
     var locale = LocaleContextHolder.getLocale();
-    return entries.stream().collect(Collectors.toMap(
-      e -> resolveAgeLabel(e[0], locale),
-      e -> Integer.parseInt(e[1])
-    ));
+    return entries.stream()
+      .map(e -> new Object[]{resolveAgeLabel(e[0], locale), Integer.parseInt(e[1])})
+      .toList();
   }
 
   private String resolveAgeLabel(String key, java.util.Locale locale) {
@@ -119,13 +118,12 @@ public class DashboardUseCase {
     };
   }
 
-  private Map<String, Integer> toGenderMap(List<String[]> entries) {
-    if (entries == null) return Collections.emptyMap();
+  private List<Object[]> toGenderList(List<String[]> entries) {
+    if (entries == null) return Collections.emptyList();
     var locale = LocaleContextHolder.getLocale();
-    return entries.stream().collect(Collectors.toMap(
-      e -> resolveGenderLabel(e[0], locale),
-      e -> Integer.parseInt(e[1])
-    ));
+    return entries.stream()
+      .map(e -> new Object[]{resolveGenderLabel(e[0], locale), Integer.parseInt(e[1])})
+      .toList();
   }
 
   private String resolveGenderLabel(String key, java.util.Locale locale) {
@@ -136,12 +134,11 @@ public class DashboardUseCase {
     };
   }
 
-  private Map<String, Integer> toSeniorityMap(Map<String, Integer> seniority) {
-    if (seniority == null) return Collections.emptyMap();
-    return seniority.entrySet().stream().collect(Collectors.toMap(
-      e -> resolveSeniorityLabel(e.getKey()),
-      Map.Entry::getValue
-    ));
+  private List<Object[]> toSeniorityList(List<Object[]> seniority) {
+    if (seniority == null) return Collections.emptyList();
+    return seniority.stream()
+      .map(e -> new Object[]{resolveSeniorityLabel((String) e[0]), e[1]})
+      .toList();
   }
 
   private String resolveSeniorityLabel(String key) {
@@ -156,11 +153,6 @@ public class DashboardUseCase {
       case "+3y" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{3}, locale);
       default -> key;
     };
-  }
-
-  private Map<String, Integer> toMap(List<String[]> entries) {
-    if (entries == null) return Collections.emptyMap();
-    return entries.stream().collect(Collectors.toMap(e -> e[0], e -> Integer.parseInt(e[1])));
   }
 
 }

@@ -315,8 +315,8 @@ public class MembershipsRepository {
 
     var params = Map.of("gymBranchId", gymBranchId.branchId());
 
-    var result = jdbc.query(sql, params, (row, _) -> Map.entry(row.getString("rango_antiguedad"), row.getInt("cantidad_membresias")));
-    return new MembershipSeniorityDistribution(result.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    var result = jdbc.query(sql, params, (row, _) -> new Object[]{row.getString("rango_antiguedad"), row.getInt("cantidad_membresias")});
+    return new MembershipSeniorityDistribution(result);
   }
 
   public Map<YearMonth, Integer> getSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {

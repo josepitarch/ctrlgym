@@ -36,5 +36,11 @@ public class GymBranchMO {
   @Column(name = "peak_hour_end")
   private LocalTime peakHourEnd;
 
+  @Column(name = "latitude")
+  private Double latitude;
+
+  @Column(name = "longitude")
+  private Double longitude;
+
 
 }

@@ -22,7 +22,13 @@ public class GymBranch {
 
   private PeakHour peakHour;
 
+  private Coordinates coordinates;
+
   public record PeakHour(LocalTime start, LocalTime end) {
+
+  }
+
+  public record Coordinates(Double latitude, Double longitude) {
 
   }
 }

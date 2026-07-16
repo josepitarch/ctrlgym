@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
+import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.repositories.*;
 import dev.jpitarch.ctrlgym.core.dto.MembershipSeniorityDistribution;
@@ -38,8 +39,9 @@ public class DashboardUseCase {
 
   private final MessageSource messageSource;
 
-  public List<Map<String, Integer>> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
-    return gymsRepository.getOccupancies(gymBranchId, datePeriod, granularity);
+  public OccupancyGranularity getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
+    var dataPoints = gymsRepository.getOccupancies(gymBranchId, datePeriod, granularity);
+    return new OccupancyGranularity(granularity, dataPoints);
   }
 
   public Map<YearMonth, Integer> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {

@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
+import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
 import dev.jpitarch.ctrlgym.core.models.GymMO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -142,7 +143,7 @@ public class GymsRepository {
     return this.jdbc.queryForObject(sql, params, Short.class);
   }
 
-  public List<Map<String, Integer>> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
+  public List<OccupancyGranularity.OccupancyDataPoint> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
     var sql = """
       SELECT
       DATE_TRUNC(:granularity, snapshot_time) AS bucket,
@@ -164,7 +165,7 @@ public class GymsRepository {
     return jdbc.query(sql, params, (row, _) -> {
       var bucket = row.getTimestamp("bucket").toLocalDateTime();
       var avgOccupancy = row.getInt("avg_occupancy");
-      return Map.of(bucket.toString(), avgOccupancy);
+      return new OccupancyGranularity.OccupancyDataPoint(bucket, avgOccupancy);
     });
   }
 

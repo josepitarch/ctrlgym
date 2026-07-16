@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
+import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.usecases.DashboardUseCase;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class DashboardController {
   private final DashboardUseCase useCase;
 
   @GetMapping("/gyms/{gymId}/branches/{branchId}/occupancy")
-  public ResponseEntity<List<Map<String, Integer>>> getOccupancies(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam Granularity granularity) {
+  public ResponseEntity<OccupancyGranularity> getOccupancies(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam Granularity granularity) {
     return ResponseEntity.ok(useCase.getOccupancies(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to), granularity));
   }
 

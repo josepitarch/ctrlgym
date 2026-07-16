@@ -1,7 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
-import dev.jpitarch.ctrlgym.core.dto.MembershipSeniorityDistribution;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
@@ -283,7 +282,7 @@ public class MembershipsRepository {
 
   }
 
-  public MembershipSeniorityDistribution getSeniorityDistribution(GymBranchId gymBranchId) {
+  public List<Object[]> getSeniorityDistribution(GymBranchId gymBranchId) {
     var sql = """
       WITH membresias_vigentes AS (
           SELECT
@@ -316,7 +315,7 @@ public class MembershipsRepository {
     var params = Map.of("gymBranchId", gymBranchId.branchId());
 
     var result = jdbc.query(sql, params, (row, _) -> new Object[]{row.getString("rango_antiguedad"), row.getInt("cantidad_membresias")});
-    return new MembershipSeniorityDistribution(result);
+    return result;
   }
 
   public Map<YearMonth, Integer> getSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {

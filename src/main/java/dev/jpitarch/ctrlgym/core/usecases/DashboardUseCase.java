@@ -4,11 +4,11 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
+import dev.jpitarch.ctrlgym.core.dto.DistributionItem;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import dev.jpitarch.ctrlgym.core.repositories.*;
-import dev.jpitarch.ctrlgym.core.dto.MembershipSeniorityDistribution;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -83,34 +83,35 @@ public class DashboardUseCase {
     var distribution = membersRepository.getDistribution(gymBranchId);
     var seniority = membershipsRepository.getSeniorityDistribution(gymBranchId);
     return new MembersDistribution(
-      new MembersDistribution.Item(toPostalCodeList(distribution.get(MembersDistribution.Group.POSTAL_CODE))),
-      new MembersDistribution.Item(toAgeList(distribution.get(MembersDistribution.Group.AGE))),
-      new MembersDistribution.Item(toGenderList(distribution.get(MembersDistribution.Group.GENDER))),
-      new MembershipSeniorityDistribution(toSeniorityList(seniority.data()))
+      toStringDistributionItemList(distribution.get(MembersDistribution.Group.POSTAL_CODE), this::resolvePostalCode),
+      toStringDistributionItemList(distribution.get(MembersDistribution.Group.AGE), this::resolveAgeLabel),
+      toStringDistributionItemList(distribution.get(MembersDistribution.Group.GENDER), this::resolveGenderLabel),
+      toObjectDistributionItemList(seniority, this::resolveSeniorityLabel)
     );
   }
 
-  private List<Object[]> toPostalCodeList(List<String[]> entries) {
+  private List<DistributionItem> toStringDistributionItemList(List<String[]> entries, java.util.function.Function<String, String> labelMapper) {
     if (entries == null) return Collections.emptyList();
     return entries.stream()
-      .map(e -> new Object[]{
-        postalCodeJpaRepository.findByPostalCode(e[0])
-          .map(PostalCodeMO::getCity)
-          .orElse(e[0]),
-        Integer.parseInt(e[1])
-      })
+      .map(e -> new DistributionItem(labelMapper.apply(e[0]), Integer.parseInt(e[1])))
       .toList();
   }
 
-  private List<Object[]> toAgeList(List<String[]> entries) {
+  private List<DistributionItem> toObjectDistributionItemList(List<Object[]> entries, java.util.function.Function<String, String> labelMapper) {
     if (entries == null) return Collections.emptyList();
+    return entries.stream()
+      .map(e -> new DistributionItem(labelMapper.apply((String) e[0]), ((Number) e[1]).intValue()))
+      .toList();
+  }
+
+  private String resolvePostalCode(String postalCode) {
+    return postalCodeJpaRepository.findByPostalCode(postalCode)
+      .map(PostalCodeMO::getCity)
+      .orElse(postalCode);
+  }
+
+  private String resolveAgeLabel(String key) {
     var locale = LocaleContextHolder.getLocale();
-    return entries.stream()
-      .map(e -> new Object[]{resolveAgeLabel(e[0], locale), Integer.parseInt(e[1])})
-      .toList();
-  }
-
-  private String resolveAgeLabel(String key, java.util.Locale locale) {
     return switch (key) {
       case "18-25" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{18, 25}, locale);
       case "26-35" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{26, 35}, locale);
@@ -120,27 +121,13 @@ public class DashboardUseCase {
     };
   }
 
-  private List<Object[]> toGenderList(List<String[]> entries) {
-    if (entries == null) return Collections.emptyList();
+  private String resolveGenderLabel(String key) {
     var locale = LocaleContextHolder.getLocale();
-    return entries.stream()
-      .map(e -> new Object[]{resolveGenderLabel(e[0], locale), Integer.parseInt(e[1])})
-      .toList();
-  }
-
-  private String resolveGenderLabel(String key, java.util.Locale locale) {
     return switch (key.toUpperCase()) {
       case "M" -> messageSource.getMessage("dashboard.members.distribution.male", null, locale);
       case "F" -> messageSource.getMessage("dashboard.members.distribution.female", null, locale);
       default -> key;
     };
-  }
-
-  private List<Object[]> toSeniorityList(List<Object[]> seniority) {
-    if (seniority == null) return Collections.emptyList();
-    return seniority.stream()
-      .map(e -> new Object[]{resolveSeniorityLabel((String) e[0]), e[1]})
-      .toList();
   }
 
   private String resolveSeniorityLabel(String key) {

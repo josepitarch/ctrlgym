@@ -373,22 +373,6 @@ CREATE TABLE membership_cancellation_reason_translations
     CONSTRAINT membership_cancellation_reason_tran_cancellation_reason_id_fkey FOREIGN KEY (cancellation_reason_id) REFERENCES membership_cancellation_reasons (id)
 );
 
-
--- public.membership_plan_branches definition
-
--- Drop table
-
--- DROP TABLE membership_plan_branches;
-
-CREATE TABLE membership_plan_branches
-(
-    membership_plan_id text NOT NULL,
-    branch_id          int4 NOT NULL,
-    CONSTRAINT membership_plan_branch_pkey PRIMARY KEY (membership_plan_id, branch_id),
-    CONSTRAINT membership_plan_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES gym_branches (id)
-);
-
-
 -- public.membership_plans definition
 
 -- Drop table
@@ -405,9 +389,13 @@ CREATE TABLE membership_plans
     active          bool DEFAULT true         NOT NULL,
     created_at      date DEFAULT CURRENT_DATE NOT NULL,
     stripe_price_id text                      NOT NULL,
+    gym_branch_id   int4                      NULL,
+    all_branches    bool                      NULL,
     deleted_at      date                      NULL,
     CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
                                                             ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
+    CONSTRAINT chk_all_branches_or_gym_branch_id CHECK ((((all_branches IS TRUE) AND (gym_branch_id IS NULL)) OR
+                                                         ((all_branches IS FALSE) AND (gym_branch_id IS NOT NULL)))),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),
     CONSTRAINT membership_plans_stripe_price_id_uk UNIQUE (stripe_price_id),
     CONSTRAINT membership_plan_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)

@@ -105,9 +105,9 @@ public class GymsRepository {
     var sql = """
       SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.street, m.state, m.city, m.postal_code, m.country, m.gym_id
       FROM members m
-      JOIN memberships ms ON m.id = ms.member_id
-      JOIN membership_plan_branches mpb ON ms.membership_plan_id = mpb.membership_plan_id
-      WHERE m.gym_id = :gymId AND mpb.branch_id = :gymBranchId
+      JOIN memberships mb ON m.id = mb.member_id
+      JOIN membership_plans mp ON mb.membership_plan_id = mp.id
+      WHERE m.gym_id = :gymId AND mp.gym_branch_id = :gymBranchId
       """;
 
     var params = Map.of(

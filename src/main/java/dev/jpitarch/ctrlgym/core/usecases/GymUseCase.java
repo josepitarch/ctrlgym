@@ -40,11 +40,13 @@ public class GymUseCase {
 
   public void createMembershipPlan(Integer gymId, CreateMembershipPlanRequest request) throws StripeException {
     MembershipPlan membershipPlan = productService.create(gymId, request);
+    membershipPlan.setGymBranchId(request.branch());
+    membershipPlan.setAllBranches(request.allBranches());
     membershipsRepository.createMembershipPlan(membershipPlan, gymId);
   }
 
-  public List<MembershipPlan> getMembershipPlans(Integer gymId) {
-    return membershipsRepository.getMembershipPlans(gymId);
+  public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
+    return membershipsRepository.getMembershipPlans(gymBranchId);
   }
 
   public void deleteMembershipPlan(String planId, Integer gymId) throws StripeException {

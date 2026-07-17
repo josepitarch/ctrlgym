@@ -87,7 +87,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(4)
   @DisplayName("Creates a membership plan successfully")
   void createMembershipPlan_returns204() throws Exception {
-    var request = new CreateMembershipPlanRequest("Premium Plan", 49.99, null);
+    var request = new CreateMembershipPlanRequest("Premium Plan", 49.99, 1, false);
 
     when(productService.create(eq(1), any(CreateMembershipPlanRequest.class)))
       .thenReturn(MembershipPlan.builder()
@@ -111,6 +111,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns all membership plans")
   void getMembershipPlans_returnsAllPlans() throws Exception {
     mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans", 1)
+        .queryParam("gymBranchId", "1")
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.length()").value(3))
@@ -127,7 +128,9 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(6)
   @DisplayName("Deletes a membership plan successfully")
   void deleteMembershipPlan_returns204() throws Exception {
-    mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", 1, "new_plan_id"))
+    mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", 1, "new_plan_id")
+        .queryParam("gymBranchId", "1")
+      )
       .andExpect(status().isNoContent());
 
     assertThat(membershipPlanJpaRepository.findById("new_plan_id")).isEmpty();
@@ -139,6 +142,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns members of a branch")
   void getBranchMembers_returnsMembers() throws Exception {
     mockMvc.perform(get("/v1/gyms/{gymId}/branches/{branchId}/members", 1, 1)
+        .queryParam("gymBranchId", "1")
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.length()").value(1))

@@ -123,19 +123,15 @@ INSERT INTO "public"."members" ("id", "gym_id", "email", "name", "first_surname"
 VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'pm_test456',  'AUTH');
 
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
-                                         "stripe_price_id")
-VALUES ('plan_basic', 1, 'Basic', 29.99, 'MONTHLY', true, '2026-01-01', 'price_basic123');
+                                         "stripe_price_id", "gym_branch_id", "all_branches")
+VALUES ('plan_basic', 1, 'Basic', 29.99, 'MONTHLY', true, '2026-01-01', 'price_basic123', 1, false);
 
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
-                                         "stripe_price_id")
-VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'price_premium456');
+                                         "stripe_price_id", "gym_branch_id", "all_branches")
+VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'price_premium456', 1, false);
 
 INSERT INTO "public"."gym_branches" ("id", "gym_id", "name", "is_active", "capacity")
 VALUES (1, 1, 'Main Branch', true, 100);
-
-INSERT INTO "public"."membership_plan_branches" ("membership_plan_id", "branch_id")
-VALUES ('plan_basic', 1),
-       ('plan_premium', 1);
 
 --INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
 --VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);

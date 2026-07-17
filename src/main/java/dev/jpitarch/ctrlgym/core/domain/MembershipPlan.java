@@ -1,5 +1,7 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +21,12 @@ public class MembershipPlan {
 
   private Membership.Recurring recurring;
 
+  @JsonIgnore
   private String stripePriceId;
+
+  private Integer gymBranchId;
+
+  @JsonProperty("all_branches")
+  private boolean allBranches;
 
 }

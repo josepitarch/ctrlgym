@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.models;
 
+import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,12 +45,13 @@ public class MembershipPlanMO {
   @Column(name = "stripe_price_id", nullable = false)
   private String stripePriceId;
 
+  @Column(name = "gym_branch_id")
+  private Integer gymBranchId;
+
+  @Column(name = "all_branches")
+  private Boolean allBranches;
+
   @Column(name = "deleted_at")
   private LocalDate deletedAt;
-
-  //TODO
-
-//  @OneToMany
-  //private List<MembershipPlanBranchMO> branches = new ArrayList<>();
 
 }

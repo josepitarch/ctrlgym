@@ -44,7 +44,6 @@ public class MembershipsRepository {
   }
 
   public List<Membership> getMemberships(Member.Id memberId) {
-    List<MembershipPlanMO> plans = membershipPlanJpaRepository.findByGymId(memberId.gymId());
     return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()
@@ -106,32 +105,35 @@ public class MembershipsRepository {
   }
 
   public void createMembershipPlan(MembershipPlan membershipPlan, Integer gymId) {
-    var sql = """
-      INSERT INTO membership_plans (id, gym_id, name, stripe_price_id, price, billing_period, active, created_at)
-      VALUES (:id, :gymId, :name, :priceId, :price, :billingPeriod, true, CURRENT_DATE)
-      """;
+    var plan = new MembershipPlanMO();
+    plan.setId(membershipPlan.getId());
+    plan.setGymId(gymId);
+    plan.setName(membershipPlan.getName());
+    plan.setStripePriceId(membershipPlan.getStripePriceId());
+    plan.setPrice(java.math.BigDecimal.valueOf(membershipPlan.getPrice()));
+    plan.setBillingPeriod(membershipPlan.getRecurring().name());
+    plan.setActive(true);
+    plan.setCreatedAt(LocalDate.now());
+    plan.setGymBranchId(membershipPlan.getGymBranchId());
+    plan.setAllBranches(membershipPlan.isAllBranches());
 
-    var params = Map.of(
-      "id", membershipPlan.getId(),
-      "gymId", gymId,
-      "name", membershipPlan.getName(),
-      "priceId", membershipPlan.getStripePriceId(),
-      "price", membershipPlan.getPrice(),
-      "billingPeriod", membershipPlan.getRecurring().name()
-    );
-
-    jdbc.update(sql, params);
+    membershipPlanJpaRepository.save(plan);
   }
 
-  public List<MembershipPlan> getMembershipPlans(Integer gymId) {
-    return membershipPlanJpaRepository.findByGymId(gymId)
-      .stream()
+  public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
+    var plans = gymBranchId.branchId() == null
+      ? membershipPlanJpaRepository.findByGymIdAndAllBranchesIsTrue(gymBranchId.gymId())
+      : membershipPlanJpaRepository.findByGymIdAndGymBranchId(gymBranchId.gymId(), gymBranchId.branchId());
+
+    return plans.stream()
       .map(plan -> MembershipPlan.builder()
         .id(plan.getId())
         .name(plan.getName())
         .price(plan.getPrice().doubleValue())
         .recurring(Membership.Recurring.from(plan.getBillingPeriod()))
         .stripePriceId(plan.getStripePriceId())
+        .gymBranchId(plan.getGymBranchId())
+        .allBranches(plan.getAllBranches())
         .build())
       .toList();
   }
@@ -314,7 +316,7 @@ public class MembershipsRepository {
 
     var params = Map.of("gymBranchId", gymBranchId.branchId());
 
-    var result = jdbc.query(sql, params, (row, _) -> new Object[]{row.getString("rango_antiguedad"), row.getInt("cantidad_membresias")});
+    var result = jdbc.query(sql, params, (row, _) -> new Object[]{ row.getString("rango_antiguedad"), row.getInt("cantidad_membresias") });
     return result;
   }
 

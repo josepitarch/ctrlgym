@@ -57,6 +57,7 @@ public class ProductService {
 
     var price = Price.create(priceParams, requestOptions);
 
+   //TODO: aquí solo devolver los ids de stripe. La instancia de un objeto de dominio ha de estar en el core
     return MembershipPlan.builder()
       .id(product.getId())
       .name(product.getName())

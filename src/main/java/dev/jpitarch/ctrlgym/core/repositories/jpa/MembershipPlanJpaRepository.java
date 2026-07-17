@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface MembershipPlanJpaRepository extends JpaRepository<MembershipPlanMO, String> {
 
-  List<MembershipPlanMO> findByGymId(Integer gymId);
+  List<MembershipPlanMO> findByGymIdAndAllBranchesIsTrue(Integer gymId);
+
+  List<MembershipPlanMO> findByGymIdAndGymBranchId(Integer gymId, Integer gymBranchId);
 
 }

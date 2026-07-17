@@ -64,8 +64,8 @@ public class GymController {
   }
 
   @GetMapping("/{gymId}/memberships/plans")
-  public ResponseEntity<List<MembershipPlan>> getMembershipPlans(@PathVariable Integer gymId) {
-    return ResponseEntity.ok(useCase.getMembershipPlans(gymId));
+  public ResponseEntity<List<MembershipPlan>> getMembershipPlans(@PathVariable Integer gymId, @RequestParam(required = false) Integer gymBranchId) {
+    return ResponseEntity.ok(useCase.getMembershipPlans(GymBranchId.of(gymId, gymBranchId)));
   }
 
   @DeleteMapping("/{gymId}/memberships/plans/{planId}")

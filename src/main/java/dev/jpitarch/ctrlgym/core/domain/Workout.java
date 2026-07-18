@@ -50,6 +50,8 @@ public class Workout {
 
       private Short reps;
 
+      private double weight;
+
     }
 
   }

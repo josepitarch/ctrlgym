@@ -295,7 +295,7 @@ public class MembershipsRepository {
               (DATE_PART('year', AGE(CURRENT_DATE, start_date)) * 12
                   + DATE_PART('month', AGE(CURRENT_DATE, start_date)))::int AS meses_antiguedad
           FROM public.memberships
-          WHERE membership_plan_id in (SELECT membership_plan_id FROM membership_plan_branches WHERE branch_id = :gymBranchId)
+          WHERE membership_plan_id in (SELECT membership_plan_id FROM membership_plans WHERE gym_branch_id = :gymBranchId)
           AND (end_date IS NULL OR end_date >= CURRENT_DATE)
       )
       SELECT

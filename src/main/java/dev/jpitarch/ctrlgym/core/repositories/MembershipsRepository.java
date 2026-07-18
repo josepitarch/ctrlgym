@@ -176,22 +176,22 @@ public class MembershipsRepository {
     var sql = """
       SELECT
       month::date,
-        COUNT(m.id) AS active_memberships
+        COUNT(branch_m.id) AS active_memberships
       FROM generate_series (
             :from::date,
             :to::date,
         INTERVAL '1 month'
       ) month
-      LEFT JOIN memberships m
-      ON m.gym_id = :gymId
-      AND m.start_date <= month
-      AND(m.end_date IS NULL OR m.end_date >= month)
+      LEFT JOIN memberships branch_m ON branch_m.gym_id = :gymId
+        AND branch_m.start_date <= month AND (branch_m.end_date IS NULL OR branch_m.end_date >= month)
+        AND branch_m.membership_plan_id IN (SELECT mp.id FROM membership_plans mp WHERE mp.gym_branch_id = :gymBranchId)
       GROUP BY 1
       ORDER BY 1;
       """;
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId(),
       "from", datePeriod.from().toString(),
       "to", datePeriod.to().toString()
     );
@@ -206,35 +206,28 @@ public class MembershipsRepository {
 
   public Map<YearMonth, Integer> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      WITH months AS(
-        SELECT generate_series(
-          DATE_TRUNC('month', CAST(:from AS date)),
-      DATE_TRUNC('month', CAST(:to AS date)),
-      INTERVAL '1 month'
-            )::date AS month
-        ),
-      memberships_by_month AS (
-        SELECT
-      DATE_TRUNC('month', start_date)::date AS month,
-      COUNT( *)AS new_memberships
-      FROM memberships
-      WHERE gym_id = :gymId
-      AND start_date >= :from
-      AND start_date <= :to
-      GROUP BY 1
-        )
       SELECT
-      m.month,
-        COALESCE(mbm.new_memberships, 0) AS new_memberships
-      FROM months m
-      LEFT JOIN memberships_by_month mbm ON mbm.month = m.month
-      ORDER BY m.month;
+      month::date,
+        COUNT(branch_m.id) AS new_memberships
+      FROM generate_series (
+            :from::date,
+            :to::date,
+        INTERVAL '1 month'
+      ) month
+      LEFT JOIN memberships branch_m ON branch_m.gym_id = :gymId
+        AND DATE_TRUNC('month', branch_m.start_date)::date = month
+        AND branch_m.membership_plan_id IN (
+          SELECT mp.id FROM membership_plans mp WHERE mp.gym_branch_id = :gymBranchId
+        )
+      GROUP BY 1
+      ORDER BY 1;
       """;
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to()
+      "gymBranchId", gymBranchId.branchId(),
+      "from", datePeriod.from().toString(),
+      "to", datePeriod.to().toString()
     );
 
     return jdbc.query(sql, params, (row, _) -> {
@@ -246,34 +239,29 @@ public class MembershipsRepository {
 
   public Map<YearMonth, Integer> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      WITH months AS(
-        SELECT generate_series(
-          DATE_TRUNC('month', CAST(:from AS date)),
-          DATE_TRUNC('month', CAST(:to AS date)),
-      INTERVAL '1 month'
-            )::date AS month
-        ),
-      memberships_by_month AS (SELECT
-      DATE_TRUNC('month', end_date)::date AS month,
-      COUNT( *)AS cancellations
-      FROM memberships
-      WHERE gym_id = :gymId
-      AND start_date >= :from AND start_date <= :to
-      AND end_date IS NOT NULL AND end_date <= CURRENT_DATE
-      GROUP BY 1
-      ORDER BY 1
+      SELECT
+      month::date,
+        COUNT(branch_m.id) AS cancellations
+      FROM generate_series (
+            :from::date,
+            :to::date,
+        INTERVAL '1 month'
+      ) month
+      LEFT JOIN memberships branch_m ON branch_m.gym_id = :gymId
+        AND branch_m.end_date IS NOT NULL
+        AND DATE_TRUNC('month', branch_m.end_date)::date = month
+        AND branch_m.membership_plan_id IN (
+          SELECT mp.id FROM membership_plans mp WHERE mp.gym_branch_id = :gymBranchId
         )
-      SELECT m.month, COALESCE(mbm.cancellations, 0) AS cancellations
-      FROM months m
-      LEFT JOIN memberships_by_month mbm ON mbm.month = m.month
-      ORDER BY m.month;
-      
+      GROUP BY 1
+      ORDER BY 1;
       """;
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to()
+      "gymBranchId", gymBranchId.branchId(),
+      "from", datePeriod.from().toString(),
+      "to", datePeriod.to().toString()
     );
 
     return jdbc.query(sql, params, (row, _) -> {

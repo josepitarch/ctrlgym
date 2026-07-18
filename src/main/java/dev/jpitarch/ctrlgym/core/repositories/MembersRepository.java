@@ -108,7 +108,6 @@ public class MembersRepository {
 
   }
 
-
   public void savePaymentMethodId(String customerId, String paymentMethodId) {
     var sql = """
       UPDATE members
@@ -141,7 +140,8 @@ public class MembersRepository {
       AND EXISTS (
           SELECT 1
           FROM memberships mb
-          WHERE m.id = mb.member_id AND m.gym_id = mb.gym_id
+          JOIN membership_plans mp on mb.membership_plan_id = mp.id
+          WHERE m.id = mb.member_id AND m.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
           AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date > CURRENT_DATE)
       )
       GROUP BY GROUPING SETS (
@@ -151,9 +151,9 @@ public class MembersRepository {
       );
       """;
 
-    //TODO: faltaría chequear también el branch en principio
     var params = Map.of(
-      "gymId", gymBranchId.gymId()
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId()
     );
 
     return jdbc.query(sql, params, (rs, _) -> new String[]{
@@ -223,4 +223,5 @@ public class MembersRepository {
       default -> throw new IllegalStateException("Unexpected value: " + gender);
     };
   }
+
 }

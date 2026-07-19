@@ -4,6 +4,8 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
@@ -36,7 +38,7 @@ public class MembershipService {
 
   public void initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
     if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
-      throw new IllegalStateException("Member " + memberId + " already has membership " + membershipPlanId);
+      throw new DuplicateMembershipException(memberId, membershipPlanId);
     }
 
     String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
@@ -49,10 +51,10 @@ public class MembershipService {
     }
 
     var props = Map.of(
-      "stripeAccountId", stripeAccountId,
-      "stripePriceId", stripePriceId,
-      "paymentMethodId", paymentMethodId.get(),
-      "customerId", customerId.get()
+            "stripeAccountId", stripeAccountId,
+            "stripePriceId", stripePriceId,
+            "paymentMethodId", paymentMethodId.get(),
+            "customerId", customerId.get()
     );
 
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
@@ -61,25 +63,19 @@ public class MembershipService {
     membershipsRepository.save(memberId, membershipPlanId, subscriptionId, calculateNextBillingDate());
   }
 
-  public void changeMembership(Member.Id memberId, String newMembershipPlanId) throws StripeException {
-    Membership currentMembership = membershipsRepository.getMembership(memberId);
-    String stripeSubscriptionId = membershipPlanRepository.getStripeSubscriptionId(memberId, currentMembership.getId());
-    String currentStripePriceId = membershipPlanRepository.getStripePriceId(null);
-    subscriptionService.change(stripeSubscriptionId, currentStripePriceId, null);
-  }
-
-  private LocalDate calculateNextBillingDate() {
-    var today = LocalDate.now();
-    if (today.getDayOfMonth() == 1) {
-      return today.plusMonths(1).withDayOfMonth(1);
-    }
-    return today.plusMonths(2).withDayOfMonth(1);
+  public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
+    Optional<Membership> currentMembership = membershipsRepository.getMembership(memberId);
+    if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
+    String stripeSubscriptionId = membershipPlanRepository.getStripeSubscriptionId(memberId, currentMembership.get().getId());
+    String currentStripePriceId = membershipPlanRepository.getStripePriceId(stripeSubscriptionId);
+    String newCurrentStripePriceId = membershipPlanRepository.getStripePriceId(newMembershipPlanId);
+    subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId);
   }
 
   public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
-      "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
-      "subscriptionId", membershipPlanRepository.getStripeSubscriptionId(memberId, membershipId)
+            "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
+            "subscriptionId", membershipPlanRepository.getStripeSubscriptionId(memberId, membershipId)
     );
 
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);
@@ -88,14 +84,22 @@ public class MembershipService {
     membershipsRepository.setCancellationReasonId(membershipId, cancellationReasonId, comment);
   }
 
-  public Membership getMembership(Member.Id memberId) {
-    log.debug("Getting memberships for member with id {}...", memberId);
-    return membershipsRepository.getMembership(memberId);
+  public Membership retrieve(Member.Id memberId) {
+    log.debug("Retrieving memberships for member with id {}...", memberId);
+    return membershipsRepository.getMembership(memberId).orElse(null);
   }
 
   public List<MembershipCancellationReason> getCancellationReasons() {
     var language = LocaleContextHolder.getLocale().getLanguage();
     return membershipsRepository.getCancellationReasons(language);
+  }
+
+  private LocalDate calculateNextBillingDate() {
+    var today = LocalDate.now();
+    if (today.getDayOfMonth() == 1) {
+      return today.plusMonths(1).withDayOfMonth(1);
+    }
+    return today.plusMonths(2).withDayOfMonth(1);
   }
 
 }

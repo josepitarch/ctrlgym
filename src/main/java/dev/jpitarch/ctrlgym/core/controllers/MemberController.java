@@ -47,8 +47,8 @@ public class MemberController {
   }
 
   @PutMapping("/{memberId}/memberships")
-  public ResponseEntity<Void> changeMembership(@PathVariable UUID memberId, @RequestBody String membershipId, @RequestParam Integer gymId) throws StripeException {
-    memberUseCase.changeMembership(Member.Id.of(memberId, gymId), membershipId);
+  public ResponseEntity<Void> changeMembership(@PathVariable UUID memberId, @RequestBody String membershipPlanId, @RequestParam Integer gymId) throws StripeException {
+    memberUseCase.changeMembership(Member.Id.of(memberId, gymId), membershipPlanId);
     return ResponseEntity.noContent().build();
   }
 

@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -41,7 +42,7 @@ public class MembershipsRepository {
     membershipJpaRepository.save(membership);
   }
 
-  public Membership getMembership(Member.Id memberId) {
+  public Optional<Membership> getMembership(Member.Id memberId) {
     return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .map(m -> Membership.builder()
@@ -49,8 +50,7 @@ public class MembershipsRepository {
         .interval(Membership.Recurring.from("MONTHLY")) //TODO
         .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
         .nextBillingDate(m.getNextBillingDate())
-        .build())
-      .orElse(null); //TODO: domain exception?
+        .build());
   }
 
   public void setCancellationReasonId(Integer membershipId, Integer cancellationReasonId, String comment) {

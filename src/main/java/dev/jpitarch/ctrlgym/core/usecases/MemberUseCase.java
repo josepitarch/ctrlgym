@@ -47,7 +47,7 @@ public class MemberUseCase {
 
   @SneakyThrows
   public void changeMembership(Member.Id memberId, String newMembershipPlanId) {
-    membershipService.changeMembership(memberId, newMembershipPlanId);
+    membershipService.change(memberId, newMembershipPlanId);
   }
 
   public void cancelMembership(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
@@ -55,7 +55,7 @@ public class MemberUseCase {
   }
 
   public Membership getMembership(Member.Id memberId) {
-    return membershipService.getMembership(memberId);
+    return membershipService.retrieve(memberId);
   }
 
   public List<MemberAccess> getAccesses(Member.Id memberId) {
@@ -89,4 +89,5 @@ public class MemberUseCase {
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
     return membersService.generateQrCode(memberId);
   }
+
 }

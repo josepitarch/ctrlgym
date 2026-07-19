@@ -4,6 +4,7 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,9 @@ class MembershipServiceTest {
 
   @Mock
   MembershipsRepository membershipsRepository;
+
+  @Mock
+  MembershipPlanRepository membershipPlanRepository;
 
   @Mock
   GymsRepository gymsRepository;
@@ -62,7 +66,7 @@ class MembershipServiceTest {
       mockedDate.when(LocalDate::now).thenReturn(ld);
 
       when(gymsRepository.getStripeAccountId(1)).thenReturn("stripe_account");
-      when(membershipsRepository.getStripePriceId("plan_basic")).thenReturn("price_basic");
+      when(membershipPlanRepository.getStripePriceId("plan_basic")).thenReturn("price_basic");
       when(membersRepository.getPaymentMethodId(memberId)).thenReturn(Optional.of("pm_test"));
       when(membersRepository.getStripeCustomerId(memberId)).thenReturn(Optional.of("cus_test"));
       when(subscriptionService.create(any(), any())).thenReturn("sub_test123");

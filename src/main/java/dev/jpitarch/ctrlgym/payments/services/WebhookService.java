@@ -56,17 +56,17 @@ public class WebhookService {
   }
 
   private void handleSetupIntentCreated(SetupIntent setupIntent) {
-    log.info("SetupIntent with memberId {} of customer {} is created", setupIntent.getId(), setupIntent.getCustomer());
+    log.info("SetupIntent of member with id {} of customer {} is created", setupIntent.getId(), setupIntent.getCustomer());
   }
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
-    log.info("SetupIntent with memberId {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
+    log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
     //TODO: si ya tenía en método de pago hay que hacerle un detach para desvincularlo del Customer
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
   private void handleInvoiceCreated(Invoice invoice, String accountId) {
-    log.info("Creating invoice with memberId {}...", invoice.getId());
+    log.info("Creating invoice of member with id {}...", invoice.getId());
     invoiceRepository.create(invoice, accountId);
   }
 
@@ -76,7 +76,7 @@ public class WebhookService {
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {
-    log.info("Marking invoice with memberId {} as paid...", invoice.getId());
+    log.info("Marking invoice with member with id {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice);
 
     //TODO: setear next_billing_date en función del Recurring

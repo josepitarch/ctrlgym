@@ -47,7 +47,7 @@ public class MembershipService {
     Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
 
     if (paymentMethodId.isEmpty() || customerId.isEmpty()) {
-      throw new IllegalStateException("Customer or payment method not found for member " + memberId);
+      throw new IllegalStateException("Customer or payment method not found for member with id " + memberId);
     }
 
     var props = Map.of(

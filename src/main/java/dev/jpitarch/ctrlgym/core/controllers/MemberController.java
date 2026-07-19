@@ -46,8 +46,14 @@ public class MemberController {
     return ResponseEntity.noContent().build();
   }
 
+  @PutMapping("/{memberId}/memberships")
+  public ResponseEntity<Void> changeMembership(@PathVariable UUID memberId, @RequestBody String membershipId, @RequestParam Integer gymId) throws StripeException {
+    memberUseCase.changeMembership(Member.Id.of(memberId, gymId), membershipId);
+    return ResponseEntity.noContent().build();
+  }
+
   @PatchMapping("/{memberId}/memberships/{membershipId}")
-  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId,
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable Integer membershipId, @RequestParam Integer gymId,
                                                @RequestParam Integer cancellationReasonId,
                                                @RequestBody String comment
                                                ) throws StripeException {
@@ -57,8 +63,8 @@ public class MemberController {
 
 
   @GetMapping("/{memberId}/memberships")
-  public ResponseEntity<List<Membership>> getMemberships(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return ResponseEntity.ok(memberUseCase.getMemberships(Member.Id.of(memberId, gymId)));
+  public ResponseEntity<Membership> getMembership(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+    return ResponseEntity.ok(memberUseCase.getMembership(Member.Id.of(memberId, gymId)));
   }
 
   @GetMapping(value = "/{memberId}/accesses")

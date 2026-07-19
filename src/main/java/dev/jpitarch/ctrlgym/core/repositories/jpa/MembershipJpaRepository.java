@@ -12,9 +12,15 @@ import java.util.UUID;
 
 public interface MembershipJpaRepository extends JpaRepository<MembershipMO, Long> {
 
-  List<MembershipMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
+  @Query("""
+    SELECT m
+    FROM MembershipMO m
+    WHERE m.memberId = :memberId AND m.gymId = :gymId
+    AND m.startDate <= CURRENT_DATE AND (m.endDate IS NULL OR m.endDate > CURRENT_DATE)
+""")
+  Optional<MembershipMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
 
-  Optional<MembershipMO> findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(UUID memberId, Integer gymId, String membershipPlanId);
+  Optional<MembershipMO> findByIdAndEndDateIsNull(Integer id);
 
   @Query("""
     SELECT COUNT(m) > 0

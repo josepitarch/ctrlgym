@@ -8,6 +8,7 @@ import dev.jpitarch.ctrlgym.core.services.MembershipService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.core.services.WorkoutsService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,12 +45,17 @@ public class MemberUseCase {
     membershipService.initialize(memberId, membershipId);
   }
 
-  public void cancelMembership(Member.Id memberId, String membershipId, Integer cancellationReasonId, String comment) throws StripeException {
+  @SneakyThrows
+  public void changeMembership(Member.Id memberId, String newMembershipPlanId) {
+    membershipService.changeMembership(memberId, newMembershipPlanId);
+  }
+
+  public void cancelMembership(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     membershipService.cancel(memberId, membershipId, cancellationReasonId, comment);
   }
 
-  public List<Membership> getMemberships(Member.Id memberId) {
-    return membershipService.getMemberships(memberId);
+  public Membership getMembership(Member.Id memberId) {
+    return membershipService.getMembership(memberId);
   }
 
   public List<MemberAccess> getAccesses(Member.Id memberId) {

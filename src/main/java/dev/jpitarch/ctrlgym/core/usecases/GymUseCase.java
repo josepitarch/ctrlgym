@@ -6,14 +6,17 @@ import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GymUseCase {
@@ -22,7 +25,7 @@ public class GymUseCase {
 
   private final ExercisesService exercisesService;
 
-  private final MembershipsRepository membershipsRepository;
+  private final MembershipPlanRepository membershipPlanRepository;
 
   private final ProductService productService;
 
@@ -42,16 +45,17 @@ public class GymUseCase {
     MembershipPlan membershipPlan = productService.create(gymId, request);
     membershipPlan.setGymBranchId(request.branch());
     membershipPlan.setAllBranches(request.allBranches());
-    membershipsRepository.createMembershipPlan(membershipPlan, gymId);
+    membershipPlanRepository.createMembershipPlan(membershipPlan, gymId);
   }
 
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
-    return membershipsRepository.getMembershipPlans(gymBranchId);
+    log.debug("Retrieving membership plans for gym with id {}...", gymBranchId);
+    return membershipPlanRepository.getMembershipPlans(gymBranchId);
   }
 
   public void deleteMembershipPlan(String planId, Integer gymId) throws StripeException {
     productService.delete(gymId, planId);
-    membershipsRepository.deleteMembershipPlan(planId, gymId);
+    membershipPlanRepository.deleteMembershipPlan(planId, gymId);
   }
 
   public CurrentOccupancy getCurrentOccupancy(GymBranchId gymBranchId) {

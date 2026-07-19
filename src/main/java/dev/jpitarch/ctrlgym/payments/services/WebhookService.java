@@ -1,10 +1,7 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.SignatureVerificationException;
-import com.stripe.model.Event;
-import com.stripe.model.Invoice;
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.SetupIntent;
+import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
@@ -49,8 +46,13 @@ public class WebhookService {
       case "payment_intent.processing" -> handlePaymentIntentProcessing(map(event));
       case "invoice.payment_succeeded" -> handlePaymentSucceeded(map(event));
       case "invoice.payment_failed" -> handlePaymentFailed(map(event));
+      case "customer.subscription.updated" -> handleSubscriptionUpdated(map(event));
     }
 
+  }
+
+  private void handleSubscriptionUpdated(Subscription subscription) {
+    //Aquí manejaremos cuándo un miembro decide cambiar de membresía
   }
 
   private void handleSetupIntentCreated(SetupIntent setupIntent) {

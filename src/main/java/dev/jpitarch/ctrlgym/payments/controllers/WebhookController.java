@@ -1,22 +1,16 @@
 package dev.jpitarch.ctrlgym.payments.controllers;
 
-import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.services.MembershipService;
-import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import dev.jpitarch.ctrlgym.payments.services.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @Slf4j
 @RestController
 @RequestMapping("/v1/payments")
 @RequiredArgsConstructor
-public class MembershipsController {
+public class WebhookController {
 
   private final WebhookService webhookService;
 

@@ -24,8 +24,6 @@ public class MembershipsRepository {
 
   private final MembershipJpaRepository membershipJpaRepository;
 
-  private final MembershipPlanJpaRepository membershipPlanJpaRepository;
-
   private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
@@ -43,22 +41,21 @@ public class MembershipsRepository {
     membershipJpaRepository.save(membership);
   }
 
-  public List<Membership> getMemberships(Member.Id memberId) {
+  public Membership getMembership(Member.Id memberId) {
     return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
-      .stream()
       .map(m -> Membership.builder()
         .id(m.getId().intValue())
         .interval(Membership.Recurring.from("MONTHLY")) //TODO
         .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
         .nextBillingDate(m.getNextBillingDate())
         .build())
-      .toList();
+      .orElse(null); //TODO: domain exception?
   }
 
-  public void setCancellationReasonId(Member.Id memberId, String membershipId, Integer cancellationReasonId, String comment) {
+  public void setCancellationReasonId(Integer membershipId, Integer cancellationReasonId, String comment) {
     membershipJpaRepository
-      .findByMemberIdAndGymIdAndMembershipPlanIdAndEndDateIsNull(memberId.memberId(), memberId.gymId(), membershipId)
+      .findByIdAndEndDateIsNull(membershipId)
       .ifPresent(m -> {
         m.setEndDate(LocalDate.now());
         m.setCancellationReasonId(cancellationReasonId);
@@ -67,18 +64,19 @@ public class MembershipsRepository {
       });
   }
 
-  public boolean hasActiveMembership(Member.Id memberId, String membershipId) {
-    return membershipJpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipId);
+  public boolean hasActiveMembership(Member.Id memberId, String membershipPlanId) {
+    return membershipJpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipPlanId);
   }
 
   public List<Integer> getAccessibleBranches(Member.Id memberId) {
+    //TODO: aquí habría que comprobar que si all_branches está activado
+    // devolver todos los centros en gym_branches
     var sql = """
-      SELECT mpb.branch_id
+      SELECT mp.gym_branch_id
       FROM memberships m
       INNER JOIN membership_plans mp ON m.membership_plan_id = mp.id
-      INNER JOIN membership_plan_branches mpb ON mp.id = mpb.membership_plan_id
       WHERE m.member_id = :memberId AND mp.gym_id = :gymId
-      AND m.start_date <= CURRENT_DATE AND (end_date IS NULL OR end_date >= CURRENT_DATE)
+      AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
       """;
 
     var params = Map.of(
@@ -104,73 +102,11 @@ public class MembershipsRepository {
       .build();
   }
 
-  public void createMembershipPlan(MembershipPlan membershipPlan, Integer gymId) {
-    var plan = new MembershipPlanMO();
-    plan.setId(membershipPlan.getId());
-    plan.setGymId(gymId);
-    plan.setName(membershipPlan.getName());
-    plan.setStripePriceId(membershipPlan.getStripePriceId());
-    plan.setPrice(java.math.BigDecimal.valueOf(membershipPlan.getPrice()));
-    plan.setBillingPeriod(membershipPlan.getRecurring().name());
-    plan.setActive(true);
-    plan.setCreatedAt(LocalDate.now());
-    plan.setGymBranchId(membershipPlan.getGymBranchId());
-    plan.setAllBranches(membershipPlan.isAllBranches());
 
-    membershipPlanJpaRepository.save(plan);
-  }
 
-  public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
-    var plans = gymBranchId.branchId() == null
-      ? membershipPlanJpaRepository.findByGymIdAndAllBranchesIsTrue(gymBranchId.gymId())
-      : membershipPlanJpaRepository.findByGymIdAndGymBranchId(gymBranchId.gymId(), gymBranchId.branchId());
 
-    return plans.stream()
-      .map(plan -> MembershipPlan.builder()
-        .id(plan.getId())
-        .name(plan.getName())
-        .price(plan.getPrice().doubleValue())
-        .recurring(Membership.Recurring.from(plan.getBillingPeriod()))
-        .stripePriceId(plan.getStripePriceId())
-        .gymBranchId(plan.getGymBranchId())
-        .allBranches(plan.getAllBranches())
-        .build())
-      .toList();
-  }
 
-  public void deleteMembershipPlan(String planId, Integer gymId) {
-    MembershipPlanMO planMO = membershipPlanJpaRepository.findById(planId)
-      .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
-    planMO.setDeletedAt(LocalDate.now());
-    membershipPlanJpaRepository.save(planMO);
-  }
 
-  public String getStripePriceId(String id) {
-    var sql = """
-      SELECT stripe_price_id
-      FROM membership_plans
-      WHERE id = :id
-      """;
-    var params = Map.of("id", id);
-
-    return jdbc.queryForObject(sql, params, String.class);
-  }
-
-  public String getStripeSubscriptionId(Member.Id memberId, String membershipId) {
-    var sql = """
-        SELECT stripe_subscription_id
-        FROM memberships
-        WHERE member_id = :memberId AND gym_id = :gymId AND membership_plan_id = :membershipId
-      """;
-
-    var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId(),
-      "membershipId", membershipId
-    );
-
-    return jdbc.queryForObject(sql, params, String.class);
-  }
 
   public Map<YearMonth, Integer> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """

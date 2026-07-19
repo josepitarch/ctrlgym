@@ -38,7 +38,7 @@ public class ProductService {
       .putMetadata("gymId", String.valueOf(gymId))
       .build();
 
-    log.info("Creating product for gymId {} with name {}", gymId, request.name());
+    log.info("Creating product for gym with id {} with name {}", gymId, request.name());
 
     var product = Product.create(productParams, requestOptions);
 

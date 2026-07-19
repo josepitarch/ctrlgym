@@ -3,13 +3,13 @@ package dev.jpitarch.ctrlgym.payments.services;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Subscription;
+import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.TaxRate;
 import com.stripe.net.RequestOptions;
-import com.stripe.param.CustomerUpdateParams;
-import com.stripe.param.SubscriptionCreateParams;
-import com.stripe.param.TaxRateCreateParams;
+import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
+import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,42 +27,68 @@ public class SubscriptionService {
 
   public String create(Member.Id memberId, Map<String, String> props) throws StripeException {
     var requestOptions = RequestOptions.builder()
-      .setStripeAccount(props.get("stripeAccountId"))
-      .build();
+            .setStripeAccount(props.get("stripeAccountId"))
+            .build();
 
     LocalDate firstDayOfNextMonth = LocalDate.now().withDayOfMonth(1).plusMonths(1);
     long billingAnchorTimestamp = firstDayOfNextMonth
-      .atStartOfDay(ZoneOffset.UTC)
-      .toEpochSecond();
+            .atStartOfDay(ZoneOffset.UTC)
+            .toEpochSecond();
 
     var customerUpdateParams = CustomerUpdateParams.builder()
-      .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
-        .setDefaultPaymentMethod(props.get("paymentMethodId"))
-        .build()
-      )
-      .build();
+            .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
+                    .setDefaultPaymentMethod(props.get("paymentMethodId"))
+                    .build()
+            )
+            .build();
 
     Customer.retrieve(props.get("customerId"), requestOptions).update(customerUpdateParams, requestOptions);
 
     var subscriptionParams = SubscriptionCreateParams.builder()
-      .setCustomer(props.get("customerId"))
-      .addItem(SubscriptionCreateParams.Item.builder()
-        .setPrice(props.get("stripePriceId"))
-        .build()
-      )
-      .setApplicationFeePercent(new BigDecimal("0.0"))
-      .setPaymentSettings(
-        SubscriptionCreateParams.PaymentSettings.builder()
-          .setPaymentMethodTypes(List.of(SubscriptionCreateParams.PaymentSettings.PaymentMethodType.CARD))
-          .build()
-      )
-      .setBillingCycleAnchor(billingAnchorTimestamp)
-      .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
-      .setMetadata(Map.of("gymId", memberId.gymId().toString()))
-      .build();
+            .setCustomer(props.get("customerId"))
+            .addItem(SubscriptionCreateParams.Item.builder()
+                    .setPrice(props.get("stripePriceId"))
+                    .build()
+            )
+            .setApplicationFeePercent(new BigDecimal("0.0"))
+            .setPaymentSettings(
+                    SubscriptionCreateParams.PaymentSettings.builder()
+                            .setPaymentMethodTypes(List.of(SubscriptionCreateParams.PaymentSettings.PaymentMethodType.CARD))
+                            .build()
+            )
+            .setBillingCycleAnchor(billingAnchorTimestamp)
+            .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
+            .setMetadata(Map.of("gymId", memberId.gymId().toString()))
+            .build();
 
     var subscription = Subscription.create(subscriptionParams, requestOptions);
     return subscription.getId();
+  }
+
+  public void change(String membershipPlanid, String currentPriceId, String newCurrentPriceId) throws StripeException {
+    var subscription = Subscription.retrieve(membershipPlanid);
+    var schedule = SubscriptionSchedule.create(
+            SubscriptionScheduleCreateParams.builder()
+                    .setFromSubscription(membershipPlanid)
+                    .build()
+    );
+
+// 2. Definir las dos fases: la actual (hasta que termine) y la nueva
+    var updateParams = SubscriptionScheduleUpdateParams.builder()
+            .addPhase(SubscriptionScheduleUpdateParams.Phase.builder()
+                    .addItem(SubscriptionScheduleUpdateParams.Phase.Item.builder()
+                            .setPrice(currentPriceId)
+                            .build())
+                    .setEndDate(subscription.getEndedAt())
+                    .build())
+            .addPhase(SubscriptionScheduleUpdateParams.Phase.builder()
+                    .addItem(SubscriptionScheduleUpdateParams.Phase.Item.builder()
+                            .setPrice(newCurrentPriceId)
+                            .build())
+                    .build())
+            .build();
+
+    schedule.update(updateParams);
   }
 
   public void cancel(Map<String, String> props) throws StripeException {
@@ -70,8 +96,8 @@ public class SubscriptionService {
     String subscriptionId = props.get("subscriptionId");
 
     var requestOptions = RequestOptions.builder()
-      .setStripeAccount(stripeAccountId)
-      .build();
+            .setStripeAccount(stripeAccountId)
+            .build();
 
     Subscription.retrieve(subscriptionId, requestOptions).cancel();
   }
@@ -85,13 +111,13 @@ public class SubscriptionService {
 
   public void createTaxRate() throws StripeException {
     var taxRateParams = TaxRateCreateParams.builder()
-      .setDisplayName("IVA")
-      .setPercentage(new BigDecimal("21"))
-      .setInclusive(true)
-      .setCountry("ES")
-      .setJurisdiction("ES")
-      .setDescription("IVA español 21%")
-      .build();
+            .setDisplayName("IVA")
+            .setPercentage(new BigDecimal("21"))
+            .setInclusive(true)
+            .setCountry("ES")
+            .setJurisdiction("ES")
+            .setDescription("IVA español 21%")
+            .build();
 
     TaxRate.create(taxRateParams);
   }

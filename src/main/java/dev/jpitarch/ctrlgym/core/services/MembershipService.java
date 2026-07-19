@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,8 @@ public class MembershipService {
 
   private final MembershipsRepository membershipsRepository;
 
+  private final MembershipPlanRepository membershipPlanRepository;
+
   private final GymsRepository gymsRepository;
 
   private final MembersRepository membersRepository;
@@ -37,7 +40,7 @@ public class MembershipService {
     }
 
     String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String stripePriceId = membershipsRepository.getStripePriceId(membershipPlanId);
+    String stripePriceId = membershipPlanRepository.getStripePriceId(membershipPlanId);
     Optional<String> paymentMethodId = membersRepository.getPaymentMethodId(memberId);
     Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
 
@@ -58,6 +61,13 @@ public class MembershipService {
     membershipsRepository.save(memberId, membershipPlanId, subscriptionId, calculateNextBillingDate());
   }
 
+  public void changeMembership(Member.Id memberId, String newMembershipPlanId) throws StripeException {
+    Membership currentMembership = membershipsRepository.getMembership(memberId);
+    String stripeSubscriptionId = membershipPlanRepository.getStripeSubscriptionId(memberId, currentMembership.getId());
+    String currentStripePriceId = membershipPlanRepository.getStripePriceId(null);
+    subscriptionService.change(stripeSubscriptionId, currentStripePriceId, null);
+  }
+
   private LocalDate calculateNextBillingDate() {
     var today = LocalDate.now();
     if (today.getDayOfMonth() == 1) {
@@ -66,25 +76,21 @@ public class MembershipService {
     return today.plusMonths(2).withDayOfMonth(1);
   }
 
-  public void cancel(Member.Id memberId, String membershipId, Integer cancellationReasonId, String comment) throws StripeException {
-    if (!membershipsRepository.hasActiveMembership(memberId, membershipId)) {
-      throw new IllegalStateException("Membership with id " + membershipId + " not found for member with id " + memberId);
-    }
-
+  public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
       "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
-      "subscriptionId", membershipsRepository.getStripeSubscriptionId(memberId, membershipId)
+      "subscriptionId", membershipPlanRepository.getStripeSubscriptionId(memberId, membershipId)
     );
 
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);
 
     subscriptionService.cancel(props);
-    membershipsRepository.setCancellationReasonId(memberId, membershipId, cancellationReasonId, comment);
+    membershipsRepository.setCancellationReasonId(membershipId, cancellationReasonId, comment);
   }
 
-  public List<Membership> getMemberships(Member.Id memberId) {
-    log.info("Getting memberships for member {}...", memberId);
-    return membershipsRepository.getMemberships(memberId);
+  public Membership getMembership(Member.Id memberId) {
+    log.debug("Getting memberships for member with id {}...", memberId);
+    return membershipsRepository.getMembership(memberId);
   }
 
   public List<MembershipCancellationReason> getCancellationReasons() {

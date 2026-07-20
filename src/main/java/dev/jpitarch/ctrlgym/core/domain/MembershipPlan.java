@@ -21,6 +21,7 @@ public class MembershipPlan {
 
   private Membership.Recurring recurring;
 
+  //TODO: eliminar esta propiedad del dominio
   @JsonIgnore
   private String stripePriceId;
 

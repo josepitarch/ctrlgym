@@ -5,7 +5,6 @@ import dev.jpitarch.ctrlgym.core.domain.Exercise;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
-import dev.jpitarch.ctrlgym.core.dto.CreateMembershipPlanRequest;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
@@ -87,23 +86,17 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(4)
   @DisplayName("Creates a membership plan successfully")
   void createMembershipPlan_returns204() throws Exception {
-    var request = new CreateMembershipPlanRequest("Premium Plan", 49.99, 1, false);
+    var request = new MembershipPlan(null, "Premium Plan", 49.99, Membership.Recurring.MONTHLY,null, 1, false);
 
-    when(productService.create(eq(1), any(CreateMembershipPlanRequest.class)))
-      .thenReturn(MembershipPlan.builder()
-        .id("new_plan_id")
-        .name("Premium Plan")
-        .price(49.99)
-        .recurring(Membership.Recurring.MONTHLY)
-        .stripePriceId("stripe_price_id")
-        .build());
+    when(productService.create(eq(1), any(MembershipPlan.class)))
+      .thenReturn(new String[]{ "new_plan_id", "price"});
 
     mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", 1)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isNoContent());
 
-    verify(productService).create(eq(1), any(CreateMembershipPlanRequest.class));
+    verify(productService).create(eq(1), any(MembershipPlan.class));
   }
 
   @Test

@@ -78,17 +78,23 @@ public class WebhookService {
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
+
+    var memberId = membersRepository.getId(setupIntent.getCustomer());
+
     membersRepository.getPaymentMethodId(setupIntent.getCustomer()).ifPresent(pm -> {
       try {
-        var memberId = membersRepository.getId(setupIntent.getCustomer());
         var subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId);
         var stripeAccount = gymsRepository.getStripeAccountId(memberId.gymId());
+
+        log.info("Member with id {} has already a payment method configured. Updating...", memberId);
 
         subscriptionService.updatePaymentMethod(subscriptionId, pm, setupIntent.getPaymentMethod(), stripeAccount);
       } catch (StripeException e) {
         throw new RuntimeException(e);
       }
     });
+
+    log.info("Saving payment method with id {} for member with id {}...", memberId, setupIntent.getPaymentMethod());
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
@@ -121,8 +127,12 @@ public class WebhookService {
               .getSubscription();
     }
 
+    var member = membersRepository.getById(membersRepository.getId(invoice.getCustomer()));
+    inv.setName(member.getName());
+    inv.setFirstSurname(member.getFirstSurname());
+    inv.setSecondSurname(member.getSecondSurname());
+    inv.setNif(member.getNif());
 
-    //TODO: retrieve name, surnames and nif
     eventPublisher.publishEvent(inv);
   }
 

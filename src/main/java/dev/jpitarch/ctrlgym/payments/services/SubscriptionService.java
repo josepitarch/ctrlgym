@@ -98,6 +98,7 @@ public class SubscriptionService {
             .build();
 
     if (subscriptionId != null) {
+      log.info("Updating subscription with id {} payment method from {} to {}...", subscriptionId, oldPaymentMethodId, newPaymentMethodId);
       Subscription.retrieve(subscriptionId, requestOptions).update(params, requestOptions);
     }
 
@@ -110,6 +111,8 @@ public class SubscriptionService {
             )
             .build();
     customer.update(customerParams);*/
+
+    log.info("Detaching payment method with id {}...", oldPaymentMethodId);
 
     PaymentMethod.retrieve(oldPaymentMethodId, requestOptions).detach();
   }

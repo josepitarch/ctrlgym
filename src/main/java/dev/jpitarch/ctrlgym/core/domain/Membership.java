@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 
@@ -17,21 +16,12 @@ public class Membership {
 
   private Integer id;
 
-  private Recurring recurring;
+  private MembershipPlan.Recurring recurring;
 
   @JsonProperty("date_period")
   private DatePeriod datePeriod;
 
   @JsonProperty("next_billing_date")
   private LocalDate nextBillingDate;
-
-  public enum Recurring {
-    MONTHLY;
-
-    public static Recurring from(String str) {
-      if (!StringUtils.hasText(str)) return null;
-      return Recurring.valueOf(str.toUpperCase());
-    }
-  }
 
 }

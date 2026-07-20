@@ -5,7 +5,6 @@ import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,9 +127,9 @@ public class SubscriptionService {
     Subscription.retrieve(subscriptionId, requestOptions).cancel();
   }
 
-  private Membership.Recurring mapRecurring(String interval) {
+  private MembershipPlan.Recurring mapRecurring(String interval) {
     return switch (interval.toUpperCase()) {
-      case "MONTH" -> Membership.Recurring.MONTHLY;
+      case "MONTH" -> MembershipPlan.Recurring.MONTHLY;
       default -> throw new IllegalStateException("Unexpected value: " + interval);
     };
   }

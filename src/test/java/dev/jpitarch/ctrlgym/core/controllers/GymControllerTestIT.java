@@ -2,7 +2,6 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
@@ -86,7 +85,7 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(4)
   @DisplayName("Creates a membership plan successfully")
   void createMembershipPlan_returns204() throws Exception {
-    var request = new MembershipPlan(null, "Premium Plan", 49.99, Membership.Recurring.MONTHLY,null, 1, false);
+    var request = new MembershipPlan(null, "Premium Plan", 49.99, MembershipPlan.Recurring.MONTHLY,null, 1, false);
 
     when(productService.create(eq(1), any(MembershipPlan.class)))
       .thenReturn(new String[]{ "new_plan_id", "price"});

@@ -1,9 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
-import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
-import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
+import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipCancellationReasonJpaRepository;
@@ -116,7 +113,7 @@ public class MembershipsRepository {
   private Membership map(MembershipMO m) {
     return Membership.builder()
             .id(m.getId().intValue())
-            .recurring(Membership.Recurring.from("MONTHLY")) //TODO
+            .recurring(MembershipPlan.Recurring.from("MONTHLY")) //TODO
             .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
             .nextBillingDate(m.getNextBillingDate())
             .build();

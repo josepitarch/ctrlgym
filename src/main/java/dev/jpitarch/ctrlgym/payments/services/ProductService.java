@@ -6,7 +6,6 @@ import com.stripe.model.Product;
 import com.stripe.model.TaxRate;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import lombok.RequiredArgsConstructor;
@@ -78,9 +77,9 @@ public class ProductService {
     Product.retrieve(productId, options).update(productParams, options);
   }
 
-  private Membership.Recurring mapRecurring(String interval) {
+  private MembershipPlan.Recurring mapRecurring(String interval) {
     return switch (interval.toUpperCase()) {
-      case "MONTH" -> Membership.Recurring.MONTHLY;
+      case "MONTH" -> MembershipPlan.Recurring.MONTHLY;
       default -> throw new IllegalStateException("Unexpected value: " + interval);
     };
   }

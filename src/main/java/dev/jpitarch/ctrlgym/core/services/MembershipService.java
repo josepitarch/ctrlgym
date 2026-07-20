@@ -94,6 +94,7 @@ public class MembershipService {
     return membershipsRepository.getCancellationReasons(language);
   }
 
+  //TODO: revisar si esto ya viene pre-informado con el evento Invoice
   private LocalDate calculateNextBillingDate() {
     var today = LocalDate.now();
     if (today.getDayOfMonth() == 1) {

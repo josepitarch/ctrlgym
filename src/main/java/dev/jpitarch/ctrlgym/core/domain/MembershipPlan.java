@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Data
 @Builder
@@ -19,7 +20,7 @@ public class MembershipPlan {
 
   private Double price;
 
-  private Membership.Recurring recurring;
+  private Recurring recurring;
 
   //TODO: eliminar esta propiedad del dominio
   @JsonIgnore
@@ -29,5 +30,15 @@ public class MembershipPlan {
 
   @JsonProperty("all_branches")
   private boolean allBranches;
+
+  public enum Recurring {
+    MONTHLY;
+
+    public static Recurring from(String str) {
+      if (!StringUtils.hasText(str)) return null;
+      return Recurring.valueOf(str.toUpperCase());
+    }
+
+  }
 
 }

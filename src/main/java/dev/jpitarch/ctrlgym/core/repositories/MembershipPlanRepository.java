@@ -2,9 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
-import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipPlanMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +89,7 @@ public class MembershipPlanRepository {
             .id(plan.getId())
             .name(plan.getName())
             .price(plan.getPrice().doubleValue())
-            .recurring(Membership.Recurring.from(plan.getBillingPeriod()))
+            .recurring(MembershipPlan.Recurring.from(plan.getBillingPeriod()))
             .stripePriceId(plan.getStripePriceId())
             .gymBranchId(plan.getGymBranchId())
             .allBranches(plan.getAllBranches())

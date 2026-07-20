@@ -17,7 +17,7 @@ public class Membership {
 
   private Integer id;
 
-  private Recurring interval;
+  private Recurring recurring;
 
   @JsonProperty("date_period")
   private DatePeriod datePeriod;

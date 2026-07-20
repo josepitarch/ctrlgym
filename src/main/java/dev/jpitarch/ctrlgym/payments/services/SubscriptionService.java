@@ -73,13 +73,12 @@ public class SubscriptionService {
                     .build()
     );
 
-// 2. Definir las dos fases: la actual (hasta que termine) y la nueva
     var updateParams = SubscriptionScheduleUpdateParams.builder()
             .addPhase(SubscriptionScheduleUpdateParams.Phase.builder()
                     .addItem(SubscriptionScheduleUpdateParams.Phase.Item.builder()
                             .setPrice(currentPriceId)
                             .build())
-                    .setEndDate(subscription.getEndedAt())
+                    .setEndDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd())
                     .build())
             .addPhase(SubscriptionScheduleUpdateParams.Phase.builder()
                     .addItem(SubscriptionScheduleUpdateParams.Phase.Item.builder()

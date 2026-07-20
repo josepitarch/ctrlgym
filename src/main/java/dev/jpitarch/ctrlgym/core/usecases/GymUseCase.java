@@ -7,7 +7,6 @@ import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,7 @@ public class GymUseCase {
     MembershipPlan membershipPlan = productService.create(gymId, request);
     membershipPlan.setGymBranchId(request.branch());
     membershipPlan.setAllBranches(request.allBranches());
-    membershipPlanRepository.createMembershipPlan(membershipPlan, gymId);
+    membershipPlanRepository.create(membershipPlan, gymId);
   }
 
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
@@ -55,7 +54,7 @@ public class GymUseCase {
 
   public void deleteMembershipPlan(String planId, Integer gymId) throws StripeException {
     productService.delete(gymId, planId);
-    membershipPlanRepository.deleteMembershipPlan(planId, gymId);
+    membershipPlanRepository.delete(planId, gymId);
   }
 
   public CurrentOccupancy getCurrentOccupancy(GymBranchId gymBranchId) {

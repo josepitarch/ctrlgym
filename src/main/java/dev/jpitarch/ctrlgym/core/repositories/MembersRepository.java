@@ -123,59 +123,6 @@ public class MembersRepository {
     this.jdbc.update(sql, params);
   }
 
-  public Map<MembersDistribution.Group, List<String[]>> getDistribution(GymBranchId gymBranchId) {
-    var sql = """
-      SELECT
-        gender,
-        postal_code,
-        CASE
-          WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 18 AND 25 THEN '18-25'
-          WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 26 AND 35 THEN '26-35'
-          WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 36 AND 45 THEN '36-45'
-          ELSE '+45'
-        END AS age_range,
-        COUNT(*) AS total
-      FROM members m
-      WHERE m.gym_id = :gymId
-      AND EXISTS (
-          SELECT 1
-          FROM memberships mb
-          JOIN membership_plans mp on mb.membership_plan_id = mp.id
-          WHERE m.id = mb.member_id AND m.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
-          AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date > CURRENT_DATE)
-      )
-      GROUP BY GROUPING SETS (
-        (gender),
-        (postal_code),
-        (age_range)
-      );
-      """;
-
-    var params = Map.of(
-      "gymId", gymBranchId.gymId(),
-      "gymBranchId", gymBranchId.branchId()
-    );
-
-    return jdbc.query(sql, params, (rs, _) -> new String[]{
-      rs.getString("gender"),
-      rs.getString("postal_code"),
-      rs.getString("age_range"),
-      String.valueOf(rs.getInt("total"))
-    }).stream().collect(Collectors.groupingBy(
-      row -> {
-        if (row[0] != null) return MembersDistribution.Group.GENDER;
-        if (row[1] != null) return MembersDistribution.Group.POSTAL_CODE;
-        if (row[2] != null) return MembersDistribution.Group.AGE;
-        throw new RuntimeException("No distribution gender or postal code provided");
-      }, Collectors.collectingAndThen(
-        Collectors.toList(),
-        list -> list.stream()
-          .map(arr -> Arrays.stream(arr)
-            .filter(Objects::nonNull)
-            .toArray(String[]::new))
-          .toList())
-    ));
-  }
 
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
     return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())

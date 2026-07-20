@@ -27,13 +27,11 @@ public class DashboardUseCase {
 
   private final GymsRepository gymsRepository;
 
-  private final MembershipsRepository membershipsRepository;
+  private final AnalyticsRepository analyticsRepository;
 
   private final ExpensesRepository expensesRepository;
 
   private final InvoicesRepository invoicesRepository;
-
-  private final MembersRepository membersRepository;
 
   private final PostalCodeJpaRepository postalCodeJpaRepository;
 
@@ -46,26 +44,26 @@ public class DashboardUseCase {
 
   public Map<YearMonth, Integer> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {
     return switch (flow) {
-      case ACTIVE -> membershipsRepository.getCurrentCount(gymBranchId, datePeriod);
-      case NEW -> membershipsRepository.getNewsCount(gymBranchId, datePeriod);
-      case CANCELLED -> membershipsRepository.getCancelledCount(gymBranchId, datePeriod);
+      case ACTIVE -> analyticsRepository.getCurrentCount(gymBranchId, datePeriod);
+      case NEW -> analyticsRepository.getNewsCount(gymBranchId, datePeriod);
+      case CANCELLED -> analyticsRepository.getCancelledCount(gymBranchId, datePeriod);
     };
   }
 
   public Map<YearMonth, Integer> getMembershipSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    return membershipsRepository.getSeniorityAverage(gymBranchId, datePeriod);
+    return analyticsRepository.getSeniorityAverage(gymBranchId, datePeriod);
   }
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {
-    return membershipsRepository.getCohorts(gymBranchId);
+    return analyticsRepository.getCohorts(gymBranchId);
   }
 
   public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    return membershipsRepository.getRetentionVsChurn(gymBranchId, datePeriod);
+    return analyticsRepository.getRetentionVsChurn(gymBranchId, datePeriod);
   }
 
   public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId) {
-    return membershipsRepository.getCancellationReasons(gymBranchId, null);
+    return analyticsRepository.getCancellationReasons(gymBranchId, null);
   }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
@@ -80,8 +78,8 @@ public class DashboardUseCase {
   }
 
   public MembersDistribution getMembersDistribution(GymBranchId gymBranchId) {
-    var distribution = membersRepository.getDistribution(gymBranchId);
-    var seniority = membershipsRepository.getSeniorityDistribution(gymBranchId);
+    var distribution = analyticsRepository.getDistribution(gymBranchId);
+    var seniority = analyticsRepository.getSeniorityDistribution(gymBranchId);
     return new MembersDistribution(
       toStringDistributionItemList(distribution.get(MembersDistribution.Group.POSTAL_CODE), this::resolvePostalCode),
       toStringDistributionItemList(distribution.get(MembersDistribution.Group.AGE), this::resolveAgeLabel),

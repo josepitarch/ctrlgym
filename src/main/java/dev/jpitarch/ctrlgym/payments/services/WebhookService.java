@@ -15,6 +15,10 @@ import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -52,7 +56,7 @@ public class WebhookService {
   }
 
   private void handleSubscriptionUpdated(Subscription subscription) {
-    //Aquí manejaremos cuándo un miembro decide cambiar de membresía
+    //Aquí manejaremos cuándo un miembro decide cambiar de membresía (ya se ha hecho efectivo)
   }
 
   private void handleSetupIntentCreated(SetupIntent setupIntent) {
@@ -80,10 +84,20 @@ public class WebhookService {
     invoiceRepository.markAsPaid(invoice);
 
     //TODO: setear next_billing_date en función del Recurring
+    long nextChargeDate = invoice.getLines().getData().getFirst().getPeriod().getEnd();
+    LocalDate localDate = Instant.ofEpochSecond(nextChargeDate).atZone(ZoneId.of("Europe/Madrid")).toLocalDate();
 
     dev.jpitarch.ctrlgym.core.domain.Invoice inv = invoiceRepository
-      .getInvoice(invoice.getId())
-      .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
+            .getInvoice(invoice.getId())
+            .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
+
+    if (invoice.getParent() != null
+            && "subscription_details".equals(invoice.getParent().getType())) {
+      String subscriptionId = invoice.getParent()
+              .getSubscriptionDetails()
+              .getSubscription();
+    }
+
 
     //TODO: retrieve name, surnames and nif
     eventPublisher.publishEvent(inv);

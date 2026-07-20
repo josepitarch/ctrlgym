@@ -4,6 +4,7 @@ import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
+import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipPlanMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class MembershipPlanRepository {
 
   private final MembershipPlanJpaRepository membershipPlanJpaRepository;
 
-  public void createMembershipPlan(MembershipPlan membershipPlan, Integer gymId) {
+  public void create(MembershipPlan membershipPlan, Integer gymId) {
     var plan = new MembershipPlanMO();
     plan.setId(membershipPlan.getId());
     plan.setGymId(gymId);
@@ -38,25 +40,19 @@ public class MembershipPlanRepository {
     membershipPlanJpaRepository.save(plan);
   }
 
+  public Optional<MembershipPlan> getById(String id) {
+    return this.membershipPlanJpaRepository.findById(id).map(this::map);
+  }
+
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
     var plans = gymBranchId.branchId() == null
             ? membershipPlanJpaRepository.findByGymIdAndAllBranchesIsTrue(gymBranchId.gymId())
             : membershipPlanJpaRepository.findByGymIdAndGymBranchId(gymBranchId.gymId(), gymBranchId.branchId());
 
-    return plans.stream()
-            .map(plan -> MembershipPlan.builder()
-                    .id(plan.getId())
-                    .name(plan.getName())
-                    .price(plan.getPrice().doubleValue())
-                    .recurring(Membership.Recurring.from(plan.getBillingPeriod()))
-                    .stripePriceId(plan.getStripePriceId())
-                    .gymBranchId(plan.getGymBranchId())
-                    .allBranches(plan.getAllBranches())
-                    .build())
-            .toList();
+    return plans.stream().map(this::map).toList();
   }
 
-  public void deleteMembershipPlan(String planId, Integer gymId) {
+  public void delete(String planId, Integer gymId) {
     MembershipPlanMO planMO = membershipPlanJpaRepository.findById(planId)
             .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
     planMO.setDeletedAt(LocalDate.now());
@@ -65,10 +61,10 @@ public class MembershipPlanRepository {
 
   public String getStripePriceId(String id) {
     var sql = """
-      SELECT stripe_price_id
-      FROM membership_plans
-      WHERE id = :id
-      """;
+            SELECT stripe_price_id
+            FROM membership_plans
+            WHERE id = :id
+            """;
     var params = Map.of("id", id);
 
     return jdbc.queryForObject(sql, params, String.class);
@@ -76,10 +72,10 @@ public class MembershipPlanRepository {
 
   public String getStripeSubscriptionId(Member.Id memberId, Integer membershipId) {
     var sql = """
-        SELECT stripe_subscription_id
-        FROM memberships
-        WHERE member_id = :memberId AND gym_id = :gymId AND id = :membershipId
-      """;
+              SELECT stripe_subscription_id
+              FROM memberships
+              WHERE member_id = :memberId AND gym_id = :gymId AND id = :membershipId
+            """;
 
     var params = Map.of(
             "memberId", memberId.memberId(),
@@ -88,5 +84,17 @@ public class MembershipPlanRepository {
     );
 
     return jdbc.queryForObject(sql, params, String.class);
+  }
+
+  private MembershipPlan map(MembershipPlanMO plan) {
+    return MembershipPlan.builder()
+            .id(plan.getId())
+            .name(plan.getName())
+            .price(plan.getPrice().doubleValue())
+            .recurring(Membership.Recurring.from(plan.getBillingPeriod()))
+            .stripePriceId(plan.getStripePriceId())
+            .gymBranchId(plan.getGymBranchId())
+            .allBranches(plan.getAllBranches())
+            .build();
   }
 }

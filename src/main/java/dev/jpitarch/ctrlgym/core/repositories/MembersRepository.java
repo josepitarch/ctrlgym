@@ -92,6 +92,10 @@ public class MembersRepository {
     return jpaRepository.getStripePaymentMethodId(id.memberId(), id.gymId());
   }
 
+  public Optional<String> getPaymentMethodId(String stripeCustomerId) {
+    return jpaRepository.getStripePaymentMethodId(stripeCustomerId);
+  }
+
   public Member.Id getId(String stripeCustomerId) {
     var sql = """
         SELECT id, gym_id

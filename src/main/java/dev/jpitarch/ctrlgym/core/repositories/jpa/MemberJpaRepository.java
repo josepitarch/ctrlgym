@@ -24,4 +24,11 @@ public interface MemberJpaRepository extends JpaRepository<MemberMO, MemberMO.ID
         WHERE m.id = :memberId AND m.gymId = :gymId
     """)
   Optional<String> getStripePaymentMethodId(UUID memberId, Integer gymId);
+
+  @Query("""
+        SELECT m.stripePaymentMethodId
+        FROM MemberMO m
+        WHERE m.stripeCustomerId = :stripeCustomerId
+    """)
+  Optional<String> getStripePaymentMethodId(String stripeCustomerId);
 }

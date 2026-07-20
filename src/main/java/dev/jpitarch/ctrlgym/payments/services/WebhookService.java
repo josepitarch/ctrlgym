@@ -1,10 +1,13 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.models.InvoiceMO;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +27,20 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class WebhookService {
 
-  @Value("${stripe.whsec-account}")
-  private String webhookSecret;
+  private final SubscriptionService subscriptionService;
+
+  private final GymsRepository gymsRepository;
 
   private final MembersRepository membersRepository;
+
+  private final MembershipsRepository membershipsRepository;
 
   private final InvoiceRepository invoiceRepository;
 
   private final ApplicationEventPublisher eventPublisher;
+
+  @Value("${stripe.whsec-account}")
+  private String webhookSecret;
 
   @Transactional
   @Retryable(delay = 500, maxRetries = 3)
@@ -56,7 +65,11 @@ public class WebhookService {
   }
 
   private void handleSubscriptionUpdated(Subscription subscription) {
-    //Aquí manejaremos cuándo un miembro decide cambiar de membresía (ya se ha hecho efectivo)
+    String product = subscription.getItems().getData().getFirst().getPrice().getProduct();
+    Long membershipId = membershipsRepository.getIdByStripeSubscriptionId(product);
+
+    log.info("Setting membership with id {} to plan {}", membershipId, product);
+    membershipsRepository.setMembershipPlanId(membershipId, product);
   }
 
   private void handleSetupIntentCreated(SetupIntent setupIntent) {
@@ -65,7 +78,17 @@ public class WebhookService {
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
-    //TODO: si ya tenía en método de pago hay que hacerle un detach para desvincularlo del Customer
+    membersRepository.getPaymentMethodId(setupIntent.getCustomer()).ifPresent(pm -> {
+      try {
+        var memberId = membersRepository.getId(setupIntent.getCustomer());
+        var subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId);
+        var stripeAccount = gymsRepository.getStripeAccountId(memberId.gymId());
+
+        subscriptionService.updatePaymentMethod(subscriptionId, pm, setupIntent.getPaymentMethod(), stripeAccount);
+      } catch (StripeException e) {
+        throw new RuntimeException(e);
+      }
+    });
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 

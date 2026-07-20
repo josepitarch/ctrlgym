@@ -1,10 +1,7 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Subscription;
-import com.stripe.model.SubscriptionSchedule;
-import com.stripe.model.TaxRate;
+import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.Member;
@@ -12,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -65,11 +63,11 @@ public class SubscriptionService {
     return subscription.getId();
   }
 
-  public void change(String membershipPlanid, String currentPriceId, String newCurrentPriceId) throws StripeException {
-    var subscription = Subscription.retrieve(membershipPlanid);
+  public void change(String subscriptionId, String currentPriceId, String newCurrentPriceId) throws StripeException {
+    var subscription = Subscription.retrieve(subscriptionId);
     var schedule = SubscriptionSchedule.create(
             SubscriptionScheduleCreateParams.builder()
-                    .setFromSubscription(membershipPlanid)
+                    .setFromSubscription(subscriptionId)
                     .build()
     );
 
@@ -88,6 +86,32 @@ public class SubscriptionService {
             .build();
 
     schedule.update(updateParams);
+  }
+
+  public void updatePaymentMethod(@Nullable String subscriptionId, String oldPaymentMethodId, String newPaymentMethodId, String stripeAccount) throws StripeException {
+    var requestOptions = RequestOptions.builder()
+            .setStripeAccount(stripeAccount)
+            .build();
+
+    var params = SubscriptionUpdateParams.builder()
+            .setDefaultPaymentMethod(newPaymentMethodId)
+            .build();
+
+    if (subscriptionId != null) {
+      Subscription.retrieve(subscriptionId, requestOptions).update(params, requestOptions);
+    }
+
+// 2. (Alternativa/complemento) Actualizar el default a nivel de customer
+    /*CustomerUpdateParams customerParams = CustomerUpdateParams.builder()
+            .setInvoiceSettings(
+                    CustomerUpdateParams.InvoiceSettings.builder()
+                            .setDefaultPaymentMethod(newPaymentMethodId)
+                            .build()
+            )
+            .build();
+    customer.update(customerParams);*/
+
+    PaymentMethod.retrieve(oldPaymentMethodId, requestOptions).detach();
   }
 
   public void cancel(Map<String, String> props) throws StripeException {

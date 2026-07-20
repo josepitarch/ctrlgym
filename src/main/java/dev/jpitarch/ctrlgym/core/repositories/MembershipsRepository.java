@@ -23,8 +23,6 @@ public class MembershipsRepository {
 
   private final MembershipJpaRepository membershipJpaRepository;
 
-  private final MembershipPlanRepository membershipPlanRepository;
-
   private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
@@ -42,8 +40,12 @@ public class MembershipsRepository {
     membershipJpaRepository.save(membership);
   }
 
-  private Optional<MembershipMO> getMembership(Integer id) {
-    return this.membershipJpaRepository.findById(id.longValue());
+  public Long getIdByStripeSubscriptionId(String subscriptionId) {
+    return this.membershipJpaRepository.getIdByStripeSubscriptionId(subscriptionId);
+  }
+
+  public String getStripeSubscriptionId(Member.Id memberId) {
+    return this.membershipJpaRepository.getStripeSubscriptionId(memberId.memberId(), memberId.gymId());
   }
 
   public Optional<Membership> getMembership(Member.Id memberId) {
@@ -59,6 +61,14 @@ public class MembershipsRepository {
               m.setEndDate(LocalDate.now());
               m.setCancellationReasonId(cancellationReasonId);
               m.setCancellationComment(comment);
+              membershipJpaRepository.save(m);
+            });
+  }
+
+  public void setMembershipPlanId(Long id, String membershipPlanId) {
+    this.membershipJpaRepository.findById(id)
+            .ifPresent(m -> {
+              m.setMembershipPlanId(membershipPlanId);
               membershipJpaRepository.save(m);
             });
   }

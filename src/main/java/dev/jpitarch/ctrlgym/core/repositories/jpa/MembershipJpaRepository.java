@@ -22,6 +22,12 @@ public interface MembershipJpaRepository extends JpaRepository<MembershipMO, Lon
 
   Optional<MembershipMO> findByIdAndEndDateIsNull(Integer id);
 
+  @Query("SELECT m.id FROM MembershipMO m WHERE m.stripeSubscriptionId = :stripeSubscriptionId")
+  Long getIdByStripeSubscriptionId(String stripeSubscriptionId);
+
+  @Query("SELECT m.stripeSubscriptionId FROM MembershipMO m WHERE m.memberId = :memberId AND m.gymId = :gymId")
+  public String getStripeSubscriptionId(UUID memberId, Integer gymId);
+
   @Query("""
     SELECT COUNT(m) > 0
     FROM MembershipMO m

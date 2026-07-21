@@ -42,5 +42,8 @@ public class GymBranchMO {
   @Column(name = "longitude")
   private Double longitude;
 
+  @Column(name = "api_key")
+  private String apiKey;
+
 
 }

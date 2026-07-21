@@ -35,7 +35,7 @@ public class VerifactuService {
   @Retryable(includes = HttpServerErrorException.class)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void createInvoice(Invoice invoice) {
-    var apiKey = gymsRepository.getApiKey(1);
+    var apiKey = gymsRepository.getVerifactuApiKey(1);
     var body = CreateInvoiceRequest.builder()
       .serie(invoice.getSeries())
       .numero(invoice.getNumber())
@@ -67,7 +67,7 @@ public class VerifactuService {
   }
 
   public StatusResponse getStatus(Integer gymId, UUID uuid) {
-    var apiKey = gymsRepository.getApiKey(gymId);
+    var apiKey = gymsRepository.getVerifactuApiKey(gymId);
     return restClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/status")

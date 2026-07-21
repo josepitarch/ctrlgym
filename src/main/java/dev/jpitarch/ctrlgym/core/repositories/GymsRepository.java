@@ -27,6 +27,22 @@ public class GymsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
+  public String getVerifactuApiKey(Integer gymId) {
+    return jpaRepository.findVerifactiApiKeyById(gymId);
+  }
+
+  public String getControllerApiKey(Integer gymId) {
+    return jpaRepository.findControllerApiKey(gymId);
+  }
+
+  public String getStripeAccountId(Integer gymId) {
+    return jpaRepository.findStripeAccountIdById(gymId);
+  }
+
+  public Integer getId(String stripeAccountId) {
+    return jpaRepository.findIdByStripeAccountId(stripeAccountId);
+  }
+
   public List<GymBranch> getBranches(Integer gymId) {
     GymMO gymMO = jpaRepository.findById(gymId).orElseThrow();
 
@@ -38,42 +54,6 @@ public class GymsRepository {
         .coordinates(new GymBranch.Coordinates(branchMO.getLatitude(), branchMO.getLongitude()))
       .build())
       .toList();
-  }
-
-  public String getApiKey(Integer gymId) {
-    var sql = """
-        SELECT verifacti_api_key
-        FROM gyms
-        WHERE id = :gymId
-      """;
-
-    var params = Map.of("gymId", gymId);
-
-    return this.jdbc.queryForObject(sql, params, String.class);
-  }
-
-  public String getStripeAccountId(Integer gymId) {
-    var sql = """
-      SELECT stripe_account_id
-        FROM gyms
-        WHERE id = :gymId
-      """;
-    var params = Map.of("gymId", gymId);
-    return this.jdbc.queryForObject(sql, params, String.class);
-
-
-  }
-
-  public Integer getId(String stripeAccountId) {
-    var sql = """
-        SELECT id
-        FROM gyms
-        WHERE stripe_account_id = :stripeAccountId
-      """;
-
-    var params = Map.of("stripeAccountId", stripeAccountId);
-
-    return this.jdbc.queryForObject(sql, params, Integer.class);
   }
 
   public GymBranch getGymBranch(GymBranchId gymBranchId) {
@@ -101,7 +81,7 @@ public class GymsRepository {
     );
   }
 
-  public List<Member>getMembers(GymBranchId gymBranchId) {
+  public List<Member> getMembers(GymBranchId gymBranchId) {
     var sql = """
       SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.street, m.state, m.city, m.postal_code, m.country, m.gym_id
       FROM members m

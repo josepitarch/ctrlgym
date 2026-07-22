@@ -328,7 +328,7 @@ public class AnalyticsRepository {
       SELECT cancellation_reason_id, COUNT (1) as count
       FROM memberships
       WHERE gym_id = :gymId
-      AND end_date <=CURRENT_DATE
+      AND end_date <= CURRENT_DATE
       GROUP BY cancellation_reason_id
       """;
 

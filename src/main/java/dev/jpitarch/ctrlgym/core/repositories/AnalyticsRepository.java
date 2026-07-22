@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
+import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import lombok.RequiredArgsConstructor;
@@ -397,6 +398,54 @@ public class AnalyticsRepository {
                                     .filter(Objects::nonNull)
                                     .toArray(String[]::new))
                             .toList())
+    ));
+  }
+
+  public List<BranchMetrics> getMonthlyMetrics(Integer gymId, YearMonth from, YearMonth to) {
+    var sql = """
+      SELECT
+        gb.id AS branch_id,
+        gb.name AS branch_name,
+        TO_CHAR(month, 'YYYY-MM') AS year_month,
+        COALESCE(gmm.revenue, 0) AS revenue,
+        COALESCE(gmm.active_members, 0)::smallint AS active_members,
+        COALESCE(gmm.new_members, 0)::smallint AS new_members,
+        COALESCE(gmm.churned_members, 0)::smallint AS churned_members,
+        gmm.churn_rate,
+        gmm.peak_occupancy_pct,
+        COALESCE(gmm.overdue_amount, 0) AS overdue_amount,
+        COALESCE(gmm.is_closed, false) AS is_closed
+      FROM generate_series(
+        :from::date,
+        :to::date,
+        INTERVAL '1 month'
+      ) AS month
+      CROSS JOIN gym_branches gb
+      LEFT JOIN gym_metrics_monthly gmm
+        ON gmm.gym_branch_id = gb.id
+        AND gmm.year_month = month::date
+      WHERE gb.gym_id = :gymId
+      ORDER BY month, gb.id;
+      """;
+
+    var params = Map.of(
+            "gymId", gymId,
+            "from", from.atDay(1).toString(),
+            "to", to.atDay(1).toString()
+    );
+
+    return jdbc.query(sql, params, (rs, _) -> new BranchMetrics(
+            rs.getInt("branch_id"),
+            rs.getString("branch_name"),
+            YearMonth.parse(rs.getString("year_month")),
+            rs.getBigDecimal("revenue"),
+            rs.getShort("active_members"),
+            rs.getShort("new_members"),
+            rs.getShort("churned_members"),
+            rs.getObject("churn_rate") != null ? rs.getBigDecimal("churn_rate") : null,
+            rs.getObject("peak_occupancy_pct") != null ? rs.getBigDecimal("peak_occupancy_pct") : null,
+            rs.getBigDecimal("overdue_amount"),
+            rs.getBoolean("is_closed")
     ));
   }
 

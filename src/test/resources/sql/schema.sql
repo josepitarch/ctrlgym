@@ -186,7 +186,7 @@ CREATE TABLE gyms
     id                int4        NOT NULL,
     name              varchar(50) NOT NULL,
     verifacti_api_key text        NOT NULL,
-    stripe_account_id text        NULL,
+    stripe_account_id text NULL,
     CONSTRAINT gyms_pkey PRIMARY KEY (id),
     CONSTRAINT gyms_stripe_account_id_uk UNIQUE (stripe_account_id),
     CONSTRAINT gyms_verifacti_api_key_uk UNIQUE (verifacti_api_key)
@@ -253,12 +253,12 @@ CREATE TABLE routine_day_exercise_sets
 
 CREATE TABLE exercises
 (
-    id           int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
-    name         varchar(100)                                                                                                NOT NULL,
-    description  text                                                                                                        NULL,
+    id          int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
+    name        varchar(100)                                                                                                NOT NULL,
+    description text NULL,
     muscle_group public.muscle_group                                                                                         NOT NULL,
-    image        text                                                                                                        NULL,
-    gym_id       int4                                                                                                        NOT NULL,
+    image       text NULL,
+    gym_id      int4                                                                                                        NOT NULL,
     CONSTRAINT exercises_pkey PRIMARY KEY (id),
     CONSTRAINT exercises_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
 );
@@ -275,7 +275,7 @@ CREATE TABLE expense_category_translations
     expense_category_id int4         NOT NULL,
     language_code       varchar(10)  NOT NULL,
     name                varchar(100) NOT NULL,
-    description         text         NULL,
+    description         text NULL,
     CONSTRAINT expense_category_translations_pkey PRIMARY KEY (expense_category_id, language_code),
     CONSTRAINT expense_category_translations_expense_category_id_fkey FOREIGN KEY (expense_category_id) REFERENCES expense_categories (id)
 );
@@ -289,13 +289,13 @@ CREATE TABLE expense_category_translations
 
 CREATE TABLE gym_branches
 (
-    id              int4              NOT NULL,
-    gym_id          int4              NOT NULL,
-    name            varchar(50)       NOT NULL,
+    id              int4        NOT NULL,
+    gym_id          int4        NOT NULL,
+    name            varchar(50) NOT NULL,
     is_active       bool DEFAULT true NULL,
-    capacity        int2              NULL,
-    peak_hour_start time              NULL,
-    peak_hour_end   time              NULL,
+    capacity        int2 NULL,
+    peak_hour_start time NULL,
+    peak_hour_end   time NULL,
     CONSTRAINT gyms_pkey1 PRIMARY KEY (id),
     CONSTRAINT gyms_company_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
 );
@@ -311,10 +311,10 @@ CREATE TABLE machines
 (
     id           int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
     gym_id       int4                                                                                                        NOT NULL,
-    gym_branches _int4                                                                                                       NULL,
+    gym_branches _int4 NULL,
     all_branches bool                                                                                                        NOT NULL,
     name         varchar(100)                                                                                                NOT NULL,
-    description  text                                                                                                        NULL,
+    description  text NULL,
     muscle_group public.muscle_group                                                                                         NOT NULL,
     CONSTRAINT chk_all_branches CHECK (((NOT all_branches) OR (gym_branches IS NULL))),
     CONSTRAINT machines_pkey PRIMARY KEY (id),
@@ -330,26 +330,26 @@ CREATE TABLE machines
 
 CREATE TABLE members
 (
-    id                       uuid                 NOT NULL,
-    gym_id                   int4                 NOT NULL,
-    email                    text                 NULL,
-    name                     varchar(20)          NOT NULL,
-    first_surname            varchar(20)          NULL,
-    second_surname           varchar(20)          NULL,
-    avatar_url               text                 NULL,
+    id                       uuid        NOT NULL,
+    gym_id                   int4        NOT NULL,
+    email                    text NULL,
+    name                     varchar(20) NOT NULL,
+    first_surname            varchar(20) NULL,
+    second_surname           varchar(20) NULL,
+    avatar_url               text NULL,
     gender                   bpchar(1)            NULL,
-    birth_date               date                 NULL,
-    postal_code              int4                 NULL,
+    birth_date               date NULL,
+    postal_code              int4 NULL,
     created_at               timestamptz DEFAULT now() NULL,
-    stripe_customer_id       text                 NULL,
-    stripe_payment_method_id text                 NULL,
-    nif                      varchar(20)          NULL,
-    street                   varchar(80)          NULL,
-    city                     varchar(30)          NULL,
-    state                    varchar(30)          NULL,
-    country                  varchar(30)          NULL,
-    status                   public.member_status NOT NULL,
-    CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY ['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),
+    stripe_customer_id       text NULL,
+    stripe_payment_method_id text NULL,
+    nif                      varchar(20) NULL,
+    street                   varchar(80) NULL,
+    city                     varchar(30) NULL,
+    state                    varchar(30) NULL,
+    country                  varchar(30) NULL,
+    status public.member_status NOT NULL,
+    CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),
     CONSTRAINT members_pkey PRIMARY KEY (id, gym_id),
     CONSTRAINT members_stripe_customer_id_uk UNIQUE (stripe_customer_id),
     CONSTRAINT members_stripe_payment_method_id_uk UNIQUE (stripe_payment_method_id),
@@ -368,7 +368,7 @@ CREATE TABLE membership_cancellation_reason_translations
     cancellation_reason_id int4         NOT NULL,
     language_code          varchar(10)  NOT NULL,
     name                   varchar(100) NOT NULL,
-    description            text         NULL,
+    description            text NULL,
     CONSTRAINT membership_cancellation_reason_translation_pkey PRIMARY KEY (cancellation_reason_id, language_code),
     CONSTRAINT membership_cancellation_reason_tran_cancellation_reason_id_fkey FOREIGN KEY (cancellation_reason_id) REFERENCES membership_cancellation_reasons (id)
 );
@@ -389,11 +389,12 @@ CREATE TABLE membership_plans
     active          bool DEFAULT true         NOT NULL,
     created_at      date DEFAULT CURRENT_DATE NOT NULL,
     stripe_price_id text                      NOT NULL,
-    gym_branch_id   int4                      NULL,
-    all_branches    bool                      NULL,
-    deleted_at      date                      NULL,
+    gym_branch_id   int4 NULL,
+    all_branches    bool NULL,
+    deleted_at      date NULL,
     CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
-                                                            ((ARRAY ['MONTHLY'::character varying, 'QUARTERLY'::character varying, 'SEMESTERLY'::character varying, 'YEARLY'::character varying])::text[]))),
+        ((ARRAY ['MONTHLY':: character varying, 'QUARTERLY':: character varying, 'SEMESTERLY':: character varying, 'YEARLY':: character varying])::text[])
+) ),
     CONSTRAINT chk_all_branches_or_gym_branch_id CHECK ((((all_branches IS TRUE) AND (gym_branch_id IS NULL)) OR
                                                          ((all_branches IS FALSE) AND (gym_branch_id IS NOT NULL)))),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),
@@ -415,12 +416,12 @@ CREATE TABLE memberships
     gym_id                 int4                                                                                                                     NOT NULL,
     membership_plan_id     text                                                                                                                     NOT NULL,
     start_date             date                                                                                                                     NOT NULL,
-    end_date               date                                                                                                                     NULL,
-    next_billing_date      date                                                                                                                     NULL,
+    end_date               date NULL,
+    next_billing_date      date NULL,
     auto_renew             bool DEFAULT true                                                                                                        NOT NULL,
-    cancellation_reason_id int4                                                                                                                     NULL,
-    stripe_subscription_id text                                                                                                                     NULL,
-    cancellation_comment   text                                                                                                                     null,
+    cancellation_reason_id int4 NULL,
+    stripe_subscription_id text NULL,
+    cancellation_comment   text null,
     CONSTRAINT membership_pkey PRIMARY KEY (id),
     CONSTRAINT memberships_stripe_subscription_id_uk UNIQUE (stripe_subscription_id),
     CONSTRAINT memberships_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
@@ -436,12 +437,12 @@ CREATE TABLE memberships
 CREATE TABLE "routines"
 (
     id          int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
-    member_id   uuid                                                                                                        NULL,
-    gym_id      int4                                                                                                        NULL,
+    member_id   uuid NULL,
+    gym_id      int4 NULL,
     name        varchar(100)                                                                                                NOT NULL,
-    description text                                                                                                        NULL,
+    description text NULL,
     created_at  timestamp DEFAULT now()                                                                                     NOT NULL,
-    deleted_at  date                                                                                                        NULL,
+    deleted_at  date NULL,
     CONSTRAINT routines_pkey PRIMARY KEY (id),
     CONSTRAINT routines_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id),
     CONSTRAINT routines_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
@@ -456,19 +457,19 @@ CREATE TABLE "routines"
 
 CREATE TABLE expenses
 (
-    id                bigserial                                              NOT NULL,
-    gym_branch_id     int4                                                   NOT NULL,
-    category_id       int2                                                   NOT NULL,
-    nature            public.expense_nature                                  NOT NULL,
-    frequency         public.expense_frequency                               NOT NULL,
+    id              bigserial               NOT NULL,
+    gym_branch_id   int4                    NOT NULL,
+    category_id     int2                    NOT NULL,
+    nature public.expense_nature                                  NOT NULL,
+    frequency public.expense_frequency                               NOT NULL,
     recurrence_period public.recurrence_period                               NULL,
-    expected_amount   numeric(12, 2)                                         NULL,
-    currency_code     bpchar(3)             DEFAULT 'EUR'::bpchar            NOT NULL,
-    start_date        date                                                   NOT NULL,
-    end_date          date                                                   NULL,
-    status            public.expense_status DEFAULT 'ACTIVE'::expense_status NOT NULL,
-    created_at        timestamp             DEFAULT now()                    NOT NULL,
-    updated_at        timestamp             DEFAULT now()                    NOT NULL,
+    expected_amount numeric(12, 2) NULL,
+    currency_code   bpchar(3)             DEFAULT 'EUR'::bpchar            NOT NULL,
+    start_date      date                    NOT NULL,
+    end_date        date NULL,
+    status public.expense_status DEFAULT 'ACTIVE'::expense_status NOT NULL,
+    created_at      timestamp DEFAULT now() NOT NULL,
+    updated_at      timestamp DEFAULT now() NOT NULL,
     CONSTRAINT chk_expected_amount CHECK (((expected_amount IS NULL) OR (expected_amount >= (0)::numeric))),
     CONSTRAINT chk_recurrence_period CHECK ((
         ((frequency = 'RECURRING'::expense_frequency) AND (recurrence_period IS NOT NULL)) OR
@@ -506,17 +507,17 @@ CREATE TABLE gym_branch_heartbeat
     gym_branch_id  int4                                                             NOT NULL,
     created_at     timestamptz                                                      NOT NULL,
     received_at    timestamptz DEFAULT now()                                        NOT NULL,
-    hostname       varchar(255)                                                     NULL,
-    ip             varchar(64)                                                      NULL,
-    platform       varchar(255)                                                     NULL,
-    python_version varchar(50)                                                      NULL,
-    app_version    varchar(50)                                                      NULL,
-    cpu_percent    numeric(5, 2)                                                    NULL,
-    memory_percent numeric(5, 2)                                                    NULL,
-    disk_percent   numeric(5, 2)                                                    NULL,
-    temperature_c  numeric(5, 2)                                                    NULL,
-    sqlite_ok      bool                                                             NULL,
-    pending_events int4        DEFAULT 0                                            NULL,
+    hostname       varchar(255) NULL,
+    ip             varchar(64) NULL,
+    platform       varchar(255) NULL,
+    python_version varchar(50) NULL,
+    app_version    varchar(50) NULL,
+    cpu_percent    numeric(5, 2) NULL,
+    memory_percent numeric(5, 2) NULL,
+    disk_percent   numeric(5, 2) NULL,
+    temperature_c  numeric(5, 2) NULL,
+    sqlite_ok      bool NULL,
+    pending_events int4        DEFAULT 0 NULL,
     CONSTRAINT chk_cpu_percent CHECK (((cpu_percent >= (0)::numeric) AND (cpu_percent <= (100)::numeric))),
     CONSTRAINT chk_disk_percent CHECK (((disk_percent >= (0)::numeric) AND (disk_percent <= (100)::numeric))),
     CONSTRAINT chk_memory_percent CHECK (((memory_percent >= (0)::numeric) AND (memory_percent <= (100)::numeric))),
@@ -556,7 +557,7 @@ CREATE TABLE invoices
     "number"              varchar(20)                              NOT NULL,
     issue_at              date                                     NOT NULL,
     due_at                date                                     NOT NULL,
-    status                public.invoice_status                    NOT NULL,
+    status public.invoice_status                    NOT NULL,
     subtotal              numeric(10, 2)                           NOT NULL,
     tax                   numeric(10, 2) DEFAULT 0                 NOT NULL,
     total                 numeric(10, 2)                           NOT NULL,
@@ -564,7 +565,7 @@ CREATE TABLE invoices
     created_at            timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at            timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     stripe_invoice_number varchar(50)                              NOT NULL,
-    verifactu_id          uuid                                     NULL,
+    verifactu_id          uuid NULL,
     CONSTRAINT inoices_serie_number_uk UNIQUE (series, number),
     CONSTRAINT invoices_invoice_number_key UNIQUE (stripe_invoice_number),
     CONSTRAINT invoices_pkey PRIMARY KEY (id),
@@ -591,7 +592,7 @@ CREATE TABLE member_accesses
     received_at   timestamptz DEFAULT now()                                                                                   NOT NULL,
     gym_id        int4                                                                                                        NOT NULL,
     CONSTRAINT access_events_pkey PRIMARY KEY (id),
-    CONSTRAINT check_direction CHECK ((direction = ANY (ARRAY [0, 1]))),
+    CONSTRAINT check_direction CHECK ((direction = ANY (ARRAY[0, 1]))),
     CONSTRAINT access_events_gyms_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id),
     CONSTRAINT member_accesses_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
 );
@@ -606,8 +607,8 @@ CREATE TABLE member_accesses
 
 CREATE TABLE routine_days
 (
-    routine_id int4         NOT NULL,
-    day_number int2         NOT NULL,
+    routine_id int4 NOT NULL,
+    day_number int2 NOT NULL,
     name       varchar(100) NULL,
     CONSTRAINT routine_day_day_number_check CHECK (((day_number >= 1) AND (day_number <= 7))),
     CONSTRAINT routine_day_pkey PRIMARY KEY (routine_id, day_number),
@@ -627,8 +628,8 @@ CREATE TABLE workouts
     routine_id  int4                                                                                                        NOT NULL,
     day_number  int2                                                                                                        NOT NULL,
     started_at  timestamptz DEFAULT now()                                                                                   NOT NULL,
-    finished_at timestamptz                                                                                                 NULL,
-    status      public.workout_status                                                                                       NOT NULL,
+    finished_at timestamptz NULL,
+    status public.workout_status                                                                                       NOT NULL,
     member_id   uuid                                                                                                        NOT NULL,
     CONSTRAINT routine_executions_pkey PRIMARY KEY (id),
     CONSTRAINT routine_executions_routine_days_fk FOREIGN KEY (routine_id, day_number) REFERENCES routine_days (routine_id, day_number)
@@ -647,8 +648,8 @@ CREATE TABLE expense_occurrences
     expense_id        int8                    NOT NULL,
     occurrence_date   date                    NOT NULL,
     amount            numeric(12, 2)          NOT NULL,
-    notes             text                    NULL,
-    invoice_reference varchar(100)            NULL,
+    notes             text NULL,
+    invoice_reference varchar(100) NULL,
     created_at        timestamp DEFAULT now() NOT NULL,
     CONSTRAINT chk_occurrence_amount CHECK ((amount >= (0)::numeric)),
     CONSTRAINT expense_occurrences_pkey PRIMARY KEY (id),
@@ -664,10 +665,10 @@ CREATE TABLE expense_occurrences
 
 CREATE TABLE routine_day_exercises
 (
-    routine_id   int4          NOT NULL,
-    day_number   int4          NOT NULL,
-    exercise_id  int4          NOT NULL,
-    "position"   int2          NOT NULL,
+    routine_id   int4 NOT NULL,
+    day_number   int4 NOT NULL,
+    exercise_id  int4 NOT NULL,
+    "position"   int2 NOT NULL,
     rest_seconds numeric(5, 1) NULL,
     CONSTRAINT routine_day_exercises_pkey PRIMARY KEY (routine_id, day_number, exercise_id),
     CONSTRAINT routine_day_exercises_position_check CHECK (("position" >= 1)),
@@ -694,10 +695,28 @@ CREATE TABLE workout_sets
     CONSTRAINT routine_day_exercise_executions_routine_execution_id_fkey FOREIGN KEY (workout_id) REFERENCES workouts (id)
 );
 
+create table public.gym_metrics_monthly
+(
+    gym_branch_id      integer        not null,
+    year_month         date           not null,
+    revenue            numeric(12, 2) not null default 0,
+    active_members     smallint       not null default 0,
+    new_members        smallint       not null default 0,
+    churned_members    smallint       not null default 0,
+    churn_rate         numeric(5, 2) null,
+    peak_occupancy_pct numeric(5, 2) null,
+    overdue_amount     numeric(5, 2) not null default 0,
+    is_closed          boolean        not null default false,
+    calculated_at      timestamp without time zone not null default now(),
+    constraint gym_metrics_monthly_pkey primary key (gym_branch_id, year_month),
+    constraint gym_metrics_monthly_gym_branch_id_fkey foreign KEY (gym_branch_id) references gym_branches (id)
+);
+
 
 -- DROP FUNCTION public.handle_new_user();
 
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+CREATE
+OR REPLACE FUNCTION public.handle_new_user()
     RETURNS trigger
     LANGUAGE plpgsql
     SECURITY DEFINER
@@ -705,48 +724,49 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 AS
 $function$
 BEGIN
-    INSERT INTO public.members (id,
-                                gym_id,
-                                email,
-                                name,
-                                first_surname,
-                                second_surname,
-                                gender,
-                                status)
-    VALUES (NEW.id,
-            (NEW.raw_user_meta_data ->> 'gym_id')::int4,
-            NEW.email,
-            NEW.raw_user_meta_data ->> 'name',
-            NEW.raw_user_meta_data ->> 'first_surname',
-            NEW.raw_user_meta_data ->> 'second_surname',
-            (NEW.raw_user_meta_data ->> 'gender')::bpchar,
-            'AUTH');
+INSERT INTO public.members (id,
+                            gym_id,
+                            email,
+                            name,
+                            first_surname,
+                            second_surname,
+                            gender,
+                            status)
+VALUES (NEW.id,
+        (NEW.raw_user_meta_data ->> 'gym_id')::int4,
+        NEW.email,
+        NEW.raw_user_meta_data ->> 'name',
+        NEW.raw_user_meta_data ->> 'first_surname',
+        NEW.raw_user_meta_data ->> 'second_surname',
+        (NEW.raw_user_meta_data ->> 'gender')::bpchar,
+        'AUTH');
 
-    RETURN NEW;
+RETURN NEW;
 END;
 $function$
 ;
 
 -- DROP FUNCTION public.update_gym_branch_current_occupancy();
 
-CREATE OR REPLACE FUNCTION public.update_gym_branch_current_occupancy()
+CREATE
+OR REPLACE FUNCTION public.update_gym_branch_current_occupancy()
     RETURNS trigger
     LANGUAGE plpgsql
 AS
 $function$
 BEGIN
 
-    UPDATE gym_branch_current_occupancy
-    SET count =
-            CASE
-                WHEN NEW.direction = 0
-                    THEN count + 1
-                WHEN NEW.direction = 1
-                    THEN GREATEST(count - 1, 0)
-                END
-    WHERE gym_branch_id = NEW.gym_branch_id;
+UPDATE gym_branch_current_occupancy
+SET count =
+        CASE
+            WHEN NEW.direction = 0
+                THEN count + 1
+            WHEN NEW.direction = 1
+                THEN GREATEST(count - 1, 0)
+            END
+WHERE gym_branch_id = NEW.gym_branch_id;
 
-    RETURN NEW;
+RETURN NEW;
 
 END;
 $function$
@@ -760,4 +780,4 @@ create trigger trg_update_gym_current_occupancy
     on
         public.member_accesses
     for each row
-execute function update_gym_branch_current_occupancy();
+    execute function update_gym_branch_current_occupancy();

@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
+import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.DistributionItem;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
@@ -140,6 +141,10 @@ public class DashboardUseCase {
       case "+3y" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{3}, locale);
       default -> key;
     };
+  }
+
+  public List<BranchMetrics> getMonthlyMetrics(Integer gymId, YearMonth from, YearMonth to) {
+    return analyticsRepository.getMonthlyMetrics(gymId, from, to);
   }
 
 }

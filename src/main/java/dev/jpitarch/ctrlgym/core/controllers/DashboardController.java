@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
+import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
 import dev.jpitarch.ctrlgym.core.dto.CashFlow;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
@@ -23,6 +24,11 @@ import java.util.Map;
 public class DashboardController {
 
   private final DashboardUseCase useCase;
+
+  @GetMapping("/gyms/{gymId}/metrics")
+  public ResponseEntity<List<BranchMetrics>> getMonthlyMetrics(@PathVariable int gymId, @RequestParam YearMonth from, @RequestParam YearMonth to) {
+    return ResponseEntity.ok(useCase.getMonthlyMetrics(gymId, from, to));
+  }
 
   @GetMapping("/gyms/{gymId}/branches/{branchId}/occupancy")
   public ResponseEntity<OccupancyGranularity> getOccupancies(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam Granularity granularity) {
@@ -69,6 +75,5 @@ public class DashboardController {
   public ResponseEntity<MembersDistribution> getMembersDistribution(@PathVariable int gymId, @PathVariable int branchId) {
     return ResponseEntity.ok(useCase.getMembersDistribution(GymBranchId.of(gymId, branchId)));
   }
-
 
 }

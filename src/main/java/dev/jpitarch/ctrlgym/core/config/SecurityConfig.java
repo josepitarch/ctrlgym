@@ -34,6 +34,7 @@ public class SecurityConfig {
   @Order(1)
   public SecurityFilterChain apiKeySecurityFilterChain(HttpSecurity http, ControllerApiKeyFilter filter) {
     http
+      .cors(Customizer.withDefaults())
       .securityMatcher("/v1/controllers/**")
       .csrf(AbstractHttpConfigurer::disable)
       .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

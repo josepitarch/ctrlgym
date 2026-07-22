@@ -37,7 +37,10 @@ public class SecurityConfig {
       .securityMatcher("/v1/controllers/**")
       .csrf(AbstractHttpConfigurer::disable)
       .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-      .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/v1/controllers/*/health").permitAll()
+        .anyRequest().authenticated()
+      )
       .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
@@ -51,8 +54,8 @@ public class SecurityConfig {
     .cors(Customizer.withDefaults())
     .csrf(AbstractHttpConfigurer::disable)
     .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
-            .anyRequest().authenticated()
+      .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
+      .anyRequest().authenticated()
     )
     .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
 

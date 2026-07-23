@@ -26,64 +26,55 @@ public class GymMetricsCron {
     var isLastDayOfMonth = LocalDate.now().equals(currentMonth.atEndOfMonth());
 
     var sql = """
-        WITH month_period AS (
-          SELECT
-            :yearMonth::date AS month_start,
-            (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date AS month_end
-        ),
-        branch_metrics AS (
+        WITH base AS (
           SELECT
             gb.id AS gym_branch_id,
-            gb.gym_id,
             gb.is_active,
-            COALESCE(active.cnt, 0) AS active_members,
-            COALESCE(new_m.cnt, 0) AS new_members,
-            COALESCE(churned.cnt, 0) AS churned_members
+            COALESCE(
+              (SELECT COUNT(*)
+               FROM memberships m
+               JOIN membership_plans mp ON m.membership_plan_id = mp.id
+               WHERE mp.gym_branch_id = gb.id
+                 AND m.gym_id = gb.gym_id
+                 AND m.start_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+                 AND (m.end_date IS NULL OR m.end_date >= :yearMonth::date)
+              ), 0) AS active_members,
+            COALESCE(
+              (SELECT COUNT(*)
+               FROM memberships m
+               JOIN membership_plans mp ON m.membership_plan_id = mp.id
+               WHERE mp.gym_branch_id = gb.id
+                 AND m.gym_id = gb.gym_id
+                 AND m.start_date >= :yearMonth::date
+                 AND m.start_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+              ), 0) AS new_members,
+            COALESCE(
+              (SELECT COUNT(*)
+               FROM memberships m
+               JOIN membership_plans mp ON m.membership_plan_id = mp.id
+               WHERE mp.gym_branch_id = gb.id
+                 AND m.gym_id = gb.gym_id
+                 AND m.end_date IS NOT NULL
+                 AND m.end_date >= :yearMonth::date
+                 AND m.end_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+              ), 0) AS churned_members,
+            COALESCE(
+              (SELECT COALESCE(SUM(i.total), 0)
+               FROM invoices i
+               WHERE i.gym_id = gb.gym_id
+                 AND i.issue_at >= :yearMonth::date
+                 AND i.issue_at <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+                 AND EXISTS (
+                   SELECT 1
+                   FROM memberships m
+                   JOIN membership_plans mp ON m.membership_plan_id = mp.id
+                   WHERE m.member_id = i.member_id
+                     AND m.gym_id = i.gym_id
+                     AND mp.gym_branch_id = gb.id
+                 )
+              ), 0) AS revenue
           FROM gym_branches gb
           WHERE gb.is_active = true
-          LEFT JOIN LATERAL (
-            SELECT COUNT(*) AS cnt
-            FROM memberships m
-            JOIN membership_plans mp ON m.membership_plan_id = mp.id
-            WHERE mp.gym_branch_id = gb.id
-              AND m.gym_id = gb.gym_id
-              AND m.start_date <= (SELECT month_end FROM month_period)
-              AND (m.end_date IS NULL OR m.end_date >= (SELECT month_start FROM month_period))
-          ) active ON true
-          LEFT JOIN LATERAL (
-            SELECT COUNT(*) AS cnt
-            FROM memberships m
-            JOIN membership_plans mp ON m.membership_plan_id = mp.id
-            WHERE mp.gym_branch_id = gb.id
-              AND m.gym_id = gb.gym_id
-              AND m.start_date >= (SELECT month_start FROM month_period)
-              AND m.start_date <= (SELECT month_end FROM month_period)
-          ) new_m ON true
-          LEFT JOIN LATERAL (
-            SELECT COUNT(*) AS cnt
-            FROM memberships m
-            JOIN membership_plans mp ON m.membership_plan_id = mp.id
-            WHERE mp.gym_branch_id = gb.id
-              AND m.gym_id = gb.gym_id
-              AND m.end_date IS NOT NULL
-              AND m.end_date >= (SELECT month_start FROM month_period)
-              AND m.end_date <= (SELECT month_end FROM month_period)
-          ) churned ON true
-          LEFT JOIN LATERAL (
-            SELECT COALESCE(SUM(i.total), 0) AS revenue
-            FROM invoices i
-            WHERE i.gym_id = gb.gym_id
-              AND i.issue_at >= (SELECT month_start FROM month_period)
-              AND i.issue_at <= (SELECT month_end FROM month_period)
-              AND EXISTS (
-                SELECT 1
-                FROM memberships m
-                JOIN membership_plans mp ON m.membership_plan_id = mp.id
-                WHERE m.member_id = i.member_id
-                  AND m.gym_id = i.gym_id
-                  AND mp.gym_branch_id = gb.id
-              )
-          ) revenue_calc ON true
         )
         SELECT
           gym_branch_id,
@@ -91,12 +82,12 @@ public class GymMetricsCron {
           new_members,
           churned_members,
           is_active,
-          COALESCE(revenue_calc.revenue, 0) AS revenue,
-          CASE WHEN active_members > 0
+          revenue,
+          CASE WHEN (active_members + new_members) > 0
             THEN ROUND(churned_members::numeric / (active_members + new_members) * 100, 2)
             ELSE 0
           END AS churn_rate
-        FROM branch_metrics
+        FROM base
       """;
 
     var params = Map.of("yearMonth", yearMonth.toString());

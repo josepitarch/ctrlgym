@@ -46,10 +46,6 @@ public class SecurityConfig {
       .securityMatcher("/v1/controllers/**")
       .csrf(AbstractHttpConfigurer::disable)
       .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-      .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/v1/controllers/*/health").permitAll()
-        .anyRequest().authenticated()
-      )
       .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

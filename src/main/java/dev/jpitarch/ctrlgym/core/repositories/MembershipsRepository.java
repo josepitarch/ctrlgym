@@ -31,7 +31,7 @@ public class MembershipsRepository {
     membership.setMembershipPlanId(membershipPlanId);
     membership.setStartDate(LocalDate.now());
     membership.setStripeSubscriptionId(subscriptionId);
-    membership.setAutoRenew(true);
+    membership.setAutoRenew(Boolean.TRUE);
     membership.setNextBillingDate(nextBillingDate);
 
     membershipJpaRepository.save(membership);
@@ -112,7 +112,7 @@ public class MembershipsRepository {
 
   private Membership map(MembershipMO m) {
     return Membership.builder()
-            .id(m.getId().intValue())
+            .id(Integer.valueOf(m.getId().intValue()))
             .recurring(MembershipPlan.Recurring.from("MONTHLY")) //TODO
             .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
             .nextBillingDate(m.getNextBillingDate())

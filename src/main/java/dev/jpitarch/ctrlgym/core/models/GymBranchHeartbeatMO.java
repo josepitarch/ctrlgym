@@ -63,12 +63,4 @@ public class GymBranchHeartbeatMO {
   @JsonProperty("temperature_c")
   private BigDecimal temperatureC;
 
-  @Column(name = "sqlite_ok")
-  @JsonProperty("sqlite_ok")
-  private Boolean sqliteOk;
-
-  @Column(name = "pending_events")
-  @JsonProperty("pending_events")
-  private Integer pendingEvents;
-
 }

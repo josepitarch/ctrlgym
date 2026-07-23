@@ -65,11 +65,13 @@ public class SecurityConfig {
     .authorizeHttpRequests(auth -> auth
       .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
       .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
+      .requestMatchers("/v1/gyms/**").hasAnyRole("MANAGER", "EMPLOYEE")
       .anyRequest().authenticated()
     )
     .oauth2ResourceServer(oauth -> oauth.jwt(
             jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()
-            )));
+            )
+    ));
 
     return http.build();
   }
@@ -87,7 +89,7 @@ public class SecurityConfig {
   }
 
   private JwtAuthenticationConverter jwtAuthenticationConverter() {
-    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    var converter = new JwtAuthenticationConverter();
     converter.setJwtGrantedAuthoritiesConverter(this::extractAuthorities);
     return converter;
   }

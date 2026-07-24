@@ -6,8 +6,6 @@ import dev.jpitarch.ctrlgym.core.models.*;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;

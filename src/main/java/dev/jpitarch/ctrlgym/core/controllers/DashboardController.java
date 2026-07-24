@@ -1,13 +1,12 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
-import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.domain.Cohort;
+import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
+import dev.jpitarch.ctrlgym.core.domain.Expense;
+import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
-import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
-import dev.jpitarch.ctrlgym.core.dto.CashFlow;
-import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
-import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
-import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
+import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.usecases.DashboardUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

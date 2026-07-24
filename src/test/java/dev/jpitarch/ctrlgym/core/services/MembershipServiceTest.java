@@ -7,7 +7,6 @@ import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,14 +49,14 @@ class MembershipServiceTest {
   @ParameterizedTest
   @DisplayName("Calculates correct next billing date")
   @CsvSource({
-          "2026-07-01, 2026-08-01",
-          "2026-07-02, 2026-09-01",
-          "2026-07-15, 2026-09-01",
-          "2026-07-31, 2026-09-01",
-          "2026-08-01, 2026-09-01",
-          "2026-08-15, 2026-10-01",
-          "2026-12-31, 2027-02-01",
-          "2026-01-01, 2026-02-01"
+    "2026-07-01, 2026-08-01",
+    "2026-07-02, 2026-09-01",
+    "2026-07-15, 2026-09-01",
+    "2026-07-31, 2026-09-01",
+    "2026-08-01, 2026-09-01",
+    "2026-08-15, 2026-10-01",
+    "2026-12-31, 2027-02-01",
+    "2026-01-01, 2026-02-01"
   })
   void initialize_calculatesCorrectNextBillingDate(String today, String expectedNextBilling) throws StripeException {
     var ld = LocalDate.parse(today);

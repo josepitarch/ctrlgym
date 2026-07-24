@@ -10,10 +10,8 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
-import dev.jpitarch.ctrlgym.payments.services.GenerateInvoiceReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -24,7 +22,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -77,14 +74,14 @@ public class MembersService {
     var accesses = membersRepository.getMemberAccessesByMemberIdAndDateRange(memberId, fromDt, toDt);
 
     var accessedDates = accesses.stream()
-            .map(access -> access.getTimestamp().toLocalDate())
-            .collect(Collectors.toSet());
+      .map(access -> access.getTimestamp().toLocalDate())
+      .collect(Collectors.toSet());
 
     return from.datesUntil(to.plusDays(1))
-            .collect(Collectors.toMap(
-                    date -> date,
-                    accessedDates::contains
-            ));
+      .collect(Collectors.toMap(
+        date -> date,
+        accessedDates::contains
+      ));
   }
 
 

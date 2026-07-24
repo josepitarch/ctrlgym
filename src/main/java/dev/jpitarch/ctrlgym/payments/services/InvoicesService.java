@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
-import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.SetupIntent;
 import com.stripe.net.RequestOptions;
@@ -18,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.UUID;
 
 @Slf4j
 @Service

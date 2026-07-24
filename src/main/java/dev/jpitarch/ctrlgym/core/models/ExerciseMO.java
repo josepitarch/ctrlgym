@@ -7,8 +7,6 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.net.URI;
-
 @Getter
 @Setter
 @Entity

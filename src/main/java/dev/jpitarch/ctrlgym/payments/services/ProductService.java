@@ -52,7 +52,7 @@ public class ProductService {
 
     var price = Price.create(priceParams, options);
 
-    return new String[] {product.getId(), price.getId()};
+    return new String[]{ product.getId(), price.getId() };
   }
 
   public void delete(Integer gymId, String productId) throws StripeException {

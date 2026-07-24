@@ -94,7 +94,7 @@ public class MemberMO {
     if (thisEffectiveClass != oEffectiveClass) return false;
     MemberMO memberMO = (MemberMO) o;
     return getId() != null && Objects.equals(getId(), memberMO.getId())
-            && getGymId() != null && Objects.equals(getGymId(), memberMO.getGymId());
+      && getGymId() != null && Objects.equals(getGymId(), memberMO.getGymId());
   }
 
   @Override

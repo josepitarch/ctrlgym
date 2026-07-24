@@ -7,10 +7,9 @@ import dev.jpitarch.ctrlgym.core.models.WorkoutSetMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.WorkoutJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;

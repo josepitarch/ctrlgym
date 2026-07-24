@@ -1,16 +1,17 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
-import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.domain.Cohort;
+import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
+import dev.jpitarch.ctrlgym.core.domain.Expense;
+import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
-import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
-import dev.jpitarch.ctrlgym.core.dto.CashFlow;
-import dev.jpitarch.ctrlgym.core.dto.DistributionItem;
-import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
-import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
-import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
-import dev.jpitarch.ctrlgym.core.repositories.*;
+import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.ExpensesRepository;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.InvoicesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -112,10 +113,13 @@ public class DashboardUseCase {
   private String resolveAgeLabel(String key) {
     var locale = LocaleContextHolder.getLocale();
     return switch (key) {
-      case "18-25" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{18, 25}, locale);
-      case "26-35" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{26, 35}, locale);
-      case "36-45" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{36, 45}, locale);
-      case "+45" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{45}, locale);
+      case "18-25" ->
+        messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{ 18, 25 }, locale);
+      case "26-35" ->
+        messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{ 26, 35 }, locale);
+      case "36-45" ->
+        messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{ 36, 45 }, locale);
+      case "+45" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{ 45 }, locale);
       default -> key;
     };
   }
@@ -132,13 +136,18 @@ public class DashboardUseCase {
   private String resolveSeniorityLabel(String key) {
     var locale = LocaleContextHolder.getLocale();
     return switch (key) {
-      case "-1m" -> messageSource.getMessage("dashboard.members.distribution.less-month", new Object[]{1}, locale);
-      case "1-3" -> messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{1, 3}, locale);
-      case "4-5m" -> messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{4, 5}, locale);
-      case "6-12m" -> messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{6, 12}, locale);
-      case "1-2y" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{1, 2}, locale);
-      case "2-3y" -> messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{2, 3}, locale);
-      case "+3y" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{3}, locale);
+      case "-1m" -> messageSource.getMessage("dashboard.members.distribution.less-month", new Object[]{ 1 }, locale);
+      case "1-3" ->
+        messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{ 1, 3 }, locale);
+      case "4-5m" ->
+        messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{ 4, 5 }, locale);
+      case "6-12m" ->
+        messageSource.getMessage("dashboard.members.distribution.between-months", new Object[]{ 6, 12 }, locale);
+      case "1-2y" ->
+        messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{ 1, 2 }, locale);
+      case "2-3y" ->
+        messageSource.getMessage("dashboard.members.distribution.between-years", new Object[]{ 2, 3 }, locale);
+      case "+3y" -> messageSource.getMessage("dashboard.members.distribution.plus-year", new Object[]{ 3 }, locale);
       default -> key;
     };
   }

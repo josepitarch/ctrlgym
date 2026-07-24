@@ -1,12 +1,10 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
-import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.models.MemberMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
@@ -15,8 +13,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor

@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -58,19 +58,19 @@ public class SecurityConfig {
   @Order(2)
   SecurityFilterChain securityFilterChain(HttpSecurity http) {
     http
-    .cors(Customizer.withDefaults())
-    .csrf(AbstractHttpConfigurer::disable)
-    .authorizeHttpRequests(auth -> auth
-      .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
-      .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
-      .requestMatchers("/v1/gyms/{gymId}/branches/{branchId}/occupancy").authenticated()
-      .requestMatchers("/v1/gyms/**").hasAnyRole("MANAGER", "EMPLOYEE")
-      .anyRequest().authenticated()
-    )
-    .oauth2ResourceServer(oauth -> oauth.jwt(
-            jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()
-            )
-    ));
+      .cors(Customizer.withDefaults())
+      .csrf(AbstractHttpConfigurer::disable)
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
+        .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
+        .requestMatchers("/v1/gyms/{gymId}/branches/{branchId}/occupancy").authenticated()
+        .requestMatchers("/v1/gyms/**").hasAnyRole("MANAGER", "EMPLOYEE")
+        .anyRequest().authenticated()
+      )
+      .oauth2ResourceServer(oauth -> oauth.jwt(
+        jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()
+        )
+      ));
 
     return http.build();
   }
@@ -99,7 +99,7 @@ public class SecurityConfig {
     if (CollectionUtils.isEmpty(roles)) return Collections.emptyList();
 
     return roles.stream()
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
-            .collect(Collectors.toList());
+      .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+      .collect(Collectors.toList());
   }
 }

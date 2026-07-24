@@ -6,16 +6,12 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
@@ -52,12 +48,12 @@ public class GenerateAccessQrService {
   private String generateQrToken(Member.Id memberId, List<Integer> gymIds) {
     var now = Instant.now();
     return Jwts.builder()
-            .subject(memberId.memberId().toString())
-            .claim("gym_branches", gymIds)
-            .issuedAt(Date.from(now))
-            .expiration(Date.from(now.plusSeconds(expirationSeconds)))
-            .signWith(getSigningKey(), Jwts.SIG.HS256)
-            .compact();
+      .subject(memberId.memberId().toString())
+      .claim("gym_branches", gymIds)
+      .issuedAt(Date.from(now))
+      .expiration(Date.from(now.plusSeconds(expirationSeconds)))
+      .signWith(getSigningKey(), Jwts.SIG.HS256)
+      .compact();
   }
 
   private SecretKey getSigningKey() {

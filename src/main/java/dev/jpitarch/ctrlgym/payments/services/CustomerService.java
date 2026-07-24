@@ -5,14 +5,10 @@ import com.stripe.model.Customer;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 

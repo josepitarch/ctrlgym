@@ -51,10 +51,10 @@ public class MembershipService {
     }
 
     var props = Map.of(
-            "stripeAccountId", stripeAccountId,
-            "stripePriceId", stripePriceId,
-            "paymentMethodId", paymentMethodId.get(),
-            "customerId", customerId.get()
+      "stripeAccountId", stripeAccountId,
+      "stripePriceId", stripePriceId,
+      "paymentMethodId", paymentMethodId.get(),
+      "customerId", customerId.get()
     );
 
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
@@ -74,8 +74,8 @@ public class MembershipService {
 
   public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
-            "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
-            "subscriptionId", membershipPlanRepository.getStripeSubscriptionId(memberId, membershipId)
+      "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
+      "subscriptionId", membershipPlanRepository.getStripeSubscriptionId(memberId, membershipId)
     );
 
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);

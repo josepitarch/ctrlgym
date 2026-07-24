@@ -62,7 +62,7 @@ public class MemberController {
   public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable Integer membershipId, @RequestParam Integer gymId,
                                                @RequestParam Integer cancellationReasonId,
                                                @RequestBody String comment
-                                               ) throws StripeException {
+  ) throws StripeException {
     memberUseCase.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId, comment);
     return ResponseEntity.noContent().build();
   }

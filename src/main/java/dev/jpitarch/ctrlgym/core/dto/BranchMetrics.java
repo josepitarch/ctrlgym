@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.time.YearMonth;
 

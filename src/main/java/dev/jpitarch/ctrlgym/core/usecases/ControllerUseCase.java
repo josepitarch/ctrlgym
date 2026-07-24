@@ -40,8 +40,8 @@ public class ControllerUseCase {
 
   public Heartbeat getHealth(Integer gymBranchId) {
     GymBranchHeartbeatMO latest = gymHeartbeatJpaRepository
-            .findTopByGymBranchIdOrderByCreatedAtDesc(gymBranchId)
-            .orElse(null);
+      .findTopByGymBranchIdOrderByCreatedAtDesc(gymBranchId)
+      .orElse(null);
 
     if (latest == null) return null;
 

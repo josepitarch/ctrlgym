@@ -42,10 +42,10 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "gymBranchId", gymBranchId.branchId(),
-            "from", datePeriod.from().toString(),
-            "to", datePeriod.to().toString()
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId(),
+      "from", datePeriod.from().toString(),
+      "to", datePeriod.to().toString()
     );
 
     return jdbc.query(sql, params, (row, _) -> {
@@ -76,10 +76,10 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "gymBranchId", gymBranchId.branchId(),
-            "from", datePeriod.from().toString(),
-            "to", datePeriod.to().toString()
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId(),
+      "from", datePeriod.from().toString(),
+      "to", datePeriod.to().toString()
     );
 
     return jdbc.query(sql, params, (row, _) -> {
@@ -110,10 +110,10 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "gymBranchId", gymBranchId.branchId(),
-            "from", datePeriod.from().toString(),
-            "to", datePeriod.to().toString()
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId(),
+      "from", datePeriod.from().toString(),
+      "to", datePeriod.to().toString()
     );
 
     return jdbc.query(sql, params, (row, _) -> {
@@ -190,9 +190,9 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "from", datePeriod.from(),
-            "to", datePeriod.to()
+      "gymId", gymBranchId.gymId(),
+      "from", datePeriod.from(),
+      "to", datePeriod.to()
     );
 
     return jdbc.query(sql, params, (row, _) -> {
@@ -251,8 +251,8 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "currentMonth", LocalDate.now().getMonthValue()
+      "gymId", gymBranchId.gymId(),
+      "currentMonth", LocalDate.now().getMonthValue()
     );
     return jdbc.query(sql, params, (row, _) -> {
       var cohortMonth = row.getDate("cohort_month").toLocalDate();
@@ -306,9 +306,9 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "from", datePeriod.from(),
-            "to", datePeriod.to()
+      "gymId", gymBranchId.gymId(),
+      "from", datePeriod.from(),
+      "to", datePeriod.to()
     );
 
     var results = jdbc.query(sql, params, (row, _) -> {
@@ -334,15 +334,15 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId()
+      "gymId", gymBranchId.gymId()
     );
 
     return jdbc.query(sql, params, (row, _) -> {
       var reasonId = row.getInt("cancellation_reason_id");
       var count = row.getInt("count");
       return Map.of(
-              "id", reasonId,
-              "count", count
+        "id", reasonId,
+        "count", count
       );
     });
   }
@@ -376,28 +376,28 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymBranchId.gymId(),
-            "gymBranchId", gymBranchId.branchId()
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId()
     );
 
     return jdbc.query(sql, params, (rs, _) -> new String[]{
-            rs.getString("gender"),
-            rs.getString("postal_code"),
-            rs.getString("age_range"),
-            String.valueOf(rs.getInt("total"))
+      rs.getString("gender"),
+      rs.getString("postal_code"),
+      rs.getString("age_range"),
+      String.valueOf(rs.getInt("total"))
     }).stream().collect(Collectors.groupingBy(
-            row -> {
-              if (row[0] != null) return MembersDistribution.Group.GENDER;
-              if (row[1] != null) return MembersDistribution.Group.POSTAL_CODE;
-              if (row[2] != null) return MembersDistribution.Group.AGE;
-              throw new RuntimeException("No distribution gender or postal code provided");
-            }, Collectors.collectingAndThen(
-                    Collectors.toList(),
-                    list -> list.stream()
-                            .map(arr -> Arrays.stream(arr)
-                                    .filter(Objects::nonNull)
-                                    .toArray(String[]::new))
-                            .toList())
+      row -> {
+        if (row[0] != null) return MembersDistribution.Group.GENDER;
+        if (row[1] != null) return MembersDistribution.Group.POSTAL_CODE;
+        if (row[2] != null) return MembersDistribution.Group.AGE;
+        throw new RuntimeException("No distribution gender or postal code provided");
+      }, Collectors.collectingAndThen(
+        Collectors.toList(),
+        list -> list.stream()
+          .map(arr -> Arrays.stream(arr)
+            .filter(Objects::nonNull)
+            .toArray(String[]::new))
+          .toList())
     ));
   }
 
@@ -430,24 +430,24 @@ public class AnalyticsRepository {
       """;
 
     var params = Map.of(
-            "gymId", gymId,
-            "from", from.atDay(1).toString(),
-            "to", to.atDay(1).toString()
+      "gymId", gymId,
+      "from", from.atDay(1).toString(),
+      "to", to.atDay(1).toString()
     );
 
     return jdbc.query(sql, params, (rs, _) -> new BranchMetrics(
-            rs.getInt("branch_id"),
-            rs.getString("branch_name"),
-            YearMonth.parse(rs.getString("year_month")),
-            rs.getBigDecimal("revenue"),
-            rs.getBigDecimal("expense"),
-            rs.getShort("active_members"),
-            rs.getShort("new_members"),
-            rs.getShort("churned_members"),
-            rs.getObject("churn_rate") != null ? rs.getBigDecimal("churn_rate") : null,
-            rs.getObject("peak_occupancy_pct") != null ? rs.getBigDecimal("peak_occupancy_pct") : null,
-            rs.getBigDecimal("overdue_amount"),
-            rs.getBoolean("is_closed")
+      rs.getInt("branch_id"),
+      rs.getString("branch_name"),
+      YearMonth.parse(rs.getString("year_month")),
+      rs.getBigDecimal("revenue"),
+      rs.getBigDecimal("expense"),
+      rs.getShort("active_members"),
+      rs.getShort("new_members"),
+      rs.getShort("churned_members"),
+      rs.getObject("churn_rate") != null ? rs.getBigDecimal("churn_rate") : null,
+      rs.getObject("peak_occupancy_pct") != null ? rs.getBigDecimal("peak_occupancy_pct") : null,
+      rs.getBigDecimal("overdue_amount"),
+      rs.getBoolean("is_closed")
     ));
   }
 

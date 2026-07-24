@@ -47,12 +47,12 @@ public class GymsRepository {
     GymMO gymMO = jpaRepository.findById(gymId).orElseThrow();
 
     return gymMO.getBranches().stream().map(branchMO -> GymBranch.builder()
-      .id(branchMO.getId())
-      .name(branchMO.getName())
-      .capacity(branchMO.getCapacity())
-      .peakHour(new GymBranch.PeakHour(branchMO.getPeakHourStart(), branchMO.getPeakHourEnd()))
+        .id(branchMO.getId())
+        .name(branchMO.getName())
+        .capacity(branchMO.getCapacity())
+        .peakHour(new GymBranch.PeakHour(branchMO.getPeakHourStart(), branchMO.getPeakHourEnd()))
         .coordinates(new GymBranch.Coordinates(branchMO.getLatitude(), branchMO.getLongitude()))
-      .build())
+        .build())
       .toList();
   }
 

@@ -33,7 +33,7 @@ public class RoutineDayMO {
   private String name;
 
   @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<RoutineDayExerciseMO> exercises =  new ArrayList<>();
+  private List<RoutineDayExerciseMO> exercises = new ArrayList<>();
 
   public void addExercise(RoutineDayExerciseMO exercise) {
     exercises.add(exercise);

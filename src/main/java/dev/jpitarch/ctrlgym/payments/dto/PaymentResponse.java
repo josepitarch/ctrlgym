@@ -13,17 +13,17 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PaymentResponse {
 
-    private String id;
+  private String id;
 
-    private String stripePaymentIntentId;
+  private String stripePaymentIntentId;
 
-    private Long amount;
+  private Long amount;
 
-    private String currency;
+  private String currency;
 
-    private String status;
+  private String status;
 
-    private String clientSecret;
+  private String clientSecret;
 
-    private LocalDateTime createdAt;
+  private LocalDateTime createdAt;
 }

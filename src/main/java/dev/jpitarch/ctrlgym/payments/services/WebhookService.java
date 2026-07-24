@@ -4,11 +4,9 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.Webhook;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.payments.models.InvoiceMO;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -117,14 +115,14 @@ public class WebhookService {
     LocalDate localDate = Instant.ofEpochSecond(nextChargeDate).atZone(ZoneId.of("Europe/Madrid")).toLocalDate();
 
     dev.jpitarch.ctrlgym.core.domain.Invoice inv = invoiceRepository
-            .getInvoice(invoice.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
+      .getInvoice(invoice.getId())
+      .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
 
     if (invoice.getParent() != null
-            && "subscription_details".equals(invoice.getParent().getType())) {
+      && "subscription_details".equals(invoice.getParent().getType())) {
       String subscriptionId = invoice.getParent()
-              .getSubscriptionDetails()
-              .getSubscription();
+        .getSubscriptionDetails()
+        .getSubscription();
     }
 
     var member = membersRepository.getById(membersRepository.getId(invoice.getCustomer()));

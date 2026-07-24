@@ -1,13 +1,13 @@
 package dev.jpitarch.ctrlgym.core.config;
 
 import dev.jpitarch.ctrlgym.core.controllers.filters.ControllerApiKeyFilter;
-import dev.jpitarch.ctrlgym.core.controllers.filters.MemberFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -31,17 +30,11 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Bean
   public FilterRegistrationBean<ControllerApiKeyFilter> apiKeyFilterRegistration(ControllerApiKeyFilter filter) {
-    var registration = new FilterRegistrationBean<>(filter);
-    registration.setEnabled(false);
-    return registration;
-  }
-
-  @Bean
-  public FilterRegistrationBean<MemberFilter> memberFilterRegistration(MemberFilter filter) {
     var registration = new FilterRegistrationBean<>(filter);
     registration.setEnabled(false);
     return registration;
@@ -63,7 +56,7 @@ public class SecurityConfig {
 
   @Bean
   @Order(2)
-  SecurityFilterChain securityFilterChain(HttpSecurity http, MemberFilter memberFilter) {
+  SecurityFilterChain securityFilterChain(HttpSecurity http) {
     http
     .cors(Customizer.withDefaults())
     .csrf(AbstractHttpConfigurer::disable)
@@ -76,8 +69,7 @@ public class SecurityConfig {
     .oauth2ResourceServer(oauth -> oauth.jwt(
             jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()
             )
-    ))
-    .addFilterAfter(memberFilter, BearerTokenAuthenticationFilter.class);
+    ));
 
     return http.build();
   }

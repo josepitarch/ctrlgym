@@ -72,7 +72,17 @@ public class GymMetricsCron {
                      AND m.gym_id = i.gym_id
                      AND mp.gym_branch_id = gb.id
                  )
-              ), 0) AS revenue
+              ), 0) AS revenue,
+            COALESCE(
+              (SELECT COALESCE(SUM(expo.amount), 0)
+               FROM expenses exp
+               JOIN expense_occurrences expo ON exp.id = expo.expense_id
+               WHERE exp.gym_branch_id = gb.id
+                 AND exp.start_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+                 AND (exp.end_date IS NULL OR exp.end_date >= :yearMonth::date)
+                 AND expo.occurrence_date >= :yearMonth::date
+                 AND expo.occurrence_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+              ), 0) AS expense
           FROM gym_branches gb
           WHERE gb.is_active = true
         )
@@ -83,6 +93,7 @@ public class GymMetricsCron {
           churned_members,
           is_active,
           revenue,
+          expense,
           CASE WHEN (active_members + new_members) > 0
             THEN ROUND(churned_members::numeric / (active_members + new_members) * 100, 2)
             ELSE 0
@@ -96,15 +107,16 @@ public class GymMetricsCron {
 
     var upsertSql = """
         INSERT INTO gym_metrics_monthly
-          (gym_branch_id, year_month, active_members, new_members, churned_members, churn_rate, revenue, is_closed, calculated_at)
+          (gym_branch_id, year_month, active_members, new_members, churned_members, churn_rate, revenue, expense, is_closed, calculated_at)
         VALUES
-          (:gymBranchId, :yearMonth, :activeMembers, :newMembers, :churnedMembers, :churnRate, :revenue, :isClosed, NOW())
+          (:gymBranchId, :yearMonth, :activeMembers, :newMembers, :churnedMembers, :churnRate, :revenue, :expense, :isClosed, NOW())
         ON CONFLICT (gym_branch_id, year_month) DO UPDATE SET
           active_members = EXCLUDED.active_members,
           new_members = EXCLUDED.new_members,
           churned_members = EXCLUDED.churned_members,
           churn_rate = EXCLUDED.churn_rate,
           revenue = EXCLUDED.revenue,
+          expense = EXCLUDED.expense,
           is_closed = EXCLUDED.is_closed,
           calculated_at = NOW()
       """;
@@ -118,6 +130,7 @@ public class GymMetricsCron {
       ps.addValue("churnedMembers", ((Number) row.get("churned_members")).intValue());
       ps.addValue("churnRate", row.get("churn_rate"));
       ps.addValue("revenue", row.get("revenue"));
+      ps.addValue("expense", row.get("expense"));
       ps.addValue("isClosed", isLastDayOfMonth);
       return ps;
     }).toArray(MapSqlParameterSource[]::new);

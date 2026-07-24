@@ -34,6 +34,10 @@ public class GymMetricsMO {
   private BigDecimal revenue;
 
   @ColumnDefault("0")
+  @Column(name = "expense", nullable = false, precision = 12, scale = 2)
+  private BigDecimal expense;
+
+  @ColumnDefault("0")
   @Column(name = "active_members", nullable = false)
   private Short activeMembers;
 

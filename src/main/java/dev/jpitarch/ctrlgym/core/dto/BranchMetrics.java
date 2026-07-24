@@ -9,6 +9,7 @@ public record BranchMetrics(
   @JsonProperty("branch_name") String branchName,
   @JsonProperty("year_month") YearMonth yearMonth,
   BigDecimal revenue,
+  BigDecimal expense,
   @JsonProperty("active_members") short activeMembers,
   @JsonProperty("new_members") short newMembers,
   @JsonProperty("churned_members") short churnedMembers,

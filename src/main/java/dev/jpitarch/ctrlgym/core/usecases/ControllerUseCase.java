@@ -51,7 +51,7 @@ public class ControllerUseCase {
     var rateWindowStart = OffsetDateTime.now().truncatedTo(ChronoUnit.HOURS).minusHours(WINDOWS_RATE_HOURS);
     long countLastWindow = gymHeartbeatJpaRepository.countByGymBranchIdSince(gymBranchId, rateWindowStart);
 
-    double rate = (double) countLastWindow / RATE_EMIT_INTERVAL_SECONDS;
+    double rate = Math.round((double) countLastWindow / RATE_EMIT_INTERVAL_SECONDS * 1000.0) / 10.0;
 
     return new Heartbeat(rate, cpuPercent, temperature);
   }

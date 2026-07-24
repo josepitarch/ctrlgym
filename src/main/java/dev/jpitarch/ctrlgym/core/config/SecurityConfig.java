@@ -63,9 +63,7 @@ public class SecurityConfig {
       .authorizeHttpRequests(auth -> auth
         .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
         .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
-        .requestMatchers("/v1/gyms/{gymId}/branches/{branchId}/occupancy").authenticated()
-        .requestMatchers("/v1/gyms/**").hasAnyRole("MANAGER", "EMPLOYEE")
-        .requestMatchers("/v1/members/**").hasAnyRole("MEMBER")
+        .requestMatchers("/v1/members/**").hasRole("MEMBER")
         .anyRequest().authenticated()
       )
       .oauth2ResourceServer(oauth -> oauth.jwt(

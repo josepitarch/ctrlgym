@@ -4,6 +4,7 @@ import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,9 +14,8 @@ public interface MembershipJpaRepository extends JpaRepository<MembershipMO, Lon
         SELECT m
         FROM MembershipMO m
         WHERE m.memberId = :memberId AND m.gymId = :gymId
-        AND m.startDate <= CURRENT_DATE AND (m.endDate IS NULL OR m.endDate > CURRENT_DATE)
     """)
-  Optional<MembershipMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
+  List<MembershipMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
 
   Optional<MembershipMO> findByIdAndEndDateIsNull(Integer id);
 

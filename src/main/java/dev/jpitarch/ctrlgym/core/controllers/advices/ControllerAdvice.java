@@ -4,6 +4,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,6 +19,11 @@ public class ControllerAdvice {
   @ExceptionHandler(MemberWithoutAccessException.class)
   public ResponseEntity<?> handleMemberWithoutAccessException() {
     return new ResponseEntity<>(HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<?> handleAuthorizationDeniedException() {
+    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
   }
 
 }

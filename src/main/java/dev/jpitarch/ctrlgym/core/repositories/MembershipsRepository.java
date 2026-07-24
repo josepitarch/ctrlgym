@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -45,10 +44,12 @@ public class MembershipsRepository {
     return this.membershipJpaRepository.getStripeSubscriptionId(memberId.memberId(), memberId.gymId());
   }
 
-  public Optional<Membership> getMembership(Member.Id memberId) {
+  public List<Membership> getMemberships(Member.Id memberId) {
     return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
-      .map(this::map);
+      .stream()
+      .map(this::map)
+      .toList();
   }
 
   public void setCancellationReasonId(Integer membershipId, Integer cancellationReasonId, String comment) {

@@ -17,6 +17,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,9 +65,9 @@ public class MembershipService {
   }
 
   public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
-    Optional<Membership> currentMembership = membershipsRepository.getMembership(memberId);
-    if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
-    String stripeSubscriptionId = membershipPlanRepository.getStripeSubscriptionId(memberId, currentMembership.get().getId());
+    var currentMembership = retrieve(memberId);
+    if (currentMembership == null) throw new MembershipNotFoundException(memberId);
+    String stripeSubscriptionId = membershipPlanRepository.getStripeSubscriptionId(memberId, currentMembership.getId());
     String currentStripePriceId = membershipPlanRepository.getStripePriceId(stripeSubscriptionId);
     String newCurrentStripePriceId = membershipPlanRepository.getStripePriceId(newMembershipPlanId);
     subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId);
@@ -86,7 +87,17 @@ public class MembershipService {
 
   public Membership retrieve(Member.Id memberId) {
     log.debug("Retrieving memberships for member with id {}...", memberId);
-    return membershipsRepository.getMembership(memberId).orElse(null);
+    var memberships = membershipsRepository.getMemberships(memberId);
+    var today = LocalDate.now();
+
+    return memberships.stream()
+      .filter(m -> !m.getDatePeriod().from().isAfter(today) && (m.getDatePeriod().to() == null || m.getDatePeriod().to().isAfter(today)))
+      .findFirst()
+      .or(() -> memberships.stream()
+        .filter(m -> m.getDatePeriod().to() != null && !m.getDatePeriod().to().isAfter(today))
+        .max(Comparator.comparing(m -> m.getDatePeriod().to()))
+      )
+      .orElse(null);
   }
 
   public List<MembershipCancellationReason> getCancellationReasons() {

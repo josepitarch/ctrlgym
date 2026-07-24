@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.config;
 
 import dev.jpitarch.ctrlgym.core.controllers.filters.ControllerApiKeyFilter;
+import dev.jpitarch.ctrlgym.core.controllers.filters.MemberFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,6 +41,13 @@ public class SecurityConfig {
   }
 
   @Bean
+  public FilterRegistrationBean<MemberFilter> memberFilterRegistration(MemberFilter filter) {
+    var registration = new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+  }
+
+  @Bean
   @Order(1)
   public SecurityFilterChain apiKeySecurityFilterChain(HttpSecurity http, ControllerApiKeyFilter filter) {
     http
@@ -54,7 +63,7 @@ public class SecurityConfig {
 
   @Bean
   @Order(2)
-  SecurityFilterChain securityFilterChain(HttpSecurity http) {
+  SecurityFilterChain securityFilterChain(HttpSecurity http, MemberFilter memberFilter) {
     http
     .cors(Customizer.withDefaults())
     .csrf(AbstractHttpConfigurer::disable)
@@ -67,7 +76,8 @@ public class SecurityConfig {
     .oauth2ResourceServer(oauth -> oauth.jwt(
             jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()
             )
-    ));
+    ))
+    .addFilterAfter(memberFilter, BearerTokenAuthenticationFilter.class);
 
     return http.build();
   }

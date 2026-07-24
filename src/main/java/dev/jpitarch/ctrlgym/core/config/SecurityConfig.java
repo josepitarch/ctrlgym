@@ -65,6 +65,7 @@ public class SecurityConfig {
         .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
         .requestMatchers("/v1/gyms/{gymId}/branches/{branchId}/occupancy").authenticated()
         .requestMatchers("/v1/gyms/**").hasAnyRole("MANAGER", "EMPLOYEE")
+        .requestMatchers("/v1/members/**").hasAnyRole("MEMBER")
         .anyRequest().authenticated()
       )
       .oauth2ResourceServer(oauth -> oauth.jwt(

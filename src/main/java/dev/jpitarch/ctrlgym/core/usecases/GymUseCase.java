@@ -8,6 +8,7 @@ import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -31,6 +33,8 @@ public class GymUseCase {
   private final InvoiceRepository invoiceRepository;
 
   private final ProductService productService;
+
+  private final GenerateInvoiceReportService generateInvoiceReportService;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -81,6 +85,11 @@ public class GymUseCase {
 
   public void deleteExercise(Integer exerciseId, Integer gymId) {
     exercisesService.delete(exerciseId, gymId);
+  }
+
+  public byte[] getMemberInvoiceReport(GymBranchId gymBranchId, Member.Id memberId, String invoiceId) throws IOException {
+      log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
+      return generateInvoiceReportService.generate(memberId, invoiceId);
   }
 
 }

@@ -27,5 +27,16 @@ public class GymMO {
   @OneToMany(mappedBy = "gym", fetch = FetchType.LAZY)
   List<GymBranchMO> branches;
 
+  @Column(name = "cif", nullable = false, length = 10)
+  private String cif;
+
+  @Column(name = "street")
+  private String street;
+
+  @Column(name = "postal_code")
+  private Integer postalCode;
+
+  @Column(name = "locality")
+  private String locality;
 
 }

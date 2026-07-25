@@ -1,21 +1,36 @@
-package dev.jpitarch.ctrlgym.payments.services;
+package dev.jpitarch.ctrlgym.core.services;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.util.XRLog;
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.models.GymMO;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.verifactu.service.VerifactuService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import java.util.logging.Level;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GenerateInvoiceReportService {
+
+  private final GymsRepository gymsRepository;
+
+  private final MembersRepository membersRepository;
+
+  private final InvoiceRepository invoiceRepository;
 
   private final VerifactuService verifactuService;
 
@@ -34,10 +49,9 @@ public class GenerateInvoiceReportService {
           .company .name { font-weight: bold; font-size: 13pt; color: #1a4f8a; }
           .meta { text-align: right; font-size: 10pt; }
           .meta .label { color: #888; }
-          .parties { width: 100%; margin-top: 24px; }
-          .parties td { vertical-align: top; width: 50%; padding-right: 12px; }
-          .parties .title { font-size: 9pt; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 4px; }
-          .parties .box { border: 1px solid #ddd; padding: 10px; }
+          .client { width: 50%; margin-top: 24px; }
+          .client .title { font-size: 9pt; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 4px; }
+          .client .box { border: 1px solid #ddd; padding: 10px; }
           .items { width: 100%; border-collapse: collapse; margin-top: 24px; }
           .items th { background: #1a4f8a; color: #fff; text-align: left; padding: 8px; font-size: 9pt; text-transform: uppercase; }
           .items td { padding: 8px; border-bottom: 1px solid #eee; }
@@ -57,42 +71,28 @@ public class GenerateInvoiceReportService {
         <table class="header">
           <tr>
             <td class="company">
-              <div class="name">ACME Corporation S.L.</div>
-              <div>Calle Mayor 123</div>
-              <div>46001 Valencia, Espa&#241;a</div>
-              <div>CIF: B12345678</div>
-              <div>billing@acme.example</div>
+              <div class="name">{{COMPANY_NAME}}</div>
+              <div>{{COMPANY_STREET}}</div>
+              <div>{{COMPANY_POSTAL_CODE}} {{COMPANY_LOCALITY}}</div>
+              <div>CIF: {{COMPANY_CIF}}</div>
             </td>
             <td class="meta">
               <h1>FACTURA</h1>
-              <div><span class="label">N&#250;mero:</span> 2026-0001</div>
-              <div><span class="label">Fecha emisi&#243;n:</span> 27/05/2026</div>
-              <div><span class="label">Vencimiento:</span> 26/06/2026</div>
+              <div><span class="label">N&#250;mero:</span> {{INVOICE_SERIES}}-{{INVOICE_NUMBER}}</div>
+              <div><span class="label">Fecha emisi&#243;n:</span> {{INVOICE_ISSUE_AT}}</div>
             </td>
           </tr>
         </table>
     
-        <table class="parties">
-          <tr>
-            <td>
-              <div class="title">Facturar a</div>
-              <div class="box">
-                <div><strong>Cliente Ejemplo S.A.</strong></div>
-                <div>Avenida del Sol 45</div>
-                <div>28013 Madrid, Espa&#241;a</div>
-                <div>CIF: A87654321</div>
-              </div>
-            </td>
-            <td>
-              <div class="title">Enviar a</div>
-              <div class="box">
-                <div><strong>Cliente Ejemplo S.A.</strong></div>
-                <div>Pol&#237;gono Industrial Norte, Nave 12</div>
-                <div>28100 Alcobendas, Espa&#241;a</div>
-              </div>
-            </td>
-          </tr>
-        </table>
+        <div class="client">
+          <div class="title">DATOS DEL CLIENTE</div>
+          <div class="box">
+            <div><strong>{{CLIENT_NAME}}</strong></div>
+            <div>{{CLIENT_STREET}}</div>
+            <div>{{CLIENT_POSTAL_CODE}} {{CLIENT_CITY}}</div>
+            <div>NIF: {{CLIENT_NIF}}</div>
+          </div>
+        </div>
     
         <table class="items">
           <thead>
@@ -105,22 +105,10 @@ public class GenerateInvoiceReportService {
           </thead>
           <tbody>
             <tr>
-              <td>Servicio de consultor&#237;a t&#233;cnica</td>
-              <td class="num">10</td>
-              <td class="num">75,00 &#8364;</td>
-              <td class="num">750,00 &#8364;</td>
-            </tr>
-            <tr>
-              <td>Desarrollo de software a medida</td>
-              <td class="num">40</td>
-              <td class="num">60,00 &#8364;</td>
-              <td class="num">2.400,00 &#8364;</td>
-            </tr>
-            <tr>
-              <td>Soporte y mantenimiento mensual</td>
+              <td>{{ITEM_DESCRIPTION}}</td>
               <td class="num">1</td>
-              <td class="num">350,00 &#8364;</td>
-              <td class="num">350,00 &#8364;</td>
+              <td class="num">{{ITEM_PRICE}} &#8364;</td>
+              <td class="num">{{ITEM_AMOUNT}} &#8364;</td>
             </tr>
           </tbody>
         </table>
@@ -128,22 +116,18 @@ public class GenerateInvoiceReportService {
         <table class="totals">
           <tr>
             <td class="label">Subtotal</td>
-            <td class="num">3.500,00 &#8364;</td>
+            <td class="num">{{INVOICE_SUBTOTAL}} &#8364;</td>
           </tr>
           <tr>
             <td class="label">IVA (21%)</td>
-            <td class="num">735,00 &#8364;</td>
+            <td class="num">{{INVOICE_TAX}} &#8364;</td>
           </tr>
           <tr class="grand">
             <td class="label">Total</td>
-            <td class="num">4.235,00 &#8364;</td>
+            <td class="num">{{INVOICE_TOTAL}} &#8364;</td>
           </tr>
         </table>
-    
-        <div class="notes">
-          <strong>Forma de pago:</strong> Transferencia bancaria a ES12 3456 7890 1234 5678 9012 en un plazo m&#225;ximo de 30 d&#237;as desde la fecha de emisi&#243;n.<br/>
-          Gracias por su confianza.
-        </div>
+  
         <div class="footer">
           <img width="200px" height="200px" src="data:image/png;base64,{{QR_CODE_BASE64}}" />
           <div>Verifactu</div>
@@ -152,11 +136,42 @@ public class GenerateInvoiceReportService {
     </html>
     """;
 
-  public byte[] generate(Member.Id memberId, Invoice invoice) throws IOException {
+  @PostConstruct
+  public void init() {
+    XRLog.setLevel(XRLog.CSS_PARSE, Level.SEVERE);
+  }
+
+  public byte[] generate(Member.Id memberId, String invoiceId) throws IOException {
+    GymMO gym = gymsRepository.getById(memberId.gymId());
+    Member member = membersRepository.getById(memberId);
+    Invoice invoice = invoiceRepository.getInvoice(invoiceId).orElseThrow();
     String qrUrl = verifactuService.getStatus(memberId.gymId(), UUID.fromString("ef9136a0-c55a-4569-8db3-6eeb7a2ce9c0")).getQr();
 
+    var decimalFormat = new DecimalFormat("#,##0.00");
+    var dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     try (var os = new ByteArrayOutputStream()) {
-      var html = DEFAULT_HTML.replace("{{QR_CODE_BASE64}}", qrUrl);
+      var html = DEFAULT_HTML
+        .replace("{{COMPANY_NAME}}", gym.getName())
+        .replace("{{COMPANY_STREET}}", gym.getStreet())
+        .replace("{{COMPANY_POSTAL_CODE}}", String.valueOf(gym.getPostalCode()))
+        .replace("{{COMPANY_LOCALITY}}", gym.getLocality())
+        .replace("{{COMPANY_CIF}}", gym.getCif())
+        .replace("{{CLIENT_NAME}}", member.getFullName())
+        .replace("{{CLIENT_STREET}}", member.getAddress().getStreet())
+        .replace("{{CLIENT_POSTAL_CODE}}", String.valueOf(member.getAddress().getPostalCode()))
+        .replace("{{CLIENT_CITY}}", member.getAddress().getCity())
+        .replace("{{CLIENT_NIF}}", member.getNif())
+        .replace("{{INVOICE_SERIES}}", invoice.getSeries())
+        .replace("{{INVOICE_NUMBER}}", invoice.getNumber())
+        .replace("{{INVOICE_ISSUE_AT}}", invoice.getIssueAt().format(dateFormatter))
+        .replace("{{ITEM_DESCRIPTION}}", member.getFullName())
+        .replace("{{ITEM_PRICE}}", decimalFormat.format(invoice.getSubtotal()))
+        .replace("{{ITEM_AMOUNT}}", decimalFormat.format(invoice.getSubtotal()))
+        .replace("{{INVOICE_SUBTOTAL}}", decimalFormat.format(invoice.getSubtotal()))
+        .replace("{{INVOICE_TAX}}", decimalFormat.format(invoice.getTax()))
+        .replace("{{INVOICE_TOTAL}}", decimalFormat.format(invoice.getTotal()))
+        .replace("{{QR_CODE_BASE64}}", qrUrl);
       var builder = new PdfRendererBuilder();
       builder.withHtmlContent(html, null);
       builder.toStream(os);

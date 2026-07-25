@@ -8,6 +8,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 @Data
@@ -43,7 +44,7 @@ public class Member {
 
   @JsonIgnore
   public String getFullName() {
-    return name + " " + firstSurname + " " + secondSurname;
+    return name + " " + firstSurname + " " + Optional.ofNullable(secondSurname).orElse("");
   }
 
   public record Id(@JsonProperty("member_id") UUID memberId, @JsonProperty("gym_id") Integer gymId) {

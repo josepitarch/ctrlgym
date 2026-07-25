@@ -4,10 +4,7 @@ import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.repositories.InvoicesRepository;
-import dev.jpitarch.ctrlgym.core.services.MembersService;
-import dev.jpitarch.ctrlgym.core.services.MembershipService;
-import dev.jpitarch.ctrlgym.core.services.RoutinesService;
-import dev.jpitarch.ctrlgym.core.services.WorkoutsService;
+import dev.jpitarch.ctrlgym.core.services.*;
 import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -36,6 +33,8 @@ public class MemberUseCase {
   private final RoutinesService routinesService;
 
   private final InvoiceRepository invoiceRepository;
+
+  private final GenerateInvoiceReportService generateInvoiceReportService;
 
   public void createMember(Member member) throws StripeException {
     membersService.create(member);
@@ -99,4 +98,8 @@ public class MemberUseCase {
     return membersService.generateQrCode(memberId);
   }
 
+  public byte[] getInvoiceReport(Member.Id memberId, String invoiceId) throws IOException {
+    log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
+    return generateInvoiceReportService.generate(memberId, invoiceId);
+  }
 }

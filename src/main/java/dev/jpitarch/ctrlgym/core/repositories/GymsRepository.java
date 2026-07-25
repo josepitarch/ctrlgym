@@ -27,6 +27,10 @@ public class GymsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
+  public GymMO getById(Integer gymId) {
+    return jpaRepository.findById(gymId).orElseThrow();
+  }
+
   public String getVerifactuApiKey(Integer gymId) {
     return jpaRepository.findVerifactiApiKeyById(gymId);
   }

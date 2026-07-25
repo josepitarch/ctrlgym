@@ -10,10 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +46,7 @@ public class GymController {
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE')")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/invoices")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, Pageable pageable) {
-    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId),Member.Id.of(memberId, gymId), pageable)
+    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), pageable)
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
@@ -53,13 +55,12 @@ public class GymController {
       )));
   }
 
-
   @GetMapping("/{gymId}/branches/{branchId}/occupancy")
   public ResponseEntity<CurrentOccupancy> getCurrentOccupancy(@PathVariable Integer gymId, @PathVariable Integer branchId) {
     return ResponseEntity.ok(useCase.getCurrentOccupancy(GymBranchId.of(gymId, branchId)));
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER')")
   @PostMapping("/{gymId}/exercises")
   public ResponseEntity<Exercise> createExercise(@PathVariable Integer gymId, @RequestBody Exercise exercise) {
     return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise));
@@ -70,14 +71,14 @@ public class GymController {
     return ResponseEntity.ok(useCase.getAll(gymId));
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER')")
   @DeleteMapping("/{gymId}/exercises/{exerciseId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteExercise(@PathVariable Integer gymId, @PathVariable Integer exerciseId) {
     useCase.deleteExercise(exerciseId, gymId);
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER')")
   @PostMapping("/{gymId}/memberships/plans")
   public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody MembershipPlan plan) throws StripeException {
     useCase.createMembershipPlan(gymId, plan);
@@ -89,11 +90,19 @@ public class GymController {
     return ResponseEntity.ok(useCase.getMembershipPlans(GymBranchId.of(gymId, gymBranchId)));
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping("/{gymId}/memberships/plans/{planId}")
   public void deleteMembershipPlan(@PathVariable Integer gymId, @PathVariable String planId) throws StripeException {
     useCase.deleteMembershipPlan(planId, gymId);
   }
+
+  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER')")
+  @GetMapping(value = "/{gymId}/branches/{branchId}/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, @PathVariable String invoiceId) throws IOException {
+    byte[] pdfReport = useCase.getMemberInvoiceReport(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), invoiceId);
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
+  }
+
 
 }

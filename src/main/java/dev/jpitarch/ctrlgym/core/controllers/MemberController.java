@@ -4,6 +4,7 @@ import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
+import dev.jpitarch.ctrlgym.payments.dto.InvoiceSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -119,6 +120,19 @@ public class MemberController {
   public ResponseEntity<Page<Workout>> getWorkouts(@PathVariable UUID memberId, Pageable pageable) {
     return ResponseEntity.ok(memberUseCase.getWorkouts(memberId, pageable));
   }
+
+  @GetMapping("/members/{memberId}/invoices")
+  @PreAuthorize("#memberId.toString() == authentication.name")
+  public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
+    return ResponseEntity.ok(memberUseCase.getInvoices(Member.Id.of(memberId, gymId), pageable)
+      .map(invoice -> new InvoiceSummary(
+        invoice.getId(),
+        invoice.getIssueAt(),
+        null,
+        invoice.getTotal()
+      )));
+  }
+
 
   @PreAuthorize("#memberId.toString() == authentication.name")
   @PostMapping(value = "/{memberId}/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)

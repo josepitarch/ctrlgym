@@ -29,16 +29,6 @@ public class InvoicesController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/members/{memberId}/invoices")
-  public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
-    return ResponseEntity.ok(invoicesService.getInvoices(Member.Id.of(memberId, gymId), pageable)
-      .map(invoice -> new InvoiceSummary(
-        invoice.getId(),
-        invoice.getIssueAt(),
-        null,
-        invoice.getTotal()
-      )));
-  }
 
   @GetMapping(value = "/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable String invoiceId, @RequestParam Integer gymId) throws IOException {

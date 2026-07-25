@@ -5,7 +5,10 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
+import dev.jpitarch.ctrlgym.payments.dto.InvoiceSummary;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +40,19 @@ public class GymController {
   public ResponseEntity<MemberRetention> getMemberRetention(@PathVariable int gymId, @PathVariable int branchId, @PathVariable UUID memberId) {
     return ResponseEntity.ok(useCase.getMemberRetention(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId)));
   }
+
+  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE')")
+  @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/invoices")
+  public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, Pageable pageable) {
+    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId),Member.Id.of(memberId, gymId), pageable)
+      .map(invoice -> new InvoiceSummary(
+        invoice.getId(),
+        invoice.getIssueAt(),
+        null,
+        invoice.getTotal()
+      )));
+  }
+
 
   @GetMapping("/{gymId}/branches/{branchId}/occupancy")
   public ResponseEntity<CurrentOccupancy> getCurrentOccupancy(@PathVariable Integer gymId, @PathVariable Integer branchId) {

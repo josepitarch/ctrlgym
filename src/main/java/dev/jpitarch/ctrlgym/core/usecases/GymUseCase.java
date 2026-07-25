@@ -7,9 +7,12 @@ import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
+import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +28,8 @@ public class GymUseCase {
 
   private final MembershipPlanRepository membershipPlanRepository;
 
+  private final InvoiceRepository invoiceRepository;
+
   private final ProductService productService;
 
   public List<GymBranch> getBranches(Integer gymId) {
@@ -38,6 +43,11 @@ public class GymUseCase {
   public MemberRetention getMemberRetention(GymBranchId gymBranchId, Member.Id memberId) {
     return new MemberRetention(memberId, 85, 2340, 14, 9);
   }
+
+  public Page<Invoice> getInvoices(GymBranchId gymBranchId, Member.Id memberId, Pageable pageable) {
+    return invoiceRepository.findByMemberId(memberId, pageable);
+  }
+
 
   public void createMembershipPlan(Integer gymId, MembershipPlan plan) throws StripeException {
     String[] data = productService.create(gymId, plan);

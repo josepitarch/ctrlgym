@@ -3,10 +3,12 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.repositories.InvoicesRepository;
 import dev.jpitarch.ctrlgym.core.services.MembersService;
 import dev.jpitarch.ctrlgym.core.services.MembershipService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.core.services.WorkoutsService;
+import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,8 @@ public class MemberUseCase {
   private final WorkoutsService workoutsService;
 
   private final RoutinesService routinesService;
+
+  private final InvoiceRepository invoiceRepository;
 
   public void createMember(Member member) throws StripeException {
     membersService.create(member);
@@ -85,6 +89,11 @@ public class MemberUseCase {
   public Page<Workout> getWorkouts(UUID memberId, Pageable pageable) {
     return workoutsService.getWorkouts(memberId, pageable);
   }
+
+  public Page<Invoice> getInvoices(Member.Id memberId, Pageable pageable) {
+    return invoiceRepository.findByMemberId(memberId, pageable);
+  }
+
 
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
     return membersService.generateQrCode(memberId);

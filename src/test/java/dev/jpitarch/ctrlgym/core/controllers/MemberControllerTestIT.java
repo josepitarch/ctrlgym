@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
-import dev.jpitarch.ctrlgym.core.models.MemberMO;
+import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.models.RoutineMO;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
@@ -87,7 +87,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
       .andExpect(status().isCreated());
 
     memberJpaRepository
-      .findById(new MemberMO.ID(memberId.memberId(), memberId.gymId()))
+      .findById(new UserMO.ID(memberId.memberId(), memberId.gymId()))
       .ifPresentOrElse(m -> assertThat(m.getStripeCustomerId()).isEqualTo("cus_test123"), () -> fail("Member not found"));
   }
 

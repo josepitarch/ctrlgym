@@ -18,9 +18,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "members")
-@IdClass(MemberMO.ID.class)
-public class MemberMO {
+@Table(name = "users")
+@IdClass(UserMO.ID.class)
+public class UserMO {
 
   @Id
   @Column(name = "id")
@@ -92,9 +92,9 @@ public class MemberMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    MemberMO memberMO = (MemberMO) o;
-    return getId() != null && Objects.equals(getId(), memberMO.getId())
-      && getGymId() != null && Objects.equals(getGymId(), memberMO.getGymId());
+    UserMO userMO = (UserMO) o;
+    return getId() != null && Objects.equals(getId(), userMO.getId())
+      && getGymId() != null && Objects.equals(getGymId(), userMO.getGymId());
   }
 
   @Override

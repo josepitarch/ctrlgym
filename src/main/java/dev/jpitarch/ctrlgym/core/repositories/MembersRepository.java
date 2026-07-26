@@ -5,7 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
-import dev.jpitarch.ctrlgym.core.models.MemberMO;
+import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,38 +29,38 @@ public class MembersRepository {
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
   public boolean exists(Member.Id memberId) {
-    return jpaRepository.existsById(new MemberMO.ID(memberId.memberId(), memberId.gymId()));
+    return jpaRepository.existsById(new UserMO.ID(memberId.memberId(), memberId.gymId()));
   }
 
   public Member getById(Member.Id memberId) {
-    var memberMOId = new MemberMO.ID(memberId.memberId(), memberId.gymId());
+    var memberMOId = new UserMO.ID(memberId.memberId(), memberId.gymId());
 
-    MemberMO memberMO = jpaRepository
+    UserMO userMO = jpaRepository
       .findById(memberMOId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
 
     return Member.builder()
       .id(memberId)
-      .nif(memberMO.getNif())
-      .email(memberMO.getEmail())
-      .name(memberMO.getName())
-      .firstSurname(memberMO.getFirstSurname())
-      .secondSurname(memberMO.getSecondSurname())
-      .gender(mapGender(memberMO.getGender()))
-      .birthDate(memberMO.getBirthDate())
+      .nif(userMO.getNif())
+      .email(userMO.getEmail())
+      .name(userMO.getName())
+      .firstSurname(userMO.getFirstSurname())
+      .secondSurname(userMO.getSecondSurname())
+      .gender(mapGender(userMO.getGender()))
+      .birthDate(userMO.getBirthDate())
       .address(Member.Address.builder()
-        .street(memberMO.getStreet())
-        .city(memberMO.getCity())
-        .state(memberMO.getState())
-        .country(memberMO.getCountry())
-        .postalCode(memberMO.getPostalCode())
+        .street(userMO.getStreet())
+        .city(userMO.getCity())
+        .state(userMO.getState())
+        .country(userMO.getCountry())
+        .postalCode(userMO.getPostalCode())
         .build()
       )
       .build();
   }
 
   public void save(Member member, String customerId) {
-    var memberMO = new MemberMO();
+    var memberMO = new UserMO();
     memberMO.setId(member.getId().memberId());
     memberMO.setGymId(member.getId().gymId());
     memberMO.setName(member.getName());
@@ -99,7 +99,7 @@ public class MembersRepository {
   public Member.Id getId(String stripeCustomerId) {
     var sql = """
         SELECT id, gym_id
-        FROM members
+        FROM users
         WHERE stripe_customer_id = :stripeCustomerId
       """;
 

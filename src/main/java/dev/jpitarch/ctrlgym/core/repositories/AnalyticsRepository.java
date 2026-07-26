@@ -359,13 +359,13 @@ public class AnalyticsRepository {
           ELSE '+45'
         END AS age_range,
         COUNT(*) AS total
-      FROM members m
-      WHERE m.gym_id = :gymId
+      FROM users u
+      WHERE u.gym_id = :gymId
       AND EXISTS (
           SELECT 1
           FROM memberships mb
           JOIN membership_plans mp on mb.membership_plan_id = mp.id
-          WHERE m.id = mb.member_id AND m.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
+          WHERE u.id = mb.member_id AND u.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
           AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date > CURRENT_DATE)
       )
       GROUP BY GROUPING SETS (

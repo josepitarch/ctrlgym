@@ -25,13 +25,15 @@ const client = new pg.Client({
 client.connect()
 
 async function inviteManager({email, gymId, name, firstSurname, secondSurname}) {
+  console.log({email, gymId, name, firstSurname, secondSurname})
   const {data, error} = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
     data: {
       name,
       first_surname: firstSurname,
       second_surname: secondSurname,
       gym_id: gymId
-    }
+    },
+    redirectTo: 'https://app.ctrlgym.es'
   });
 
   if (error) {
@@ -45,9 +47,9 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
   try {
     const result = await client.query(
       `UPDATE public.users
-       SET role = 'MANAGER'
+       SET role = 'MANAGER', status = NULL
        WHERE id = $1 AND gym_id = $2`,
-      [userId, userId]
+      [userId, gymId]
     );
 
     if (result.rowCount === 0) {
@@ -63,7 +65,7 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
   }
 }
 
-// --- Uso: node invite-manager.js email@ejemplo.com 3 Juan Pérez García MANAGER
+// --- Uso: node invite-manager.js email@ejemplo.com 3 Juan Pérez García
 const [, , email, gymId, name, firstSurname, secondSurname] = process.argv;
 
 if (!email || !gymId) {

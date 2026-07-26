@@ -51,7 +51,6 @@ public class WebhookService {
     }
 
     switch (event.getType()) {
-      case "setup_intent.created" -> handleSetupIntentCreated(map(event));
       case "setup_intent.succeeded" -> handleSetupIntentSucceeded(map(event));
       case "invoice.finalized" -> handleInvoiceCreated(map(event), event.getAccount());
       case "payment_intent.processing" -> handlePaymentIntentProcessing(map(event));
@@ -70,9 +69,6 @@ public class WebhookService {
     membershipsRepository.setMembershipPlanId(membershipId, product);
   }
 
-  private void handleSetupIntentCreated(SetupIntent setupIntent) {
-    log.info("SetupIntent of member with id {} of customer {} is created", setupIntent.getId(), setupIntent.getCustomer());
-  }
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());

@@ -23,7 +23,6 @@ server:
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
-  whsec-connected-account: ${STRIPE_WEBHOOK_SECRET_CONNECTED_ACCOUNT}
   whsec-account: ${STRIPE_WEBHOOK_SECRET}
 
 qr:

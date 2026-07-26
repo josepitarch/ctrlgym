@@ -78,7 +78,8 @@ public class GenerateInvoiceReportService {
             </td>
             <td class="meta">
               <h1>FACTURA</h1>
-              <div><span class="label">N&#250;mero:</span> {{INVOICE_SERIES}}-{{INVOICE_NUMBER}}</div>
+              <div><span class="label">N&#250;mero:</span> {{INVOICE_NUMBER}}</div>
+              <div><span class="label">Serie:</span> {{INVOICE_SERIES}}</div>
               <div><span class="label">Fecha emisi&#243;n:</span> {{INVOICE_ISSUE_AT}}</div>
             </td>
           </tr>
@@ -130,7 +131,7 @@ public class GenerateInvoiceReportService {
   
         <div class="footer">
           <img width="200px" height="200px" src="data:image/png;base64,{{QR_CODE_BASE64}}" />
-          <div>Verifactu</div>
+          <div>Veri*Factu</div>
         </div>
       </body>
     </html>
@@ -138,7 +139,7 @@ public class GenerateInvoiceReportService {
 
   @PostConstruct
   public void init() {
-    XRLog.setLevel(XRLog.CSS_PARSE, Level.SEVERE);
+    XRLog.listRegisteredLoggers().forEach(logger -> XRLog.setLevel(logger, Level.OFF));
   }
 
   public byte[] generate(Member.Id memberId, String invoiceId) throws IOException {

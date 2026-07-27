@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
 import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
-import dev.jpitarch.ctrlgym.core.usecases.AuthUseCase;
+import dev.jpitarch.ctrlgym.core.usecases.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/auth")
 public class AuthController {
 
-  private final AuthUseCase authUseCase;
+  private final AuthService authService;
 
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(authUseCase.signup(request));
+    return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(request));
   }
 
   @PostMapping("/signin")
   public ResponseEntity<AuthResponse> signin(@RequestBody SigninRequest request) {
-    return ResponseEntity.ok(authUseCase.signin(request));
+    return ResponseEntity.ok(authService.signin(request));
   }
 }

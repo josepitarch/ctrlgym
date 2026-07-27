@@ -2,7 +2,7 @@ spring:
   application:
     name: ctrlgym
   datasource:
-    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:5432/${DB_NAME}
+    url: jdbc:postgresql://${DB_HOST}:5432/${DB_NAME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -27,7 +27,7 @@ stripe:
 
 supabase:
   url: ${SUPABASE_URL}
-  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+  service-role-key: ${SUPABASE_SECRET_KEY}
 
 qr:
   jwt-secret: "tu-clave-secreta-muy-larga-de-al-menos-256-bits-aqui"

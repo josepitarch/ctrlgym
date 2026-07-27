@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
 import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
-import dev.jpitarch.ctrlgym.core.dto.SigninResponse;
+import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
 import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.repositories.UsersRepository;
@@ -18,17 +18,18 @@ public class AuthUseCase {
   private final SupabaseAuthService supabaseAuthService;
   private final UsersRepository usersRepository;
 
-  public void signup(SignupRequest request) {
+  public AuthResponse signup(SignupRequest request) {
     var existingUserId = usersRepository.findIdByEmail(request.email());
 
     if (existingUserId.isPresent()) {
       insertUserRow(existingUserId.get(), request);
+      return supabaseAuthService.signin(new SigninRequest(request.email(), request.password()));
     } else {
-      supabaseAuthService.signup(request);
+      return supabaseAuthService.signup(request);
     }
   }
 
-  public SigninResponse signin(SigninRequest request) {
+  public AuthResponse signin(SigninRequest request) {
     return supabaseAuthService.signin(request);
   }
 

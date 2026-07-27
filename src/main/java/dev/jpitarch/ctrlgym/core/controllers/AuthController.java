@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
-import dev.jpitarch.ctrlgym.core.dto.SigninResponse;
+import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
 import dev.jpitarch.ctrlgym.core.usecases.AuthUseCase;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +20,12 @@ public class AuthController {
   private final AuthUseCase authUseCase;
 
   @PostMapping("/signup")
-  public ResponseEntity<Void> signup(@RequestBody SignupRequest request) {
-    authUseCase.signup(request);
-    return new ResponseEntity<>(HttpStatus.CREATED);
+  public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(authUseCase.signup(request));
   }
 
   @PostMapping("/signin")
-  public ResponseEntity<SigninResponse> signin(@RequestBody SigninRequest request) {
+  public ResponseEntity<AuthResponse> signin(@RequestBody SigninRequest request) {
     return ResponseEntity.ok(authUseCase.signin(request));
   }
 }

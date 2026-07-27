@@ -25,6 +25,10 @@ stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   whsec-account: ${STRIPE_WEBHOOK_SECRET}
 
+supabase:
+  url: ${SUPABASE_URL}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+
 qr:
   jwt-secret: "tu-clave-secreta-muy-larga-de-al-menos-256-bits-aqui"
   expiration-seconds: 10

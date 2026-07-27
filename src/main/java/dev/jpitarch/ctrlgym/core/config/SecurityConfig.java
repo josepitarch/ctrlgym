@@ -61,7 +61,7 @@ public class SecurityConfig {
       .cors(Customizer.withDefaults())
       .csrf(AbstractHttpConfigurer::disable)
       .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/public/**", "/v1/payments/webhook", "/health").permitAll()
+        .requestMatchers("/public/**", "/v1/payments/webhook", "/v1/auth/**", "/health").permitAll()
         .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
         .requestMatchers("/v1/members/**").hasRole("MEMBER")
         .anyRequest().authenticated()

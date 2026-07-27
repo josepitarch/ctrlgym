@@ -5,7 +5,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
-  console.error('Faltan SUPABASE_UR o DATABASE_URL en el entorno.');
+  console.error('Missing SUPABASE_URL or SUPABASE_SECRET_KEY in environment.');
   process.exit(1);
 }
 
@@ -22,8 +22,6 @@ const client = new pg.Client({
   ssl: false
 })
 
-client.connect()
-
 async function inviteManager({email, gymId, name, firstSurname, secondSurname}) {
   console.log({email, gymId, name, firstSurname, secondSurname})
   const {data, error} = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
@@ -33,18 +31,19 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
       second_surname: secondSurname,
       gym_id: gymId
     },
-    redirectTo: 'https://app.ctrlgym.es'
+    redirectTo: 'https://app.ctrlgym.es/signup'
   });
 
   if (error) {
-    console.error('Error al invitar:', error);
+    console.error('Error inviting user:', error);
     process.exit(1);
   }
 
   const userId = data.user.id;
-  console.log(`Invitación enviada a ${email}. user_id: ${userId}`);
+  console.log(`Invitation sent to ${email}. user_id: ${userId}`);
 
   try {
+    await client.connect();
     const result = await client.query(
       `UPDATE public.users
        SET role = 'MANAGER', status = NULL
@@ -53,15 +52,15 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
     );
 
     if (result.rowCount === 0) {
-      throw new Error(`No se encontró fila en public.users con id ${userId}`);
+      throw new Error(`No row found in public.users with id ${userId}`);
     }
 
-    console.log(`Usuario ${email} actualizado correctamente como ${role} del gym ${gymId}.`);
+    console.log(`User ${email} updated successfully as MANAGER of gym ${gymId}.`);
   } catch (dbError) {
-    console.error('Error al actualizar public.users:', dbError.message);
+    console.error('Error updating public.users:', dbError.message);
     process.exit(1);
   } finally {
-    await client.end()
+    await client.end();
   }
 }
 
@@ -69,7 +68,7 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
 const [, , email, gymId, name, firstSurname, secondSurname] = process.argv;
 
 if (!email || !gymId) {
-  console.error('Uso: node invite-manager.js <email> <gym_id> <name> <first_surname> <second_surname>');
+  console.error('Usage: node invite-manager.js <email> <gym_id> <name> <first_surname> <second_surname>');
   process.exit(1);
 }
 

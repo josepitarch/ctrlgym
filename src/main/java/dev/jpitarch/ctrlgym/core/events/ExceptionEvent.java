@@ -12,7 +12,6 @@ public class ExceptionEvent extends ApplicationEvent {
   private final String exceptionType;
   private final String message;
   private final HttpStatusCode statusCode;
-  private final Instant timestamp;
   private final String requestUri;
   private final String httpMethod;
 
@@ -21,7 +20,6 @@ public class ExceptionEvent extends ApplicationEvent {
     this.exceptionType = exceptionType;
     this.message = message;
     this.statusCode = statusCode;
-    this.timestamp = Instant.now();
     this.requestUri = requestUri;
     this.httpMethod = httpMethod;
   }

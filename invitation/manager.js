@@ -14,12 +14,12 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
 });
 
 const client = new pg.Client({
-  host: "aws-1-eu-central-1.pooler.supabase.com",
+  host: process.env.DB_HOST,
   user: process.env.DB_USERNAME,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: 5432,
-  ssl: false
+  ssl: true
 })
 
 async function inviteManager({email, gymId, name, firstSurname, secondSurname}) {

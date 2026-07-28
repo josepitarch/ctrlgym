@@ -2,9 +2,9 @@
   "name": "ctrlgym-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "manager.js",
   "scripts": {
-    "start": "node --env-file=../.env index.js",
+    "start": "node --env-file=../.env manager.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

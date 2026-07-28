@@ -32,3 +32,8 @@ supabase:
 qr:
   jwt-secret: "tu-clave-secreta-muy-larga-de-al-menos-256-bits-aqui"
   expiration-seconds: 10
+
+notifications:
+  telegram:
+    bot.token: ${TELEGRAM_BOT_TOKEN}
+    chat.id: ${TELEGRAM_CHAT_ID}

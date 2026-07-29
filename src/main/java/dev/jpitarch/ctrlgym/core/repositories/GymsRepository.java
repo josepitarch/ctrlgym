@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GymsRepository {
 
-  private final GymRepositoryJpaRepository jpaRepository;
+  private final GymJpaRepository jpaRepository;
 
   private final NamedParameterJdbcTemplate jdbc;
 
@@ -39,9 +39,7 @@ public class GymsRepository {
     return jpaRepository.findControllerApiKey(gymId);
   }
 
-  public String getStripeAccountId(Integer gymId) {
-    return jpaRepository.findStripeAccountIdById(gymId);
-  }
+
 
   public Integer getId(String stripeAccountId) {
     return jpaRepository.findIdByStripeAccountId(stripeAccountId);

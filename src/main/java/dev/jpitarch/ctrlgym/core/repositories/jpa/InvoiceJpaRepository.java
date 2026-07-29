@@ -1,6 +1,6 @@
-package dev.jpitarch.ctrlgym.payments.repositories.jpa;
+package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
-import dev.jpitarch.ctrlgym.payments.models.InvoiceMO;
+import dev.jpitarch.ctrlgym.core.models.InvoiceMO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

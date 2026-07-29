@@ -7,7 +7,7 @@ import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
-import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import lombok.RequiredArgsConstructor;

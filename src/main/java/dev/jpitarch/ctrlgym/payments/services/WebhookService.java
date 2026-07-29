@@ -4,10 +4,8 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.Webhook;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +14,7 @@ import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,8 +26,6 @@ public class WebhookService {
 
   private final SubscriptionService subscriptionService;
 
-  private final GymsRepository gymsRepository;
-
   private final MembersRepository membersRepository;
 
   private final MembershipsRepository membershipsRepository;
@@ -36,6 +33,8 @@ public class WebhookService {
   private final InvoiceRepository invoiceRepository;
 
   private final ApplicationEventPublisher eventPublisher;
+
+  private final StripeBridge stripeBridge;
 
   @Value("${stripe.whsec-account}")
   private String webhookSecret;
@@ -52,7 +51,7 @@ public class WebhookService {
 
     switch (event.getType()) {
       case "setup_intent.succeeded" -> handleSetupIntentSucceeded(map(event));
-      case "invoice.finalized" -> handleInvoiceCreated(map(event), event.getAccount());
+      case "invoice.finalized" -> handleInvoiceCreated(map(event));
       case "payment_intent.processing" -> handlePaymentIntentProcessing(map(event));
       case "invoice.payment_succeeded" -> handlePaymentSucceeded(map(event));
       case "invoice.payment_failed" -> handlePaymentFailed(map(event));
@@ -69,16 +68,15 @@ public class WebhookService {
     membershipsRepository.setMembershipPlanId(membershipId, product);
   }
 
-
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
 
-    var memberId = membersRepository.getId(setupIntent.getCustomer());
+    var memberId = stripeBridge.getId(setupIntent.getCustomer());
 
-    membersRepository.getPaymentMethodId(setupIntent.getCustomer()).ifPresent(pm -> {
+    stripeBridge.getPaymentMethodId(setupIntent.getCustomer()).ifPresent(pm -> {
       try {
         var subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId);
-        var stripeAccount = gymsRepository.getStripeAccountId(memberId.gymId());
+        var stripeAccount = stripeBridge.getStripeAccountId(memberId.gymId());
 
         log.info("Member with id {} has already a payment method configured. Updating...", memberId);
 
@@ -92,19 +90,26 @@ public class WebhookService {
     membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
-  private void handleInvoiceCreated(Invoice invoice, String accountId) {
+  private void handleInvoiceCreated(Invoice invoice) {
     log.info("Creating invoice of member with id {}...", invoice.getId());
-    invoiceRepository.create(invoice, accountId);
+    Member.Id memberId = stripeBridge.getId(invoice.getCustomer());
+    var inv = dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
+      .id(invoice.getId())
+      .subtotal(BigDecimal.valueOf(invoice.getSubtotal()))
+      .total(BigDecimal.valueOf(invoice.getTotal()))
+      .currency(invoice.getCurrency())
+      .build();
+    invoiceRepository.create(inv, memberId);
   }
 
   private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) {
     log.info("Marking invoice with {} as processing...", paymentIntent.getPaymentDetails().getOrderReference());
-    invoiceRepository.markAsProcessing(paymentIntent);
+    invoiceRepository.markAsProcessing(paymentIntent.getPaymentDetails().getOrderReference());
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {
     log.info("Marking invoice with member with id {} as paid...", invoice.getId());
-    invoiceRepository.markAsPaid(invoice);
+    invoiceRepository.markAsPaid(invoice.getId());
 
     //TODO: setear next_billing_date en función del Recurring
     long nextChargeDate = invoice.getLines().getData().getFirst().getPeriod().getEnd();
@@ -121,7 +126,7 @@ public class WebhookService {
         .getSubscription();
     }
 
-    var member = membersRepository.getById(membersRepository.getId(invoice.getCustomer()));
+    var member = membersRepository.getById(stripeBridge.getId(invoice.getCustomer()));
     inv.setName(member.getName());
     inv.setFirstSurname(member.getFirstSurname());
     inv.setSecondSurname(member.getSecondSurname());
@@ -133,7 +138,7 @@ public class WebhookService {
   private void handlePaymentFailed(Invoice invoice) {
     //TODO: push notification
     log.info("Marking invoice with memberId {} failed...", invoice.getId());
-    invoiceRepository.markAsFailed(invoice);
+    invoiceRepository.markAsFailed(invoice.getId());
   }
 
   @SuppressWarnings("unchecked")

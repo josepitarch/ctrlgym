@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface GymRepositoryJpaRepository extends JpaRepository<GymMO, Integer> {
+public interface GymJpaRepository extends JpaRepository<GymMO, Integer> {
 
   @Query("SELECT g.verifactiApiKey FROM GymMO g WHERE g.id = :id")
   String findVerifactiApiKeyById(Integer id);

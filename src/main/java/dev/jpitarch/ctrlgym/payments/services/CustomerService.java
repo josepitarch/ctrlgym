@@ -5,7 +5,7 @@ import com.stripe.model.Customer;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomerService {
 
-  private final GymsRepository gymsRepository;
+  private final StripeBridge stripeBridge;
 
   public String create(Member member) throws StripeException {
     Integer gymId = member.getId().gymId();
 
     var requestOptions = RequestOptions.builder()
-      .setStripeAccount(gymsRepository.getStripeAccountId(gymId))
+      .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
       .build();
 
     var params = CustomerCreateParams.builder()

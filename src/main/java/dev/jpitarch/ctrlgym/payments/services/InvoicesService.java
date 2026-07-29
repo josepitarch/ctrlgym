@@ -4,33 +4,25 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.SetupIntent;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.SetupIntentCreateParams;
-import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
+import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
-import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class InvoicesService {
 
-  private final GymsRepository gymsRepository;
+  private final StripeBridge stripeBridge;
 
-  private final MembersRepository membersRepository;
-  
   public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
-    String accountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String customerId = membersRepository.getStripeCustomerId(memberId).orElseThrow();
+    String accountId = stripeBridge.getStripeAccountId(memberId.gymId());
+    String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow();
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(accountId)

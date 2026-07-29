@@ -7,7 +7,7 @@ import com.stripe.model.TaxRate;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,10 +19,10 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class ProductService {
 
-  private final GymsRepository gymsRepository;
+  private final StripeBridge stripeBridge;
 
   public String[] create(Integer gymId, MembershipPlan request) throws StripeException {
-    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
+    String stripeAccountId = stripeBridge.getStripeAccountId(gymId);
 
     var options = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
@@ -56,7 +56,7 @@ public class ProductService {
   }
 
   public void delete(Integer gymId, String productId) throws StripeException {
-    String stripeAccountId = gymsRepository.getStripeAccountId(gymId);
+    String stripeAccountId = stripeBridge.getStripeAccountId(gymId);
 
     var options = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)

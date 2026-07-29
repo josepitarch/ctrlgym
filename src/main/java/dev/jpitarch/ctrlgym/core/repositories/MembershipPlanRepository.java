@@ -57,32 +57,8 @@ public class MembershipPlanRepository {
     membershipPlanJpaRepository.save(planMO);
   }
 
-  public String getStripePriceId(String id) {
-    var sql = """
-      SELECT stripe_price_id
-      FROM membership_plans
-      WHERE id = :id
-      """;
-    var params = Map.of("id", id);
 
-    return jdbc.queryForObject(sql, params, String.class);
-  }
 
-  public String getStripeSubscriptionId(Member.Id memberId, Integer membershipId) {
-    var sql = """
-        SELECT stripe_subscription_id
-        FROM memberships
-        WHERE member_id = :memberId AND gym_id = :gymId AND id = :membershipId
-      """;
-
-    var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId(),
-      "id", membershipId
-    );
-
-    return jdbc.queryForObject(sql, params, String.class);
-  }
 
   private MembershipPlan map(MembershipPlanMO plan) {
     return MembershipPlan.builder()

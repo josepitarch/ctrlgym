@@ -2,10 +2,7 @@ package dev.jpitarch.ctrlgym.core.services;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.*;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +39,9 @@ class MembershipServiceTest {
   MembersRepository membersRepository;
 
   @Mock
+  StripeBridge stripeBridge;
+
+  @Mock
   SubscriptionService subscriptionService;
 
   private final Member.Id memberId = new Member.Id(java.util.UUID.randomUUID(), 1);
@@ -64,10 +64,10 @@ class MembershipServiceTest {
     try (var mockedDate = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
       mockedDate.when(LocalDate::now).thenReturn(ld);
 
-      when(gymsRepository.getStripeAccountId(1)).thenReturn("stripe_account");
-      when(membershipPlanRepository.getStripePriceId("plan_basic")).thenReturn("price_basic");
-      when(membersRepository.getPaymentMethodId(memberId)).thenReturn(Optional.of("pm_test"));
-      when(membersRepository.getStripeCustomerId(memberId)).thenReturn(Optional.of("cus_test"));
+      when(stripeBridge.getStripeAccountId(1)).thenReturn("stripe_account");
+      when(stripeBridge.getStripePriceId("plan_basic")).thenReturn("price_basic");
+      when(stripeBridge.getPaymentMethodId(memberId)).thenReturn(Optional.of("pm_test"));
+      when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.of("cus_test"));
       when(subscriptionService.create(any(), any())).thenReturn("sub_test123");
 
       membershipService.initialize(memberId, "plan_basic");

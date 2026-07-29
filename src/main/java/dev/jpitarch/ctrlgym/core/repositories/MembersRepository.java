@@ -84,37 +84,11 @@ public class MembersRepository {
     jpaRepository.save(memberMO);
   }
 
-  public Optional<String> getStripeCustomerId(Member.Id memberId) {
-    return jpaRepository.getStripeCustomerId(memberId.memberId(), memberId.gymId());
-  }
 
-  public Optional<String> getPaymentMethodId(Member.Id id) {
-    return jpaRepository.getStripePaymentMethodId(id.memberId(), id.gymId());
-  }
-
-  public Optional<String> getPaymentMethodId(String stripeCustomerId) {
-    return jpaRepository.getStripePaymentMethodId(stripeCustomerId);
-  }
-
-  public Member.Id getId(String stripeCustomerId) {
-    var sql = """
-        SELECT id, gym_id
-        FROM users
-        WHERE stripe_customer_id = :stripeCustomerId
-      """;
-
-    var params = Map.of("stripeCustomerId", stripeCustomerId);
-
-    return this.jdbc.queryForObject(sql, params, (rs, _) -> Member.Id.of(
-      UUID.fromString(rs.getString("id")),
-      rs.getInt("gym_id"))
-    );
-
-  }
 
   public void savePaymentMethodId(String customerId, String paymentMethodId) {
     var sql = """
-      UPDATE members
+      UPDATE users
       SET stripe_payment_method_id = :paymentMethodId
       WHERE stripe_customer_id = :customerId
       """;

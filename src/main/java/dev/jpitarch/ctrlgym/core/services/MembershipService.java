@@ -7,9 +7,9 @@ import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,23 +29,19 @@ public class MembershipService {
 
   private final MembershipsRepository membershipsRepository;
 
-  private final MembershipPlanRepository membershipPlanRepository;
-
-  private final GymsRepository gymsRepository;
-
-  private final MembersRepository membersRepository;
-
   private final SubscriptionService subscriptionService;
+
+  private final StripeBridge stripeBridge;
 
   public void initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
     if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
       throw new DuplicateMembershipException(memberId, membershipPlanId);
     }
 
-    String stripeAccountId = gymsRepository.getStripeAccountId(memberId.gymId());
-    String stripePriceId = membershipPlanRepository.getStripePriceId(membershipPlanId);
-    Optional<String> paymentMethodId = membersRepository.getPaymentMethodId(memberId);
-    Optional<String> customerId = membersRepository.getStripeCustomerId(memberId);
+    String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
+    String stripePriceId = stripeBridge.getStripePriceId(membershipPlanId);
+    Optional<String> paymentMethodId = stripeBridge.getPaymentMethodId(memberId);
+    Optional<String> customerId = stripeBridge.getStripeCustomerId(memberId);
 
     if (paymentMethodId.isEmpty() || customerId.isEmpty()) {
       throw new IllegalStateException("Customer or payment method not found for member with id " + memberId);
@@ -67,16 +63,16 @@ public class MembershipService {
   public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
     var currentMembership = retrieve(memberId);
     if (currentMembership == null) throw new MembershipNotFoundException(memberId);
-    String stripeSubscriptionId = membershipPlanRepository.getStripeSubscriptionId(memberId, currentMembership.getId());
-    String currentStripePriceId = membershipPlanRepository.getStripePriceId(stripeSubscriptionId);
-    String newCurrentStripePriceId = membershipPlanRepository.getStripePriceId(newMembershipPlanId);
+    String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(memberId, currentMembership.getId());
+    String currentStripePriceId = stripeBridge.getStripePriceId(stripeSubscriptionId);
+    String newCurrentStripePriceId = stripeBridge.getStripePriceId(newMembershipPlanId);
     subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId);
   }
 
   public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
-      "stripeAccountId", gymsRepository.getStripeAccountId(memberId.gymId()),
-      "subscriptionId", membershipPlanRepository.getStripeSubscriptionId(memberId, membershipId)
+      "stripeAccountId", stripeBridge.getStripeAccountId(memberId.gymId()),
+      "subscriptionId", stripeBridge.getStripeSubscriptionId(memberId, membershipId)
     );
 
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);

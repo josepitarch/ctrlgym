@@ -1,13 +1,10 @@
-package dev.jpitarch.ctrlgym.payments.repositories;
+package dev.jpitarch.ctrlgym.core.repositories;
 
-import com.stripe.model.Invoice;
-import com.stripe.model.PaymentIntent;
+import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.payments.models.InvoiceMO;
-import dev.jpitarch.ctrlgym.payments.repositories.jpa.InvoiceJpaRepository;
+import dev.jpitarch.ctrlgym.core.models.InvoiceMO;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.InvoiceJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,7 +19,7 @@ import java.time.Year;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-//TODO: este repositorio ha de ser eliminado
+
 @Slf4j
 @Repository
 @RequiredArgsConstructor
@@ -36,7 +33,7 @@ public class InvoiceRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public Optional<dev.jpitarch.ctrlgym.core.domain.Invoice> getInvoice(String id) {
+  public Optional<Invoice> getInvoice(String id) {
     return invoiceJpaRepository.findById(id).map(this::mapToDomain);
   }
 
@@ -45,8 +42,8 @@ public class InvoiceRepository {
       .map(this::mapToDomain);
   }
 
-  private dev.jpitarch.ctrlgym.core.domain.Invoice mapToDomain(InvoiceMO invoiceMO) {
-    return dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
+  private Invoice mapToDomain(InvoiceMO invoiceMO) {
+    return Invoice.builder()
       .id(invoiceMO.getId())
       .series(invoiceMO.getSeries())
       .number(invoiceMO.getNumber())
@@ -57,15 +54,14 @@ public class InvoiceRepository {
       .build();
   }
 
-  public void create(Invoice invoice, String stripeAccountId) {
-    var gymId = gymsRepository.getId(stripeAccountId);
-    var invoiceMO = createInvoiceMO(invoice, gymId);
+  public void create(Invoice invoice, Member.Id memberId) {
+    var invoiceMO = createInvoiceMO(invoice, memberId);
     invoiceJpaRepository.save(invoiceMO);
   }
 
-  public void markAsProcessing(PaymentIntent paymentIntent) {
+  public void markAsProcessing(String invoiceId) {
     var invoiceMO = invoiceJpaRepository
-      .findById(paymentIntent.getPaymentDetails().getOrderReference())
+      .findById(invoiceId)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
@@ -73,9 +69,9 @@ public class InvoiceRepository {
     invoiceJpaRepository.save(invoiceMO);
   }
 
-  public void markAsPaid(Invoice invoice) {
+  public void markAsPaid(String invoiceId) {
     var invoiceMO = invoiceJpaRepository
-      .findById(invoice.getId())
+      .findById(invoiceId)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
@@ -83,9 +79,9 @@ public class InvoiceRepository {
     invoiceJpaRepository.save(invoiceMO);
   }
 
-  public void markAsFailed(Invoice invoice) {
+  public void markAsFailed(String invoiceId) {
     var invoiceMO = invoiceJpaRepository
-      .findById(invoice.getId())
+      .findById(invoiceId)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
@@ -106,17 +102,16 @@ public class InvoiceRepository {
   }
 
 
-  private InvoiceMO createInvoiceMO(Invoice invoice, Integer gymId) {
-    var series = gymId + "-" + Year.now();
+  private InvoiceMO createInvoiceMO(Invoice invoice, Member.Id memberId) {
+    var series = memberId.gymId() + "-" + Year.now();
     var invoiceMO = new InvoiceMO();
     invoiceMO.setId(invoice.getId());
-    invoiceMO.setGymId(gymId);
-    invoiceMO.setMemberId(membersRepository.getId(invoice.getCustomer()).memberId());
+    invoiceMO.setGymId(memberId.gymId());
+    invoiceMO.setMemberId(memberId.memberId());
     invoiceMO.setSeries(series);
-    invoiceMO.setNumber(this.nextNumber(gymId, series).toString());
-    invoiceMO.setStripeInvoiceNumber(invoice.getNumber());
-    invoiceMO.setTotal(BigDecimal.valueOf(invoice.getTotal()));
-    invoiceMO.setSubtotal(BigDecimal.valueOf(invoice.getSubtotal()));
+    invoiceMO.setNumber(this.nextNumber(memberId.gymId(), series).toString());
+    invoiceMO.setTotal(invoice.getTotal());
+    invoiceMO.setSubtotal(invoice.getSubtotal());
     invoiceMO.setCurrency(invoice.getCurrency());
     invoiceMO.setIssueAt(LocalDate.now());
     invoiceMO.setDueAt(LocalDate.now());

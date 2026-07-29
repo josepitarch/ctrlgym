@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.payments.models;
+package dev.jpitarch.ctrlgym.core.models;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
@@ -73,9 +73,6 @@ public class InvoiceMO {
 
   @Column(name = "verifactu_id")
   private UUID verifactuId;
-
-  @Column(name = "stripe_invoice_number", nullable = false, length = 50)
-  private String stripeInvoiceNumber;
 
   public Member.Id getMemberId() {
     return Member.Id.of(memberId, gymId);

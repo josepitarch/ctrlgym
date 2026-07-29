@@ -11,7 +11,7 @@ import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.ExpensesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.InvoicesRepository;
+import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -33,7 +33,7 @@ public class DashboardUseCase {
 
   private final ExpensesRepository expensesRepository;
 
-  private final InvoicesRepository invoicesRepository;
+  private final InvoiceRepository invoicesRepository;
 
   private final PostalCodeJpaRepository postalCodeJpaRepository;
 
@@ -74,7 +74,7 @@ public class DashboardUseCase {
 
   public CashFlow getCashFlow(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var expenses = expensesRepository.getTotalPerMonth(gymBranchId, datePeriod);
-    var revenues = invoicesRepository.getTotalPerMonth(gymBranchId, datePeriod);
+    var revenues = analyticsRepository.getTotalPerMonth(gymBranchId, datePeriod);
 
     return new CashFlow(expenses, revenues);
   }

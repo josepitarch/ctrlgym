@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.verifactu.service;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.payments.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceResponse;
 import dev.jpitarch.ctrlgym.verifactu.dto.StatusResponse;

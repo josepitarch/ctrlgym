@@ -152,6 +152,10 @@ public class DashboardUseCase {
     };
   }
 
+  public List<MembershipPlanDistribution> getMembershipsDistributionByPlan(GymBranchId gymBranchId) {
+    return analyticsRepository.getMembershipsDistributionByPlan(gymBranchId);
+  }
+
   public List<BranchMetrics> getMonthlyMetrics(Integer gymId, YearMonth from, YearMonth to) {
     return analyticsRepository.getMonthlyMetrics(gymId, from, to);
   }

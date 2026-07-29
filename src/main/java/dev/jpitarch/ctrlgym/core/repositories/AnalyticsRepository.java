@@ -4,6 +4,7 @@ import dev.jpitarch.ctrlgym.core.domain.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
+import dev.jpitarch.ctrlgym.core.dto.MembershipPlanDistribution;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
 import lombok.RequiredArgsConstructor;
@@ -399,6 +400,24 @@ public class AnalyticsRepository {
             .toArray(String[]::new))
           .toList())
     ));
+  }
+
+  public List<MembershipPlanDistribution> getMembershipsDistributionByPlan(GymBranchId gymBranchId) {
+    var sql = """
+      SELECT mp.id, mp.name, COUNT(*) AS count
+      FROM memberships m
+      JOIN membership_plans mp ON m.membership_plan_id = mp.id
+      WHERE mp.gym_branch_id = :gymBranchId
+      AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
+      GROUP BY mp.id, mp.name
+      ORDER BY count DESC
+      """;
+
+    var params = Map.of("gymBranchId", gymBranchId.branchId());
+
+    return jdbc.query(sql, params, (rs, _) ->
+      new MembershipPlanDistribution(rs.getString("id"), rs.getString("name"), rs.getInt("count"))
+    );
   }
 
   public List<BranchMetrics> getMonthlyMetrics(Integer gymId, YearMonth from, YearMonth to) {

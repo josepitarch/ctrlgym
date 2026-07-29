@@ -70,6 +70,11 @@ public class DashboardController {
     return ResponseEntity.ok(useCase.getCashFlow(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
   }
 
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/distribution")
+  public ResponseEntity<List<MembershipPlanDistribution>> getMembershipsDistributionByPlan(@PathVariable int gymId, @PathVariable int branchId) {
+    return ResponseEntity.ok(useCase.getMembershipsDistributionByPlan(GymBranchId.of(gymId, branchId)));
+  }
+
   @GetMapping("/gyms/{gymId}/branches/{branchId}/members/distribution")
   public ResponseEntity<MembersDistribution> getMembersDistribution(@PathVariable int gymId, @PathVariable int branchId) {
     return ResponseEntity.ok(useCase.getMembersDistribution(GymBranchId.of(gymId, branchId)));

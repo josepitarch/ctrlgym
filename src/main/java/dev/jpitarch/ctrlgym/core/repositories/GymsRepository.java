@@ -61,28 +61,15 @@ public class GymsRepository {
   }
 
   public GymBranch getGymBranch(GymBranchId gymBranchId) {
-    var sql = """
-        SELECT b.id, b.name, b.capacity, b.peak_hour_start, b.peak_hour_end
-        FROM gym_branches b
-        WHERE b.gym_id = :gymId AND b.id = :branchId
-      """;
+    var branchMO = jpaRepository.findBranchByGymIdAndBranchId(gymBranchId.gymId(), gymBranchId.branchId());
 
-    var params = Map.of(
-      "gymId", gymBranchId.gymId(),
-      "branchId", gymBranchId.branchId()
-    );
-
-    return this.jdbc.queryForObject(sql, params, (rs, rowNum) ->
-      GymBranch.builder()
-        .id(rs.getShort("id"))
-        .name(rs.getString("name"))
-        .capacity(rs.getShort("capacity"))
-        .peakHour(new GymBranch.PeakHour(
-          rs.getTime("peak_hour_start").toLocalTime(),
-          rs.getTime("peak_hour_end").toLocalTime()
-        ))
-        .build()
-    );
+    return GymBranch.builder()
+      .id(branchMO.getId())
+      .name(branchMO.getName())
+      .capacity(branchMO.getCapacity())
+      .peakHour(new GymBranch.PeakHour(branchMO.getPeakHourStart(), branchMO.getPeakHourEnd()))
+      .coordinates(new GymBranch.Coordinates(branchMO.getLatitude(), branchMO.getLongitude()))
+      .build();
   }
 
   public List<Member> getMembers(GymBranchId gymBranchId) {

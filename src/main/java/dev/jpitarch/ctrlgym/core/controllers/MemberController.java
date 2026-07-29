@@ -121,7 +121,7 @@ public class MemberController {
     return ResponseEntity.ok(memberUseCase.getWorkouts(memberId, pageable));
   }
 
-  @GetMapping("/members/{memberId}/invoices")
+  @GetMapping("/{memberId}/invoices")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
     return ResponseEntity.ok(memberUseCase.getInvoices(Member.Id.of(memberId, gymId), pageable)
@@ -133,7 +133,7 @@ public class MemberController {
       )));
   }
 
-  @GetMapping(value = "/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
+  @GetMapping(value = "/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable String invoiceId, @RequestParam Integer gymId) throws IOException {
     byte[] pdfReport = memberUseCase.getInvoiceReport(Member.Id.of(memberId, gymId), invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);

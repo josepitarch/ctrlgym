@@ -19,11 +19,21 @@ const client = new pg.Client({
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: 5432,
-  ssl: true
+  ssl: false
 })
 
 async function inviteManager({email, gymId, name, firstSurname, secondSurname}) {
   console.log({email, gymId, name, firstSurname, secondSurname})
+
+  try {
+    await client.connect();
+    await client.query('SELECT 1');
+    console.log('Database connection OK');
+  } catch (dbError) {
+    console.error('Database connection failed:', dbError.message);
+    process.exit(1);
+  }
+
   const {data, error} = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
     data: {
       name,
@@ -36,6 +46,7 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
 
   if (error) {
     console.error('Error inviting user:', error);
+    await client.end();
     process.exit(1);
   }
 
@@ -43,7 +54,6 @@ async function inviteManager({email, gymId, name, firstSurname, secondSurname}) 
   console.log(`Invitation sent to ${email}. user_id: ${userId}`);
 
   try {
-    await client.connect();
     const result = await client.query(
       `UPDATE public.users
        SET role = 'MANAGER', status = NULL

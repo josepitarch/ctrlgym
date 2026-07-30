@@ -26,6 +26,7 @@ public class MembershipPlan {
   @JsonIgnore
   private String stripePriceId;
 
+  @JsonProperty("gym_branch_id")
   private Integer gymBranchId;
 
   @JsonProperty("all_branches")

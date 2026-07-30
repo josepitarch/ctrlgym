@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.crons;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@Profile("!local")
 @RequiredArgsConstructor
 public class GymMetricsCron {
 

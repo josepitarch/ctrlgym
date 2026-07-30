@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 public class ExceptionNotificationListener {
 
   private final TelegramNotificationService telegramNotificationService;
+
   private final ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
   @EventListener

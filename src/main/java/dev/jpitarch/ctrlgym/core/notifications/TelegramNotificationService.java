@@ -3,6 +3,8 @@ package dev.jpitarch.ctrlgym.core.notifications;
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -11,19 +13,26 @@ import org.springframework.web.client.RestClient;
 public class TelegramNotificationService {
 
   private final String botToken;
+
   private final String chatId;
+
   private final RestClient restClient;
+
+  private final Environment env;
 
   public TelegramNotificationService(
     @Value("${notifications.telegram.bot.token:}") String botToken,
-    @Value("${notifications.telegram.chat.id:}") String chatId
+    @Value("${notifications.telegram.chat.id:}") String chatId,
+    Environment env
   ) {
     this.botToken = botToken;
     this.chatId = chatId;
     this.restClient = RestClient.builder().build();
+    this.env = env;
   }
 
   public void sendExceptionNotification(ExceptionEvent event) {
+    if (env.matchesProfiles("local")) return;
     if (botToken == null || botToken.isBlank() || chatId == null || chatId.isBlank()) {
       log.debug("Telegram notification disabled: missing bot token or chat id");
       return;
@@ -55,7 +64,7 @@ public class TelegramNotificationService {
   private void sendTelegramMessage(String message) {
     try {
       String url = "https://api.telegram.org/bot%s/sendMessage".formatted(botToken);
-      
+
       var requestBody = new java.util.HashMap<String, Object>();
       requestBody.put("chat_id", chatId);
       requestBody.put("text", message);

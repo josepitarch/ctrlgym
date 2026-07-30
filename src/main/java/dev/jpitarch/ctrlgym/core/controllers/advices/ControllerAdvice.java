@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers.advices;
 
+import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
@@ -25,37 +26,49 @@ public class ControllerAdvice {
 
   @ExceptionHandler(MemberNotFoundException.class)
   public ProblemDetail handleMemberNotFoundException(MemberNotFoundException e, HttpServletRequest request) {
-    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     problem.setTitle("Member Not Found");
     problem.setType(URI.create("about:blank"));
     problem.setProperty("timestamp", Instant.now());
-    
+
     publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.NOT_FOUND, request);
-    
+
     return problem;
   }
 
   @ExceptionHandler(MemberWithoutAccessException.class)
   public ProblemDetail handleMemberWithoutAccessException(MemberWithoutAccessException e, HttpServletRequest request) {
-    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     problem.setTitle("Member Without Access");
     problem.setType(URI.create("about:blank"));
     problem.setProperty("timestamp", Instant.now());
-    
+
     publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
-    
+
     return problem;
   }
 
   @ExceptionHandler(AuthorizationDeniedException.class)
   public ProblemDetail handleAuthorizationDeniedException(AuthorizationDeniedException e, HttpServletRequest request) {
-    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+    problem.setTitle("Unprocessable Content");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.FORBIDDEN, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(CoreBusinessException.class)
+  public ProblemDetail handleCoreBusinessException(CoreBusinessException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
     problem.setTitle("Forbidden");
     problem.setType(URI.create("about:blank"));
     problem.setProperty("timestamp", Instant.now());
-    
+
     publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.FORBIDDEN, request);
-    
+
     return problem;
   }
 

@@ -22,10 +22,6 @@ public class MembershipPlan {
 
   private Recurring recurring;
 
-  //TODO: eliminar esta propiedad del dominio
-  @JsonIgnore
-  private String stripePriceId;
-
   @JsonProperty("gym_branch_id")
   private Integer gymBranchId;
 

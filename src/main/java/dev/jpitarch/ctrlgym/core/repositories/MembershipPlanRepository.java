@@ -22,12 +22,12 @@ public class MembershipPlanRepository {
 
   private final MembershipPlanJpaRepository membershipPlanJpaRepository;
 
-  public void create(MembershipPlan membershipPlan, Integer gymId) {
+  public void create(MembershipPlan membershipPlan, Integer gymId, String stripePriceId) {
     var plan = new MembershipPlanMO();
     plan.setId(membershipPlan.getId());
     plan.setGymId(gymId);
     plan.setName(membershipPlan.getName());
-    plan.setStripePriceId(membershipPlan.getStripePriceId());
+    plan.setStripePriceId(stripePriceId);
     plan.setPrice(java.math.BigDecimal.valueOf(membershipPlan.getPrice()));
     plan.setBillingPeriod(membershipPlan.getRecurring().name());
     plan.setActive(true);
@@ -36,10 +36,6 @@ public class MembershipPlanRepository {
     plan.setAllBranches(membershipPlan.isAllBranches());
 
     membershipPlanJpaRepository.save(plan);
-  }
-
-  public Optional<MembershipPlan> getById(String id) {
-    return this.membershipPlanJpaRepository.findById(id).map(this::map);
   }
 
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
@@ -57,16 +53,12 @@ public class MembershipPlanRepository {
     membershipPlanJpaRepository.save(planMO);
   }
 
-
-
-
   private MembershipPlan map(MembershipPlanMO plan) {
     return MembershipPlan.builder()
       .id(plan.getId())
       .name(plan.getName())
       .price(plan.getPrice().doubleValue())
       .recurring(MembershipPlan.Recurring.from(plan.getBillingPeriod()))
-      .stripePriceId(plan.getStripePriceId())
       .gymBranchId(plan.getGymBranchId())
       .allBranches(plan.getAllBranches())
       .build();

@@ -2,12 +2,13 @@ package dev.jpitarch.ctrlgym.core.usecases;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
-import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +55,12 @@ public class GymUseCase {
 
 
   public void createMembershipPlan(Integer gymId, MembershipPlan plan) throws StripeException {
+    if ((plan.getGymBranchId() == null && !plan.isAllBranches()) || (plan.getGymBranchId() != null && plan.isAllBranches())) {
+      throw new CoreBusinessException(MembershipPlan.class, "gymBranchId is informed and allBranches is true or vice versa");
+    }
     String[] data = productService.create(gymId, plan);
     plan.setId(data[0]);
-    plan.setStripePriceId(data[1]);
-    membershipPlanRepository.create(plan, gymId);
+    membershipPlanRepository.create(plan, gymId, data[1]);
   }
 
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
@@ -88,8 +91,8 @@ public class GymUseCase {
   }
 
   public byte[] getMemberInvoiceReport(GymBranchId gymBranchId, Member.Id memberId, String invoiceId) throws IOException {
-      log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
-      return generateInvoiceReportService.generate(memberId, invoiceId);
+    log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
+    return generateInvoiceReportService.generate(memberId, invoiceId);
   }
 
 }

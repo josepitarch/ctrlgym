@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.jspecify.annotations.NonNull;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "member_accesses")
-public class MemberAccessMO {
+public class MemberAccessMO implements Comparable<MemberAccessMO> {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +24,7 @@ public class MemberAccessMO {
   private Integer gymBranchId;
 
   @Column(name = "member_id")
-  @JsonProperty("user_id")
+  @JsonProperty("member_id")
   private UUID memberId;
 
   @Column(name = "gym_id")
@@ -41,4 +42,9 @@ public class MemberAccessMO {
   @Column(name = "received_at")
   @JsonProperty("received_at")
   private OffsetDateTime receivedAt;
+
+  @Override
+  public int compareTo(@NonNull MemberAccessMO o) {
+    return createdAt.compareTo(o.createdAt);
+  }
 }

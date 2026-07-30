@@ -27,10 +27,6 @@ public class InvoiceRepository {
 
   private final InvoiceJpaRepository invoiceJpaRepository;
 
-  private final GymsRepository gymsRepository;
-
-  private final MembersRepository membersRepository;
-
   private final NamedParameterJdbcTemplate jdbc;
 
   public Optional<Invoice> getInvoice(String id) {

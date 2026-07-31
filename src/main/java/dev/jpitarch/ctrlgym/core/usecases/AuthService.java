@@ -1,55 +1,70 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
-import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
 import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
+import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
-import dev.jpitarch.ctrlgym.core.repositories.UsersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
+@Slf4j
 @Service
 public class AuthService {
 
   private final RestClient supabaseAuthRestClient;
 
-  private final UsersRepository usersRepository;
+  private final MembersRepository membersRepository;
 
-  public AuthService(@Qualifier("supabaseAuthRestClient") RestClient supabaseAuthRestClient, UsersRepository usersRepository) {
+  public AuthService(@Qualifier("supabaseAuthRestClient") RestClient supabaseAuthRestClient, MembersRepository membersRepository) {
     this.supabaseAuthRestClient = supabaseAuthRestClient;
-    this.usersRepository = usersRepository;
+    this.membersRepository = membersRepository;
   }
 
   public AuthResponse signup(SignupRequest request) {
-    var existingUserId = usersRepository.findIdByEmail(request.email());
+    if (membersRepository.exists(request.gymId(), request.email())) {
+      if (membersRepository.isInMigration(request.gymId(), request.email())) {
+        log.info("User with email {} of gym with id {} is in migration yet. Sending a new invitation...", request.email(), request.gymId());
+        supabaseAuthRestClient.post()
+          .uri("/invite")
+          .body(Map.of("email", request.email()))
+          .retrieve()
+          .toBodilessEntity();
 
-    if (existingUserId.isPresent()) {
-      insertUserRow(existingUserId.get(), request);
-      return signin(new SigninRequest(request.email(), request.password()));
-    } else {
-      return supabaseAuthRestClient.post()
-        .uri("/signup")
-        .body(Map.of(
-          "email", request.email(),
-          "password", request.password(),
-          "data", new HashMap<String, Object>() {{
-            put("gym_id", request.gymId());
-            put("name", request.name());
-            put("first_surname", request.firstSurname());
-            put("second_surname", request.secondSurname());
-          }}
-        ))
-        .retrieve()
-        .body(AuthResponse.class);
+        throw new AuthException(AuthException.Signup.IS_IN_MIGRATION, request.gymId(), request.email());
+      }
+
+      throw new AuthException(AuthException.Signup.ALREADY_EXISTS, request.gymId(), request.email());
     }
+
+    if (membersRepository.existsAnotherGym(request.gymId(), request.email())) {
+      throw new AuthException(AuthException.Signup.ANOTHER_GYM, request.gymId(), request.email());
+    }
+
+    log.info("Registering a new user with email {} associated to gym with id {}...", request.email(), request.gymId());
+    return supabaseAuthRestClient.post()
+      .uri("/signup")
+      .body(Map.of(
+        "email", request.email(),
+        "password", request.password(),
+        "data", new HashMap<String, Object>() {{
+          put("gym_id", request.gymId());
+          put("name", request.name());
+          put("first_surname", request.firstSurname());
+          put("second_surname", request.secondSurname());
+        }}
+      ))
+      .retrieve()
+      .body(AuthResponse.class);
   }
 
-  public AuthResponse signin(SigninRequest request) {
+
+  public AuthResponse login(SigninRequest request) {
     return supabaseAuthRestClient.post()
       .uri("/token?grant_type=password")
       .body(Map.of(
@@ -60,14 +75,4 @@ public class AuthService {
       .body(AuthResponse.class);
   }
 
-  private void insertUserRow(UUID userId, SignupRequest request) {
-    var user = new UserMO();
-    user.setId(userId);
-    user.setGymId(request.gymId());
-    user.setEmail(request.email());
-    user.setName(request.name());
-    user.setFirstSurname(request.firstSurname());
-    user.setSecondSurname(request.secondSurname());
-    usersRepository.save(user);
-  }
 }

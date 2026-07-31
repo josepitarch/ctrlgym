@@ -15,8 +15,6 @@ import org.springframework.stereotype.Repository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -30,6 +28,18 @@ public class MembersRepository {
 
   public boolean exists(Member.Id memberId) {
     return jpaRepository.existsById(new UserMO.ID(memberId.memberId(), memberId.gymId()));
+  }
+
+  public boolean exists(Integer gymId, String email) {
+    return jpaRepository.existsByGymIdAndEmail(gymId, email);
+  }
+
+  public boolean existsAnotherGym(Integer gymId, String email) {
+    return jpaRepository.existsByGymIdNotAndEmail(gymId, email);
+  }
+
+  public boolean isInMigration(Integer gymId, String email) {
+    return jpaRepository.isInMigration(gymId, email);
   }
 
   public Member getById(Member.Id memberId) {
@@ -83,7 +93,6 @@ public class MembersRepository {
 
     jpaRepository.save(memberMO);
   }
-
 
 
   public void savePaymentMethodId(String customerId, String paymentMethodId) {

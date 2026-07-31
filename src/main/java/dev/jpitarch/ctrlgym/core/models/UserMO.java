@@ -48,7 +48,7 @@ public class UserMO {
   @Column(name = "avatar_url", length = Integer.MAX_VALUE)
   private String avatarUrl;
 
-  @Column(name = "gender", nullable = false, length = Integer.MAX_VALUE)
+  @Column(name = "gender")
   private String gender;
 
   @Column(name = "birth_date")

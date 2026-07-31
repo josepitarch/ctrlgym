@@ -1,5 +1,5 @@
-INSERT INTO "public"."gyms" ("id", "name", "verifacti_api_key", "stripe_account_id")
-VALUES (1, 'WolfGym', 'vf_test_it', 'acct_1TcURmFylbmcvw95');
+INSERT INTO "public"."gyms" ("id", "name", "verifacti_api_key", "stripe_account_id", locality, cif, street, postal_code)
+VALUES (1, 'WolfGym', 'vf_test_it', 'acct_1TcURmFylbmcvw95', 'Almenara', '123456B', 'C/ Mayor, 13', 12590);
 
 INSERT INTO "public"."exercises" ("name", "description", "muscle_group", "image", "gym_id")
 VALUES ('Press de banca', null, 'CHEST',
@@ -119,8 +119,8 @@ VALUES (1, 'es', 'Alquiler del local del gimnasio', null),
        (7, 'es', 'Licencias y SaaS', null),
        (8, 'es', 'Otros gastos', null);
 
-INSERT INTO "public"."members" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at",  "stripe_payment_method_id", "status")
-VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'pm_test456',  'AUTH');
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at",  "stripe_payment_method_id", "status", "role")
+VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'pm_test456',  'AUTH', 'MEMBER');
 
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
                                          "stripe_price_id", "gym_branch_id", "all_branches")
@@ -130,8 +130,8 @@ INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billi
                                          "stripe_price_id", "gym_branch_id", "all_branches")
 VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'price_premium456', 1, false);
 
-INSERT INTO "public"."gym_branches" ("id", "gym_id", "name", "is_active", "capacity")
-VALUES (1, 1, 'Main Branch', true, 100);
+INSERT INTO "public"."gym_branches" ("id", "gym_id", "name", "is_active", "capacity", latitude, longitude, full_address, api_key)
+VALUES (1, 1, 'Main Branch', true, 100, 39.939724, -0.097686, null, 'X1Tip67aw5fp9CBLrLpX7GSWnpa09Q7ibSJiGq/laoI=');
 
 --INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
 --VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);

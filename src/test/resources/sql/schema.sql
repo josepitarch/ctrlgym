@@ -564,10 +564,8 @@ CREATE TABLE invoices
     currency              bpchar(3)      DEFAULT 'EUR'::bpchar     NOT NULL,
     created_at            timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at            timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    stripe_invoice_number varchar(50)                              NOT NULL,
     verifactu_id          uuid NULL,
     CONSTRAINT inoices_serie_number_uk UNIQUE (series, number),
-    CONSTRAINT invoices_invoice_number_key UNIQUE (stripe_invoice_number),
     CONSTRAINT invoices_pkey PRIMARY KEY (id),
     CONSTRAINT invoices_verifactu_uk UNIQUE (verifactu_id),
     CONSTRAINT invoices_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
@@ -715,33 +713,35 @@ create table public.gym_metrics_monthly
 
 -- DROP FUNCTION public.handle_new_user();
 
-CREATE
-OR REPLACE FUNCTION public.handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
     RETURNS trigger
     LANGUAGE plpgsql
     SECURITY DEFINER
     SET search_path TO 'public'
-AS
-$function$
+AS $function$
 BEGIN
-INSERT INTO public.members (id,
-                            gym_id,
-                            email,
-                            name,
-                            first_surname,
-                            second_surname,
-                            gender,
-                            status)
-VALUES (NEW.id,
-        (NEW.raw_user_meta_data ->> 'gym_id')::int4,
-        NEW.email,
-        NEW.raw_user_meta_data ->> 'name',
-        NEW.raw_user_meta_data ->> 'first_surname',
-        NEW.raw_user_meta_data ->> 'second_surname',
-        (NEW.raw_user_meta_data ->> 'gender')::bpchar,
-        'AUTH');
 
-RETURN NEW;
+    INSERT INTO public.users (
+        id,
+        gym_id,
+        email,
+        name,
+        first_surname,
+        second_surname,
+        status,
+        role
+    ) VALUES (
+                 NEW.id,
+                 (NEW.raw_user_meta_data->>'gym_id')::int4,
+                 NEW.email,
+                 NEW.raw_user_meta_data->>'name',
+                 NEW.raw_user_meta_data->>'first_surname',
+                 NEW.raw_user_meta_data->>'second_surname',
+                 'AUTH',
+                 'MEMBER'
+             );
+
+    RETURN NEW;
 END;
 $function$
 ;

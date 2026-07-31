@@ -23,10 +23,15 @@ public class ExpensesRepository {
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
     var sql = """
       SELECT category_id, nature, frequency, recurrence_period, expected_amount
-      FROM expenses
+      FROM expenses e
       WHERE gym_branch_id = :gymBranchId
-      AND start_date >= :from AND (end_date IS NULL OR end_date <= :to)
-      """; //TODO: end_date is null???
+      AND EXISTS (
+        SELECT 1
+        FROM expense_occurrences eo
+        WHERE e.id = eo.expense_id
+        AND DATE_TRUNC('month', eo.occurrence_date)::date = DATE_TRUNC('month', CURRENT_DATE)::date
+      )
+      """;
 
     var params = Map.of(
       "gymBranchId", gymBranchId.branchId(),

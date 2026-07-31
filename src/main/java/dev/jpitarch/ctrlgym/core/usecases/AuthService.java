@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,12 +37,12 @@ public class AuthService {
         .body(Map.of(
           "email", request.email(),
           "password", request.password(),
-          "data", Map.of(
-            "gym_id", request.gymId(),
-            "name", request.name(),
-            "first_surname", request.firstSurname(),
-            "second_surname", request.secondSurname()
-          )
+          "data", new HashMap<String, Object>() {{
+            put("gym_id", request.gymId());
+            put("name", request.name());
+            put("first_surname", request.firstSurname());
+            put("second_surname", request.secondSurname());
+          }}
         ))
         .retrieve()
         .body(AuthResponse.class);

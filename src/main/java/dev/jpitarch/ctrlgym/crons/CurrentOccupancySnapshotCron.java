@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.crons;
+package dev.jpitarch.ctrlgym.crons;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

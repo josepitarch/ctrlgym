@@ -61,9 +61,9 @@ public class MembershipService {
   }
 
   public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
-    var currentMembership = retrieve(memberId);
-    if (currentMembership == null) throw new MembershipNotFoundException(memberId);
-    String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(memberId, currentMembership.getId());
+    var currentMembership = membershipsRepository.getMemberships(memberId).stream().filter(m -> m.getDatePeriod().isCurrent()).findFirst();
+    if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
+    String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(memberId, currentMembership.get().getId());
     String currentStripePriceId = stripeBridge.getStripePriceId(stripeSubscriptionId);
     String newCurrentStripePriceId = stripeBridge.getStripePriceId(newMembershipPlanId);
     subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId);
@@ -81,19 +81,17 @@ public class MembershipService {
     membershipsRepository.setCancellationReasonId(membershipId, cancellationReasonId, comment);
   }
 
-  public Membership retrieve(Member.Id memberId) {
+  public Optional<Membership> retrieve(Member.Id memberId) {
     log.debug("Retrieving memberships for member with id {}...", memberId);
     var memberships = membershipsRepository.getMemberships(memberId);
-    var today = LocalDate.now();
 
     return memberships.stream()
-      .filter(m -> !m.getDatePeriod().from().isAfter(today) && (m.getDatePeriod().to() == null || m.getDatePeriod().to().isAfter(today)))
+      .filter(m -> m.getDatePeriod().isCurrent())
       .findFirst()
       .or(() -> memberships.stream()
-        .filter(m -> m.getDatePeriod().to() != null && !m.getDatePeriod().to().isAfter(today))
+        .filter(m -> m.getDatePeriod().isPast())
         .max(Comparator.comparing(m -> m.getDatePeriod().to()))
-      )
-      .orElse(null);
+      );
   }
 
   public List<MembershipCancellationReason> getCancellationReasons() {

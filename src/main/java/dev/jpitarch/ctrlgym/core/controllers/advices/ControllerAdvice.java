@@ -49,26 +49,15 @@ public class ControllerAdvice {
     return problem;
   }
 
-  @ExceptionHandler(AuthorizationDeniedException.class)
-  public ProblemDetail handleAuthorizationDeniedException(AuthorizationDeniedException e, HttpServletRequest request) {
-    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
-    problem.setTitle("Unprocessable Content");
-    problem.setType(URI.create("about:blank"));
-    problem.setProperty("timestamp", Instant.now());
-
-    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.FORBIDDEN, request);
-
-    return problem;
-  }
 
   @ExceptionHandler(CoreBusinessException.class)
   public ProblemDetail handleCoreBusinessException(CoreBusinessException e, HttpServletRequest request) {
-    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
-    problem.setTitle("Forbidden");
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+    problem.setTitle("Unprocessable Entity");
     problem.setType(URI.create("about:blank"));
     problem.setProperty("timestamp", Instant.now());
 
-    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.FORBIDDEN, request);
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.UNPROCESSABLE_CONTENT, request);
 
     return problem;
   }

@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -56,7 +57,7 @@ public class MemberUseCase {
     membershipService.cancel(memberId, membershipId, cancellationReasonId, comment);
   }
 
-  public Membership getMembership(Member.Id memberId) {
+  public Optional<Membership> getMembership(Member.Id memberId) {
     return membershipService.retrieve(memberId);
   }
 

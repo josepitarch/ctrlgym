@@ -71,7 +71,7 @@ public class MemberController {
 
   @GetMapping("/{memberId}/memberships")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Membership> getMembership(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+  public ResponseEntity<Optional<Membership>> getMembership(@PathVariable UUID memberId, @RequestParam Integer gymId) {
     return ResponseEntity.ok(memberUseCase.getMembership(Member.Id.of(memberId, gymId)));
   }
 

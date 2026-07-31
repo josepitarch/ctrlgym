@@ -8,10 +8,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @SpringBootApplication
 @EnableResilientMethods
-public class CtrlgymApplication {
+public class CtrlGymApplication {
 
   static void main(String[] args) {
-    SpringApplication.run(CtrlgymApplication.class, args);
+    SpringApplication.run(CtrlGymApplication.class, args);
   }
 
 }

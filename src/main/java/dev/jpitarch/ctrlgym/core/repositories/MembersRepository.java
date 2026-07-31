@@ -154,6 +154,7 @@ public class MembersRepository {
     return switch (gender) {
       case "M" -> Gender.MALE;
       case "F" -> Gender.FEMALE;
+      case null -> null;
       default -> throw new IllegalStateException("Unexpected value: " + gender);
     };
   }

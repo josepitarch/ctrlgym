@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers.advices;
 
+import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
@@ -64,6 +65,19 @@ public class ControllerAdvice {
   public ProblemDetail handleCoreBusinessException(CoreBusinessException e, HttpServletRequest request) {
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
     problem.setTitle("Forbidden");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.FORBIDDEN, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(AuthException.class)
+  public ProblemDetail handleAuthException(AuthException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    problem.setTitle("Conflict");
+    problem.setDetail(e.getSignup().name());
     problem.setType(URI.create("about:blank"));
     problem.setProperty("timestamp", Instant.now());
 

@@ -57,7 +57,7 @@ public class PostalCodeMO {
     @Serial
     private static final long serialVersionUID = -2592927008260883790L;
 
-    private String postalCode;
+    private Integer postalCode;
 
     private String city;
 

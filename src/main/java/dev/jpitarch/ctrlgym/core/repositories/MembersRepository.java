@@ -66,6 +66,7 @@ public class MembersRepository {
         .postalCode(userMO.getPostalCode())
         .build()
       )
+            .status(userMO.getStatus())
       .build();
   }
 

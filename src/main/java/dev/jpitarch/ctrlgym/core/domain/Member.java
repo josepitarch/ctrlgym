@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
+import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import lombok.*;
 import org.jspecify.annotations.NonNull;
 
@@ -41,6 +42,8 @@ public class Member {
   private LocalDate birthDate;
 
   private Address address;
+
+  private MemberStatus status;
 
   @JsonIgnore
   public String getFullName() {

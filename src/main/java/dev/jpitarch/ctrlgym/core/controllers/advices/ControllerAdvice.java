@@ -1,15 +1,11 @@
 package dev.jpitarch.ctrlgym.core.controllers.advices;
 
-import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.*;
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -58,6 +54,18 @@ public class ControllerAdvice {
     problem.setProperty("timestamp", Instant.now());
 
     publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.UNPROCESSABLE_CONTENT, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(ManyPostalCodesException.class)
+  public ProblemDetail handleManyPostalCodesException(ManyPostalCodesException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    problem.setTitle("Multiple Cities For Postal Code");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
 
     return problem;
   }

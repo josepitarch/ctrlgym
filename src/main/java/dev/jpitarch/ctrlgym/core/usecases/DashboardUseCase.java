@@ -22,6 +22,7 @@ import java.time.YearMonth;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +33,6 @@ public class DashboardUseCase {
   private final AnalyticsRepository analyticsRepository;
 
   private final ExpensesRepository expensesRepository;
-
-  private final InvoiceRepository invoicesRepository;
 
   private final PostalCodeJpaRepository postalCodeJpaRepository;
 
@@ -90,7 +89,7 @@ public class DashboardUseCase {
     );
   }
 
-  private List<DistributionItem> toStringDistributionItemList(List<String[]> entries, java.util.function.Function<String, String> labelMapper) {
+  private List<DistributionItem> toStringDistributionItemList(List<String[]> entries, Function<String, String> labelMapper) {
     if (entries == null) return Collections.emptyList();
     return entries.stream()
       .map(e -> new DistributionItem(labelMapper.apply(e[0]), Integer.parseInt(e[1])))
@@ -105,7 +104,7 @@ public class DashboardUseCase {
   }
 
   private String resolvePostalCode(String postalCode) {
-    return postalCodeJpaRepository.findByPostalCode(postalCode)
+    return postalCodeJpaRepository.findByPostalCode(Integer.valueOf(postalCode))
       .map(PostalCodeMO::getCity)
       .orElse(postalCode);
   }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -62,12 +63,18 @@ public class SubscriptionService {
     return subscription.getId();
   }
 
-  public void change(String subscriptionId, String currentPriceId, String newCurrentPriceId) throws StripeException {
-    var subscription = Subscription.retrieve(subscriptionId);
+  public void change(String subscriptionId, String currentPriceId, String newCurrentPriceId, String stripeAccount) throws StripeException {
+    var requestOptions = RequestOptions.builder()
+            .setStripeAccount(stripeAccount)
+            .build();
+
+
+    var subscription = Subscription.retrieve(subscriptionId, requestOptions);
     var schedule = SubscriptionSchedule.create(
       SubscriptionScheduleCreateParams.builder()
         .setFromSubscription(subscriptionId)
-        .build()
+        .build(),
+      requestOptions
     );
 
     var updateParams = SubscriptionScheduleUpdateParams.builder()
@@ -84,7 +91,7 @@ public class SubscriptionService {
         .build())
       .build();
 
-    schedule.update(updateParams);
+    schedule.update(updateParams, requestOptions);
   }
 
   public void updatePaymentMethod(@Nullable String subscriptionId, String oldPaymentMethodId, String newPaymentMethodId, String stripeAccount) throws StripeException {
@@ -113,7 +120,7 @@ public class SubscriptionService {
 
     log.info("Detaching payment method with id {}...", oldPaymentMethodId);
 
-    PaymentMethod.retrieve(oldPaymentMethodId, requestOptions).detach();
+    PaymentMethod.retrieve(oldPaymentMethodId, requestOptions).detach(requestOptions);
   }
 
   public void cancel(Map<String, String> props) throws StripeException {
@@ -124,15 +131,9 @@ public class SubscriptionService {
       .setStripeAccount(stripeAccountId)
       .build();
 
-    Subscription.retrieve(subscriptionId, requestOptions).cancel();
+    Subscription.retrieve(subscriptionId, requestOptions).cancel(Collections.emptyMap(), requestOptions);
   }
 
-  private MembershipPlan.Recurring mapRecurring(String interval) {
-    return switch (interval.toUpperCase()) {
-      case "MONTH" -> MembershipPlan.Recurring.MONTHLY;
-      default -> throw new IllegalStateException("Unexpected value: " + interval);
-    };
-  }
 
   public void createTaxRate() throws StripeException {
     var taxRateParams = TaxRateCreateParams.builder()

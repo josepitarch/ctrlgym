@@ -64,9 +64,10 @@ public class MembershipService {
     var currentMembership = membershipsRepository.getMemberships(memberId).stream().filter(m -> m.getDatePeriod().isCurrent()).findFirst();
     if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
     String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(memberId, currentMembership.get().getId());
+    String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
     String currentStripePriceId = stripeBridge.getStripePriceId(stripeSubscriptionId);
     String newCurrentStripePriceId = stripeBridge.getStripePriceId(newMembershipPlanId);
-    subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId);
+    subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId, stripeAccountId);
   }
 
   public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {

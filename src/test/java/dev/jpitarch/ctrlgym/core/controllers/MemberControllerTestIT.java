@@ -74,7 +74,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .city("Springfield")
         .state("IL")
         .postalCode(62701)
-        .country("USA")
         .build())
       .build();
 

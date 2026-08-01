@@ -19,7 +19,7 @@ public class PostalCodeMO {
 
   @Id
   @Column(name = "postal_code", nullable = false, length = 5)
-  private String postalCode;
+  private Integer postalCode;
 
   @Id
   @Column(name = "city", nullable = false, length = 150)

@@ -78,8 +78,6 @@ public class Member {
     @JsonProperty("postal_code")
     private Integer postalCode;
 
-    private String country;
-
   }
 
 }

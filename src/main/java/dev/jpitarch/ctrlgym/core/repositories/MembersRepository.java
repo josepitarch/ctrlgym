@@ -60,13 +60,10 @@ public class MembersRepository {
       .birthDate(userMO.getBirthDate())
       .address(Member.Address.builder()
         .street(userMO.getStreet())
-        .city(userMO.getCity())
-        .state(userMO.getState())
-        .country(userMO.getCountry())
         .postalCode(userMO.getPostalCode())
         .build()
       )
-            .status(userMO.getStatus())
+      .status(userMO.getStatus())
       .build();
   }
 
@@ -86,10 +83,7 @@ public class MembersRepository {
     if (member.getAddress() != null) {
       var address = member.getAddress();
       memberMO.setStreet(address.getStreet());
-      memberMO.setCity(address.getCity());
-      memberMO.setState(address.getState());
       memberMO.setPostalCode(address.getPostalCode());
-      memberMO.setCountry(address.getCountry());
     }
 
     jpaRepository.save(memberMO);

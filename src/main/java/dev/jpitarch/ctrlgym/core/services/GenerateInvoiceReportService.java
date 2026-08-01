@@ -161,7 +161,7 @@ public class GenerateInvoiceReportService {
         .replace("{{CLIENT_NAME}}", member.getFullName())
         .replace("{{CLIENT_STREET}}", member.getAddress().getStreet())
         .replace("{{CLIENT_POSTAL_CODE}}", String.valueOf(member.getAddress().getPostalCode()))
-        .replace("{{CLIENT_CITY}}", member.getAddress().getCity())
+        .replace("{{CLIENT_CITY}}", member.getAddress().getCity()) //TODO
         .replace("{{CLIENT_NIF}}", member.getNif())
         .replace("{{INVOICE_SERIES}}", invoice.getSeries())
         .replace("{{INVOICE_NUMBER}}", invoice.getNumber())

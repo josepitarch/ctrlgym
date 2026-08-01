@@ -328,7 +328,7 @@ CREATE TABLE machines
 
 -- DROP TABLE members;
 
-CREATE TABLE members
+CREATE TABLE users
 (
     id                       uuid        NOT NULL,
     gym_id                   int4        NOT NULL,
@@ -345,9 +345,6 @@ CREATE TABLE members
     stripe_payment_method_id text NULL,
     nif                      varchar(20) NULL,
     street                   varchar(80) NULL,
-    city                     varchar(30) NULL,
-    state                    varchar(30) NULL,
-    country                  varchar(30) NULL,
     status public.member_status NOT NULL,
     CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),
     CONSTRAINT members_pkey PRIMARY KEY (id, gym_id),
@@ -424,7 +421,7 @@ CREATE TABLE memberships
     cancellation_comment   text null,
     CONSTRAINT membership_pkey PRIMARY KEY (id),
     CONSTRAINT memberships_stripe_subscription_id_uk UNIQUE (stripe_subscription_id),
-    CONSTRAINT memberships_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
+    CONSTRAINT memberships_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
 );
 
 
@@ -568,7 +565,7 @@ CREATE TABLE invoices
     CONSTRAINT inoices_serie_number_uk UNIQUE (series, number),
     CONSTRAINT invoices_pkey PRIMARY KEY (id),
     CONSTRAINT invoices_verifactu_uk UNIQUE (verifactu_id),
-    CONSTRAINT invoices_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
+    CONSTRAINT invoices_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
 );
 CREATE INDEX idx_invoice_gym ON public.invoices USING btree (gym_id);
 CREATE INDEX idx_invoice_member ON public.invoices USING btree (member_id);
@@ -592,7 +589,7 @@ CREATE TABLE member_accesses
     CONSTRAINT access_events_pkey PRIMARY KEY (id),
     CONSTRAINT check_direction CHECK ((direction = ANY (ARRAY[0, 1]))),
     CONSTRAINT access_events_gyms_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id),
-    CONSTRAINT member_accesses_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES members (id, gym_id)
+    CONSTRAINT member_accesses_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
 );
 
 

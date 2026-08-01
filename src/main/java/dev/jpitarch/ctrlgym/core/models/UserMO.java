@@ -57,15 +57,6 @@ public class UserMO {
   @Column(name = "street")
   private String street;
 
-  @Column(name = "city")
-  private String city;
-
-  @Column(name = "state")
-  private String state;
-
-  @Column(name = "country")
-  private String country;
-
   @Column(name = "postal_code", length = 20)
   private Integer postalCode;
 

@@ -94,7 +94,7 @@ public class GymsRepository {
       .email(rs.getString("email"))
       .gender(mapGender(rs.getString("gender")))
       .birthDate(LocalDate.parse(rs.getString("birth_date")))
-      .address(new Member.Address(rs.getString("street"), rs.getString("city"), rs.getString("state"), rs.getInt("postal_code"), rs.getString("country")))
+      .address(new Member.Address(rs.getString("street"), rs.getString("city"), rs.getString("state"), rs.getInt("postal_code")))
       .build()
     );
   }

@@ -72,7 +72,7 @@ public class GymsRepository {
 
   public List<Member> getMembers(GymBranchId gymBranchId) {
     var sql = """
-      SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.street, m.postal_code, m.gym_id
+      SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.gym_id
       FROM users m
       JOIN memberships mb ON m.id = mb.member_id
       JOIN membership_plans mp ON mb.membership_plan_id = mp.id
@@ -94,7 +94,6 @@ public class GymsRepository {
       .email(rs.getString("email"))
       .gender(mapGender(rs.getString("gender")))
       .birthDate(LocalDate.parse(rs.getString("birth_date")))
-      .address(new Member.Address(rs.getString("street"), rs.getString("city"), rs.getString("state"), rs.getInt("postal_code")))
       .build()
     );
   }

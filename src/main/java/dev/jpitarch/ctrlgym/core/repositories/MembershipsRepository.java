@@ -40,10 +40,6 @@ public class MembershipsRepository {
     return this.membershipJpaRepository.getIdByStripeSubscriptionId(subscriptionId);
   }
 
-  public String getStripeSubscriptionId(Member.Id memberId) {
-    return this.membershipJpaRepository.getStripeSubscriptionId(memberId.memberId(), memberId.gymId());
-  }
-
   public List<Membership> getMemberships(Member.Id memberId) {
     return membershipJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())

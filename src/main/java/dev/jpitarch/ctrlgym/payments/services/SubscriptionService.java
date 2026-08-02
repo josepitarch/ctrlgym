@@ -27,6 +27,11 @@ public class SubscriptionService {
       .setStripeAccount(props.get("stripeAccountId"))
       .build();
 
+    /*
+    Esto fuerza que se le cobre prorrateado al usuario y asi se le cobra el 1 de cada mes
+    Por ejemplo, si se da alta el día 10 se le cobra en ese momento 20 días restantes del mes
+    y al mes siguiente ya es OK
+     */
     LocalDate firstDayOfNextMonth = LocalDate.now().withDayOfMonth(1).plusMonths(1);
     long billingAnchorTimestamp = firstDayOfNextMonth
       .atStartOfDay(ZoneOffset.UTC)

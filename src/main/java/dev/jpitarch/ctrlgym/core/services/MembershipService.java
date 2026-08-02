@@ -57,7 +57,7 @@ public class MembershipService {
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
 
     String subscriptionId = subscriptionService.create(memberId, props);
-    membershipsRepository.save(memberId, membershipPlanId, subscriptionId, calculateNextBillingDate());
+    membershipsRepository.save(memberId, membershipPlanId, subscriptionId, LocalDate.now().withDayOfMonth(1).plusMonths(1));
   }
 
   public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
@@ -100,13 +100,5 @@ public class MembershipService {
     return membershipsRepository.getCancellationReasons(language);
   }
 
-  //TODO: revisar si esto ya viene pre-informado con el evento Invoice
-  private LocalDate calculateNextBillingDate() {
-    var today = LocalDate.now();
-    if (today.getDayOfMonth() == 1) {
-      return today.plusMonths(1).withDayOfMonth(1);
-    }
-    return today.plusMonths(2).withDayOfMonth(1);
-  }
 
 }

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public interface MemberJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
   Optional<String> getStripeSetupIntentId(String stripeCustomerId);
 
   @Modifying
+  @Transactional
   @Query("UPDATE UserMO u SET u.stripeSetupIntentId = :setupIntentId WHERE u.id = :memberId AND u.gymId = :gymId")
   void saveStripeSetupIntentId(UUID memberId, Integer gymId, String setupIntentId);
 }

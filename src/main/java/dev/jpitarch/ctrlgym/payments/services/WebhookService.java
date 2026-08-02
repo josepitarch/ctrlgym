@@ -73,14 +73,14 @@ public class WebhookService {
 
     var memberId = stripeBridge.getId(setupIntent.getCustomer());
 
-    stripeBridge.getPaymentMethodId(setupIntent.getCustomer()).ifPresent(pm -> {
+    stripeBridge.getStripeSetupIntentId(setupIntent.getCustomer()).ifPresent(setupIntentId -> {
       try {
         var subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId);
         var stripeAccount = stripeBridge.getStripeAccountId(memberId.gymId());
 
         log.info("Member with id {} has already a payment method configured. Updating...", memberId);
 
-        subscriptionService.updatePaymentMethod(subscriptionId, pm, setupIntent.getPaymentMethod(), stripeAccount);
+        subscriptionService.updateSetupIntentId(subscriptionId, setupIntentId, setupIntent.getPaymentMethod(), stripeAccount);
       } catch (StripeException e) {
         throw new RuntimeException(e);
       }

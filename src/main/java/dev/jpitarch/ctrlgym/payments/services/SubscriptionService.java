@@ -5,7 +5,6 @@ import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -24,7 +23,7 @@ import java.util.Map;
 public class SubscriptionService {
 
   public String create(Member.Id memberId, Map<String, String> props) throws StripeException {
-    var requestOptions = RequestOptions.builder()
+    var options = RequestOptions.builder()
       .setStripeAccount(props.get("stripeAccountId"))
       .build();
 
@@ -33,14 +32,16 @@ public class SubscriptionService {
       .atStartOfDay(ZoneOffset.UTC)
       .toEpochSecond();
 
+    String paymentMethodId = SetupIntent.retrieve(props.get("setupIntendId"), options).getPaymentMethod();
+
     var customerUpdateParams = CustomerUpdateParams.builder()
       .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
-        .setDefaultPaymentMethod(props.get("paymentMethodId"))
+        .setDefaultPaymentMethod(paymentMethodId)
         .build()
       )
       .build();
 
-    Customer.retrieve(props.get("customerId"), requestOptions).update(customerUpdateParams, requestOptions);
+    Customer.retrieve(props.get("customerId"), options).update(customerUpdateParams, options);
 
     var subscriptionParams = SubscriptionCreateParams.builder()
       .setCustomer(props.get("customerId"))
@@ -56,10 +57,10 @@ public class SubscriptionService {
       )
       .setBillingCycleAnchor(billingAnchorTimestamp)
       .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
-      .setMetadata(Map.of("gymId", memberId.gymId().toString()))
+      .setMetadata(Map.of("gym_id", memberId.gymId().toString()))
       .build();
 
-    var subscription = Subscription.create(subscriptionParams, requestOptions);
+    var subscription = Subscription.create(subscriptionParams, options);
     return subscription.getId();
   }
 
@@ -94,8 +95,8 @@ public class SubscriptionService {
     schedule.update(updateParams, requestOptions);
   }
 
-  public void updatePaymentMethod(@Nullable String subscriptionId, String oldPaymentMethodId, String newPaymentMethodId, String stripeAccount) throws StripeException {
-    var requestOptions = RequestOptions.builder()
+  public void updateSetupIntentId(@Nullable String subscriptionId, String oldSetupIntentId, String newPaymentMethodId, String stripeAccount) throws StripeException {
+    var options = RequestOptions.builder()
       .setStripeAccount(stripeAccount)
       .build();
 
@@ -103,9 +104,11 @@ public class SubscriptionService {
       .setDefaultPaymentMethod(newPaymentMethodId)
       .build();
 
+    String oldPaymentMethodId = SetupIntent.retrieve(oldSetupIntentId, options).getPaymentMethod();
+
     if (subscriptionId != null) {
       log.info("Updating subscription with id {} payment method from {} to {}...", subscriptionId, oldPaymentMethodId, newPaymentMethodId);
-      Subscription.retrieve(subscriptionId, requestOptions).update(params, requestOptions);
+      Subscription.retrieve(subscriptionId, options).update(params, options);
     }
 
 // 2. (Alternativa/complemento) Actualizar el default a nivel de customer
@@ -120,7 +123,7 @@ public class SubscriptionService {
 
     log.info("Detaching payment method with id {}...", oldPaymentMethodId);
 
-    PaymentMethod.retrieve(oldPaymentMethodId, requestOptions).detach(requestOptions);
+    PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
   }
 
   public void cancel(Map<String, String> props) throws StripeException {

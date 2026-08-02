@@ -40,17 +40,17 @@ public class MembershipService {
 
     String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
     String stripePriceId = stripeBridge.getStripePriceId(membershipPlanId);
-    Optional<String> paymentMethodId = stripeBridge.getPaymentMethodId(memberId);
+    Optional<String> setupIntentId = stripeBridge.getStripeSetupIntentId(memberId);
     Optional<String> customerId = stripeBridge.getStripeCustomerId(memberId);
 
-    if (paymentMethodId.isEmpty() || customerId.isEmpty()) {
+    if (setupIntentId.isEmpty() || customerId.isEmpty()) {
       throw new IllegalStateException("Customer or payment method not found for member with id " + memberId);
     }
 
     var props = Map.of(
       "stripeAccountId", stripeAccountId,
       "stripePriceId", stripePriceId,
-      "paymentMethodId", paymentMethodId.get(),
+      "setupIntentId", setupIntentId.get(),
       "customerId", customerId.get()
     );
 

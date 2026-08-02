@@ -2,10 +2,13 @@ package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.stripe.model.SetupIntent;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.SetupIntentCreateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
+import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +47,7 @@ public class CustomerService {
       )
       .setMetadata(Map.of(
         "nif", member.getNif(),
-        "gymId", gymId.toString()
+        "gym_id", gymId.toString()
       ))
       .build();
 
@@ -52,6 +55,27 @@ public class CustomerService {
     var customer = Customer.create(params, requestOptions);
 
     return customer.getId();
+  }
+
+  public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
+    String accountId = stripeBridge.getStripeAccountId(memberId.gymId());
+    String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow();
+
+    var options = RequestOptions.builder()
+      .setStripeAccount(accountId)
+      .build();
+
+    var params = SetupIntentCreateParams.builder()
+      .setCustomer(customerId)
+      .addPaymentMethodType("sepa_debit")
+      .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION)
+      .build();
+
+    var setupIntent = SetupIntent.create(params, options);
+
+    stripeBridge.saveStripeSetupIntentId(memberId, setupIntent.getId());
+
+    return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
   }
 
 }

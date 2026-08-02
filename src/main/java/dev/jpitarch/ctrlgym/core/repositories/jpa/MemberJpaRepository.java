@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
 import dev.jpitarch.ctrlgym.core.models.UserMO;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -26,16 +27,20 @@ public interface MemberJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
   Optional<String> getStripeCustomerId(UUID memberId, Integer gymId);
 
   @Query("""
-        SELECT m.stripePaymentMethodId
+        SELECT m.stripeSetupIntentId
         FROM UserMO m
         WHERE m.id = :memberId AND m.gymId = :gymId
     """)
-  Optional<String> getStripePaymentMethodId(UUID memberId, Integer gymId);
+  Optional<String> getStripeSetupIntentId(UUID memberId, Integer gymId);
 
   @Query("""
-        SELECT m.stripePaymentMethodId
+        SELECT m.stripeSetupIntentId
         FROM UserMO m
         WHERE m.stripeCustomerId = :stripeCustomerId
     """)
-  Optional<String> getStripePaymentMethodId(String stripeCustomerId);
+  Optional<String> getStripeSetupIntentId(String stripeCustomerId);
+
+  @Modifying
+  @Query("UPDATE UserMO u SET u.stripeSetupIntentId = :setupIntentId WHERE u.id = :memberId AND u.gymId = :gymId")
+  void saveStripeSetupIntentId(UUID memberId, Integer gymId, String setupIntentId);
 }

@@ -2,17 +2,12 @@ package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.payments.dto.InvoiceSummary;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
-import dev.jpitarch.ctrlgym.payments.services.InvoicesService;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -20,11 +15,11 @@ import java.util.UUID;
 @RequestMapping("/v1/payments")
 public class InvoicesController {
 
-  private final InvoicesService invoicesService;
+  private final CustomerService customerService;
 
   @PostMapping("/members/{memberId}/payment-methods")
   public ResponseEntity<SetupIntentResponse> createIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
-    SetupIntentResponse response = invoicesService.createSetupIntent(Member.Id.of(memberId, gymId));
+    SetupIntentResponse response = customerService.createSetupIntent(Member.Id.of(memberId, gymId));
 
     return ResponseEntity.ok(response);
   }

@@ -66,7 +66,7 @@ class MembershipServiceTest {
 
       when(stripeBridge.getStripeAccountId(1)).thenReturn("stripe_account");
       when(stripeBridge.getStripePriceId("plan_basic")).thenReturn("price_basic");
-      when(stripeBridge.getPaymentMethodId(memberId)).thenReturn(Optional.of("pm_test"));
+      when(stripeBridge.getStripeSetupIntentId(memberId)).thenReturn(Optional.of("pm_test"));
       when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.of("cus_test"));
       when(subscriptionService.create(any(), any())).thenReturn("sub_test123");
 

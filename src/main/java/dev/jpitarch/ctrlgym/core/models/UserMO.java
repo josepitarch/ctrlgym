@@ -72,8 +72,8 @@ public class UserMO {
   @Column(name = "stripe_customer_id", length = Integer.MAX_VALUE)
   private String stripeCustomerId;
 
-  @Column(name = "stripe_payment_method_id", length = Integer.MAX_VALUE)
-  private String stripePaymentMethodId;
+  @Column(name = "stripe_setup_intent_id", length = Integer.MAX_VALUE)
+  private String stripeSetupIntentId;
 
 
   @Override

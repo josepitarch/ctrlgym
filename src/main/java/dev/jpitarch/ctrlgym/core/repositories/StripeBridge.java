@@ -24,12 +24,16 @@ public class StripeBridge {
     return memberJpaRepository.getStripeCustomerId(memberId.memberId(), memberId.gymId());
   }
 
-  public Optional<String> getPaymentMethodId(Member.Id id) {
-    return memberJpaRepository.getStripePaymentMethodId(id.memberId(), id.gymId());
+  public Optional<String> getStripeSetupIntentId(Member.Id id) {
+    return memberJpaRepository.getStripeSetupIntentId(id.memberId(), id.gymId());
   }
 
-  public Optional<String> getPaymentMethodId(String stripeCustomerId) {
-    return memberJpaRepository.getStripePaymentMethodId(stripeCustomerId);
+  public Optional<String> getStripeSetupIntentId(String stripeCustomerId) {
+    return memberJpaRepository.getStripeSetupIntentId(stripeCustomerId);
+  }
+
+  public void saveStripeSetupIntentId(Member.Id memberId, String id) {
+    memberJpaRepository.saveStripeSetupIntentId(memberId.memberId(), memberId.gymId(), id);
   }
 
   public Member.Id getId(String stripeCustomerId) {

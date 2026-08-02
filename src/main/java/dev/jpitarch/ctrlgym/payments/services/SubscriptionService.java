@@ -32,7 +32,7 @@ public class SubscriptionService {
       .atStartOfDay(ZoneOffset.UTC)
       .toEpochSecond();
 
-    String paymentMethodId = SetupIntent.retrieve(props.get("setupIntendId"), options).getPaymentMethod();
+    String paymentMethodId = SetupIntent.retrieve(props.get("setupIntentId"), options).getPaymentMethod();
 
     var customerUpdateParams = CustomerUpdateParams.builder()
       .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()

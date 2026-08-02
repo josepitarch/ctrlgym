@@ -46,7 +46,7 @@ class SubscriptionServiceTest {
 
       Map<String, String> props = Map.of(
         "stripeAccountId", "acct_test123",
-        "setupIntendId", "seti_test123",
+        "setupIntentId", "seti_test123",
         "customerId", "cus_test123",
         "stripePriceId", "price_test123"
       );
@@ -98,7 +98,7 @@ class SubscriptionServiceTest {
 
       Map<String, String> props = Map.of(
         "stripeAccountId", "acct_test",
-        "setupIntendId", "seti_test",
+        "setupIntentId", "seti_test",
         "customerId", "cus_test",
         "stripePriceId", "price_test"
       );
@@ -141,7 +141,7 @@ class SubscriptionServiceTest {
 
       Map<String, String> props = Map.of(
         "stripeAccountId", "acct_test",
-        "setupIntendId", "seti_test",
+        "setupIntentId", "seti_test",
         "customerId", "cus_test",
         "stripePriceId", "price_test"
       );

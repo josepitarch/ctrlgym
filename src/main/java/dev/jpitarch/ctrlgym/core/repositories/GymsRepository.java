@@ -39,8 +39,6 @@ public class GymsRepository {
     return jpaRepository.findControllerApiKey(gymId);
   }
 
-
-
   public Integer getId(String stripeAccountId) {
     return jpaRepository.findIdByStripeAccountId(stripeAccountId);
   }

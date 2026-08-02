@@ -81,12 +81,17 @@ public class WebhookService {
   private void handleInvoiceCreated(Invoice invoice) {
     log.info("Creating invoice of member with id {}...", invoice.getId());
     Member.Id memberId = stripeBridge.getId(invoice.getCustomer());
+
+    //TODO: aquí total y subtotal llega en formato céntimos
+    // Además subtotal y total tienen el mismo valor ya que no estará
+    // definido en Stripe el IVA
     var inv = dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
       .id(invoice.getId())
       .subtotal(BigDecimal.valueOf(invoice.getSubtotal()))
       .total(BigDecimal.valueOf(invoice.getTotal()))
       .currency(invoice.getCurrency())
       .build();
+
     invoiceRepository.create(inv, memberId);
   }
 

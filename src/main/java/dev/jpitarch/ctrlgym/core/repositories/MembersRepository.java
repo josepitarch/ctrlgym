@@ -90,22 +90,6 @@ public class MembersRepository {
   }
 
 
-  public void savePaymentMethodId(String customerId, String paymentMethodId) {
-    var sql = """
-      UPDATE users
-      SET stripe_payment_method_id = :paymentMethodId
-      WHERE stripe_customer_id = :customerId
-      """;
-
-    var params = Map.of(
-      "customerId", customerId,
-      "paymentMethodId", paymentMethodId
-    );
-
-    this.jdbc.update(sql, params);
-  }
-
-
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
     return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()

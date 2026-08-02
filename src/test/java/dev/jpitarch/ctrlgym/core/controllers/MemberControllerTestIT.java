@@ -135,8 +135,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   void initializeMembership_returns204_whenSuccessful() throws Exception {
     when(subscriptionService.create(any(), any())).thenReturn("sub_test123");
 
-    membersRepository.savePaymentMethodId("cus_test123", "pm_test123");
-
     mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipId}", memberId.memberId(), "plan_basic")
         .param("gymId", memberId.gymId().toString()))
       .andExpect(status().isNoContent());

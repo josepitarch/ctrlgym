@@ -71,23 +71,11 @@ public class WebhookService {
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
 
-    var memberId = stripeBridge.getId(setupIntent.getCustomer());
+    /* TODO
+    * Ahora se guarda el setup intent id y se guarda en ese preciso momento.
+    * Esto lo que hace es confirmar que el IBAN es OK simplemente
+    */
 
-    stripeBridge.getStripeSetupIntentId(setupIntent.getCustomer()).ifPresent(setupIntentId -> {
-      try {
-        var subscriptionId = membershipsRepository.getStripeSubscriptionId(memberId);
-        var stripeAccount = stripeBridge.getStripeAccountId(memberId.gymId());
-
-        log.info("Member with id {} has already a payment method configured. Updating...", memberId);
-
-        subscriptionService.updateSetupIntentId(subscriptionId, setupIntentId, setupIntent.getPaymentMethod(), stripeAccount);
-      } catch (StripeException e) {
-        throw new RuntimeException(e);
-      }
-    });
-
-    log.info("Saving payment method with id {} for member with id {}...", memberId, setupIntent.getPaymentMethod());
-    membersRepository.savePaymentMethodId(setupIntent.getCustomer(), setupIntent.getPaymentMethod());
   }
 
   private void handleInvoiceCreated(Invoice invoice) {

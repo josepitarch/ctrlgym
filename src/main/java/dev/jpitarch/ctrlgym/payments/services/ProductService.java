@@ -77,13 +77,6 @@ public class ProductService {
     Product.retrieve(productId, options).update(productParams, options);
   }
 
-  private MembershipPlan.Recurring mapRecurring(String interval) {
-    return switch (interval.toUpperCase()) {
-      case "MONTH" -> MembershipPlan.Recurring.MONTHLY;
-      default -> throw new IllegalStateException("Unexpected value: " + interval);
-    };
-  }
-
   public void createTaxRate() throws StripeException {
     var taxRateParams = TaxRateCreateParams.builder()
       .setDisplayName("IVA")

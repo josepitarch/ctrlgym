@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers.advices;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.*;
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -13,13 +14,10 @@ import java.net.URI;
 import java.time.Instant;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ControllerAdvice {
 
   private final ApplicationEventPublisher eventPublisher;
-
-  public ControllerAdvice(ApplicationEventPublisher eventPublisher) {
-    this.eventPublisher = eventPublisher;
-  }
 
   @ExceptionHandler(MemberNotFoundException.class)
   public ProblemDetail handleMemberNotFoundException(MemberNotFoundException e, HttpServletRequest request) {

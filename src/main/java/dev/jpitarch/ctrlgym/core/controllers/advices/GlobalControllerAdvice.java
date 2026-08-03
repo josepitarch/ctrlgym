@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 
 @Slf4j
@@ -38,7 +37,7 @@ public class GlobalControllerAdvice {
   }
 
   @ExceptionHandler(AuthorizationDeniedException.class)
-  public ProblemDetail handleAccessDeniedException(AccessDeniedException e, HttpServletRequest request) {
+  public ProblemDetail handleAccessDeniedException(AuthorizationDeniedException e, HttpServletRequest request) {
     log.error("Access Denied: {}", e.getMessage());
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
     problem.setTitle("Forbidden");

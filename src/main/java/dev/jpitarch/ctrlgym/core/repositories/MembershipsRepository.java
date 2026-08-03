@@ -72,14 +72,24 @@ public class MembershipsRepository {
   }
 
   public List<Integer> getAccessibleBranches(Member.Id memberId) {
-    //TODO: aquí habría que comprobar que si all_branches está activado
-    // devolver todos los centros en gym_branches
     var sql = """
+      SELECT gb.id AS gym_branch_id
+      FROM memberships m
+      INNER JOIN membership_plans mp ON m.membership_plan_id = mp.id
+      CROSS JOIN gym_branches gb
+      WHERE m.member_id = :memberId AND mp.gym_id = :gymId
+        AND mp.all_branches IS TRUE
+        AND gb.gym_id = :gymId AND gb.is_active IS TRUE
+        AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
+
+      UNION
+
       SELECT mp.gym_branch_id
       FROM memberships m
       INNER JOIN membership_plans mp ON m.membership_plan_id = mp.id
       WHERE m.member_id = :memberId AND mp.gym_id = :gymId
-      AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
+        AND mp.all_branches IS FALSE
+        AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
       """;
 
     var params = Map.of(

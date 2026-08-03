@@ -5,9 +5,9 @@ import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.payments.utils.EpochLocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -100,37 +100,6 @@ public class SubscriptionService {
     schedule.update(updateParams, requestOptions);
   }
 
-  public void updateSetupIntentId(@Nullable String subscriptionId, String oldSetupIntentId, String newPaymentMethodId, String stripeAccount) throws StripeException {
-    var options = RequestOptions.builder()
-      .setStripeAccount(stripeAccount)
-      .build();
-
-    var params = SubscriptionUpdateParams.builder()
-      .setDefaultPaymentMethod(newPaymentMethodId)
-      .build();
-
-    String oldPaymentMethodId = SetupIntent.retrieve(oldSetupIntentId, options).getPaymentMethod();
-
-    if (subscriptionId != null) {
-      log.info("Updating subscription with id {} payment method from {} to {}...", subscriptionId, oldPaymentMethodId, newPaymentMethodId);
-      Subscription.retrieve(subscriptionId, options).update(params, options);
-    }
-
-// 2. (Alternativa/complemento) Actualizar el default a nivel de customer
-    /*CustomerUpdateParams customerParams = CustomerUpdateParams.builder()
-            .setInvoiceSettings(
-                    CustomerUpdateParams.InvoiceSettings.builder()
-                            .setDefaultPaymentMethod(newPaymentMethodId)
-                            .build()
-            )
-            .build();
-    customer.update(customerParams);*/
-
-    log.info("Detaching payment method with id {}...", oldPaymentMethodId);
-
-    PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
-  }
-
   public void cancel(Map<String, String> props) throws StripeException {
     String stripeAccountId = props.get("stripeAccountId");
     String subscriptionId = props.get("subscriptionId");
@@ -142,6 +111,15 @@ public class SubscriptionService {
     Subscription.retrieve(subscriptionId, requestOptions).cancel(Collections.emptyMap(), requestOptions);
   }
 
+
+  public LocalDate getNextBillingDate(String subscriptionId, String stripeAccountId) throws StripeException {
+    var options = RequestOptions.builder()
+      .setStripeAccount(stripeAccountId)
+      .build();
+
+    var subscription = Subscription.retrieve(subscriptionId, options);
+    return EpochLocalDate.toLocalDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd());
+  }
 
   public void createTaxRate() throws StripeException {
     var taxRateParams = TaxRateCreateParams.builder()

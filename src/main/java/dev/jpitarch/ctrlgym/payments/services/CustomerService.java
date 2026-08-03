@@ -2,15 +2,19 @@ package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.stripe.model.PaymentMethod;
 import com.stripe.model.SetupIntent;
+import com.stripe.model.Subscription;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
+import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -76,6 +80,27 @@ public class CustomerService {
     stripeBridge.saveStripeSetupIntentId(memberId, setupIntent.getId());
 
     return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
+  }
+
+  public void updateSetupIntentId(@Nullable String subscriptionId, String oldSetupIntentId, String newPaymentMethodId, String stripeAccount) throws StripeException {
+    var options = RequestOptions.builder()
+      .setStripeAccount(stripeAccount)
+      .build();
+
+    var params = SubscriptionUpdateParams.builder()
+      .setDefaultPaymentMethod(newPaymentMethodId)
+      .build();
+
+    String oldPaymentMethodId = SetupIntent.retrieve(oldSetupIntentId, options).getPaymentMethod();
+
+    if (subscriptionId != null) {
+      log.info("Updating subscription with id {} payment method from {} to {}...", subscriptionId, oldPaymentMethodId, newPaymentMethodId);
+      Subscription.retrieve(subscriptionId, options).update(params, options);
+    }
+
+    log.info("Detaching payment method with id {}...", oldPaymentMethodId);
+
+    PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
   }
 
 }

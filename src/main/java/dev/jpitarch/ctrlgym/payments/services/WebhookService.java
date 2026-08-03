@@ -6,6 +6,8 @@ import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.*;
+import dev.jpitarch.ctrlgym.payments.utils.EpochLocalDate;
+import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -82,17 +85,26 @@ public class WebhookService {
     log.info("Creating invoice of member with id {}...", invoice.getId());
     Member.Id memberId = stripeBridge.getId(invoice.getCustomer());
 
-    //TODO: aquí total y subtotal llega en formato céntimos
-    // Además subtotal y total tienen el mismo valor ya que no estará
-    // definido en Stripe el IVA
     var inv = dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
       .id(invoice.getId())
-      .subtotal(BigDecimal.valueOf(invoice.getSubtotal()))
-      .total(BigDecimal.valueOf(invoice.getTotal()))
+      .subtotal(MoneyHelper.toEuros(this.calculateSubtotal(invoice.getTotal())))
+      .total(MoneyHelper.toEuros(invoice.getTotal()))
       .currency(invoice.getCurrency())
       .build();
 
     invoiceRepository.create(inv, memberId);
+  }
+
+  private Long calculateSubtotal(Long totalInCents) {
+    if (totalInCents == null) return null;
+
+    BigDecimal taxRate = BigDecimal
+            .valueOf(dev.jpitarch.ctrlgym.core.domain.Invoice.TAX)
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.DOWN);
+
+    BigDecimal subtotal = BigDecimal.valueOf(totalInCents).divide(BigDecimal.ONE.add(taxRate), 0, RoundingMode.HALF_UP);
+
+    return subtotal.longValueExact();
   }
 
   private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) {
@@ -105,8 +117,8 @@ public class WebhookService {
     invoiceRepository.markAsPaid(invoice.getId());
 
     //TODO: setear next_billing_date en función del Recurring
-    long nextChargeDate = invoice.getLines().getData().getFirst().getPeriod().getEnd();
-    LocalDate localDate = Instant.ofEpochSecond(nextChargeDate).atZone(ZoneId.of("Europe/Madrid")).toLocalDate();
+    var nextBillingDate = EpochLocalDate.toLocalDate(invoice.getLines().getData().getFirst().getPeriod().getEnd());
+
 
     dev.jpitarch.ctrlgym.core.domain.Invoice inv = invoiceRepository
       .getInvoice(invoice.getId())

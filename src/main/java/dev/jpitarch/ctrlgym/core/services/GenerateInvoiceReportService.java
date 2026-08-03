@@ -5,9 +5,11 @@ import com.openhtmltopdf.util.XRLog;
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.models.GymMO;
+import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.verifactu.service.VerifactuService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,8 @@ public class GenerateInvoiceReportService {
   private final InvoiceRepository invoiceRepository;
 
   private final VerifactuService verifactuService;
+
+  private final PostalCodeJpaRepository postalCodeJpaRepository;
 
   private static final String DEFAULT_HTML = """
     <?xml version="1.0" encoding="UTF-8"?>
@@ -161,7 +165,7 @@ public class GenerateInvoiceReportService {
         .replace("{{CLIENT_NAME}}", member.getFullName())
         .replace("{{CLIENT_STREET}}", member.getAddress().getStreet())
         .replace("{{CLIENT_POSTAL_CODE}}", String.valueOf(member.getAddress().getPostalCode()))
-        .replace("{{CLIENT_CITY}}", member.getAddress().getCity()) //TODO
+        .replace("{{CLIENT_CITY}}", postalCodeJpaRepository.findByPostalCode(member.getAddress().getPostalCode()).map(PostalCodeMO::getCity).orElse(""))
         .replace("{{CLIENT_NIF}}", member.getNif())
         .replace("{{INVOICE_SERIES}}", invoice.getSeries())
         .replace("{{INVOICE_NUMBER}}", invoice.getNumber())

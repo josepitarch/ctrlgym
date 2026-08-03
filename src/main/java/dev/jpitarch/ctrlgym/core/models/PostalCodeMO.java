@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.io.Serial;
@@ -15,6 +16,7 @@ import java.util.Objects;
 @Entity
 @IdClass(PostalCodeMO.ID.class)
 @Table(name = "postal_codes")
+@SQLRestriction("is_active IS TRUE")
 public class PostalCodeMO {
 
   @Id

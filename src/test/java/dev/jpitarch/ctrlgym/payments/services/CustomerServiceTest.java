@@ -3,10 +3,13 @@ package dev.jpitarch.ctrlgym.payments.services;
 import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.stripe.model.PaymentMethod;
 import com.stripe.model.SetupIntent;
+import com.stripe.model.Subscription;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
+import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
@@ -26,6 +29,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -172,6 +176,92 @@ class CustomerServiceTest {
         .thenThrow(cardException);
 
       assertThatThrownBy(() -> customerService.createSetupIntent(memberId))
+        .isInstanceOf(StripeException.class);
+    }
+  }
+
+  @Test
+  @DisplayName("updateSetupIntentId - updates subscription and detaches old payment method")
+  void updateSetupIntentId_updatesSubscriptionAndDetachesOldPaymentMethod() throws StripeException {
+    try (MockedStatic<Subscription> subscriptionMock = mockStatic(Subscription.class);
+         MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class);
+         MockedStatic<PaymentMethod> paymentMethodMock = mockStatic(PaymentMethod.class)) {
+
+      String subscriptionId = "sub_test123";
+      String oldSetupIntentId = "seti_old";
+      String oldPaymentMethodId = "pm_old";
+      String newPaymentMethodId = "pm_new";
+      String stripeAccount = "acct_test";
+
+      SetupIntent mockSetupIntent = mock(SetupIntent.class);
+      when(mockSetupIntent.getPaymentMethod()).thenReturn(oldPaymentMethodId);
+
+      setupIntentMock.when(() -> SetupIntent.retrieve(eq(oldSetupIntentId), any(RequestOptions.class)))
+        .thenReturn(mockSetupIntent);
+
+      Subscription mockSubscription = mock(Subscription.class);
+      PaymentMethod mockPaymentMethod = mock(PaymentMethod.class);
+
+      subscriptionMock.when(() -> Subscription.retrieve(eq(subscriptionId), any(RequestOptions.class)))
+        .thenReturn(mockSubscription);
+      when(mockSubscription.update(any(SubscriptionUpdateParams.class), any(RequestOptions.class)))
+        .thenReturn(mockSubscription);
+
+      paymentMethodMock.when(() -> PaymentMethod.retrieve(eq(oldPaymentMethodId), any(RequestOptions.class)))
+        .thenReturn(mockPaymentMethod);
+      when(mockPaymentMethod.detach(any(RequestOptions.class))).thenReturn(mockPaymentMethod);
+
+      customerService.updateSetupIntentId(subscriptionId, oldSetupIntentId, newPaymentMethodId, stripeAccount);
+
+      ArgumentCaptor<SubscriptionUpdateParams> paramsCaptor = ArgumentCaptor.forClass(SubscriptionUpdateParams.class);
+      verify(mockSubscription).update(paramsCaptor.capture(), any(RequestOptions.class));
+      assertThat(paramsCaptor.getValue().getDefaultPaymentMethod()).isEqualTo(newPaymentMethodId);
+
+      paymentMethodMock.verify(() -> PaymentMethod.retrieve(eq(oldPaymentMethodId), any(RequestOptions.class)));
+      verify(mockPaymentMethod).detach(any(RequestOptions.class));
+    }
+  }
+
+  @Test
+  @DisplayName("updateSetupIntentId - skips subscription update when subscriptionId is null")
+  void updateSetupIntentId_skipsSubscriptionUpdateWhenSubscriptionIdIsNull() throws StripeException {
+    try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class);
+         MockedStatic<PaymentMethod> paymentMethodMock = mockStatic(PaymentMethod.class)) {
+
+      String oldSetupIntentId = "seti_old";
+      String oldPaymentMethodId = "pm_old";
+      String newPaymentMethodId = "pm_new";
+      String stripeAccount = "acct_test";
+
+      SetupIntent mockSetupIntent = mock(SetupIntent.class);
+      when(mockSetupIntent.getPaymentMethod()).thenReturn(oldPaymentMethodId);
+
+      setupIntentMock.when(() -> SetupIntent.retrieve(eq(oldSetupIntentId), any(RequestOptions.class)))
+        .thenReturn(mockSetupIntent);
+
+      PaymentMethod mockPaymentMethod = mock(PaymentMethod.class);
+
+      paymentMethodMock.when(() -> PaymentMethod.retrieve(eq(oldPaymentMethodId), any(RequestOptions.class)))
+        .thenReturn(mockPaymentMethod);
+      when(mockPaymentMethod.detach(any(RequestOptions.class))).thenReturn(mockPaymentMethod);
+
+      customerService.updateSetupIntentId(null, oldSetupIntentId, newPaymentMethodId, stripeAccount);
+
+      paymentMethodMock.verify(() -> PaymentMethod.retrieve(eq(oldPaymentMethodId), any(RequestOptions.class)));
+      verify(mockPaymentMethod).detach(any(RequestOptions.class));
+    }
+  }
+
+  @Test
+  @DisplayName("updateSetupIntentId - propagates StripeException")
+  void updateSetupIntentId_propagatesStripeException() throws StripeException {
+    try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
+
+      CardException cardException = mock(CardException.class);
+      setupIntentMock.when(() -> SetupIntent.retrieve(anyString(), any(RequestOptions.class)))
+        .thenThrow(cardException);
+
+      assertThatThrownBy(() -> customerService.updateSetupIntentId("sub_test", "seti_old", "pm_new", "acct_test"))
         .isInstanceOf(StripeException.class);
     }
   }

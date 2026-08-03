@@ -10,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +26,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-  @InjectMocks
   AuthService authService;
+
+  @Mock
+  RestClient.Builder restClientBuilder;
 
   @Mock
   RestClient supabaseAuthRestClient;
@@ -49,10 +50,15 @@ class AuthServiceTest {
 
   @BeforeEach
   void setUp() {
+    lenient().when(restClientBuilder.baseUrl(anyString())).thenReturn(restClientBuilder);
+    lenient().when(restClientBuilder.defaultHeader(anyString(), anyString())).thenReturn(restClientBuilder);
+    lenient().when(restClientBuilder.build()).thenReturn(supabaseAuthRestClient);
     lenient().when(supabaseAuthRestClient.post()).thenReturn(requestBodyUriSpec);
     lenient().when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
     lenient().when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
     lenient().when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+
+    authService = new AuthService(restClientBuilder, "http://localhost", "test-key", membersRepository);
   }
 
   @Test

@@ -6,7 +6,8 @@ import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -21,8 +22,16 @@ public class AuthService {
 
   private final MembersRepository membersRepository;
 
-  public AuthService(@Qualifier("supabaseAuthRestClient") RestClient supabaseAuthRestClient, MembersRepository membersRepository) {
-    this.supabaseAuthRestClient = supabaseAuthRestClient;
+  public AuthService(RestClient.Builder builder,
+                     @Value("${supabase.url}") String supabaseUrl,
+                     @Value("${supabase.service-role-key}") String serviceRoleKey,
+                     MembersRepository membersRepository) {
+    this.supabaseAuthRestClient = builder
+      .baseUrl(supabaseUrl + "/auth/v1")
+      .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+      .defaultHeader("apikey", serviceRoleKey)
+      .defaultHeader("Authorization", "Bearer " + serviceRoleKey)
+      .build();
     this.membersRepository = membersRepository;
   }
 

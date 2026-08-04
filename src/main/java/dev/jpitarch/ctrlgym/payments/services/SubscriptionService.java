@@ -104,11 +104,17 @@ public class SubscriptionService {
     String stripeAccountId = props.get("stripeAccountId");
     String subscriptionId = props.get("subscriptionId");
 
-    var requestOptions = RequestOptions.builder()
+    var options = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
       .build();
 
-    Subscription.retrieve(subscriptionId, requestOptions).cancel(Collections.emptyMap(), requestOptions);
+    var subscription = Subscription.retrieve(subscriptionId, options);
+
+    var params = SubscriptionUpdateParams.builder()
+      .setCancelAtPeriodEnd(true)
+      .build();
+
+    subscription.update(params, options);
   }
 
 

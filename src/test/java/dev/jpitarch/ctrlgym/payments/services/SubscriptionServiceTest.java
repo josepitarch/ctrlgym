@@ -225,11 +225,14 @@ class SubscriptionServiceTest {
 
       subscriptionMock.when(() -> Subscription.retrieve(eq("sub_test123"), any(RequestOptions.class)))
         .thenReturn(mockSubscription);
-      when(mockSubscription.cancel(anyMap(), any(RequestOptions.class))).thenReturn(mockSubscription);
+      when(mockSubscription.update(any(SubscriptionUpdateParams.class), any(RequestOptions.class))).thenReturn(mockSubscription);
 
       subscriptionService.cancel(props);
 
-      verify(mockSubscription).cancel(eq(Collections.emptyMap()), any(RequestOptions.class));
+      ArgumentCaptor<SubscriptionUpdateParams> paramsCaptor = ArgumentCaptor.forClass(SubscriptionUpdateParams.class);
+      verify(mockSubscription).update(paramsCaptor.capture(), any(RequestOptions.class));
+
+      assertThat(paramsCaptor.getValue().getCancelAtPeriodEnd()).isTrue();
     }
   }
 

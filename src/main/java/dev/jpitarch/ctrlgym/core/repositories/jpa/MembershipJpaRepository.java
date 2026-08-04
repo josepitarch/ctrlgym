@@ -29,8 +29,7 @@ public interface MembershipJpaRepository extends JpaRepository<MembershipMO, Lon
     SELECT COUNT(m) > 0
     FROM MembershipMO m
     WHERE m.memberId = :memberId AND m.gymId = :gymId
-    AND m.membershipPlanId = :membershipPlanId
     AND m.startDate <= CURRENT_DATE AND (m.endDate IS NULL OR m.endDate >= CURRENT_DATE)
     """)
-  boolean hasActiveMembership(UUID memberId, Integer gymId, String membershipPlanId);
+  boolean hasActiveMembership(UUID memberId, Integer gymId);
 }

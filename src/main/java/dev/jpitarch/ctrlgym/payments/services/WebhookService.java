@@ -1,11 +1,13 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.SignatureVerificationException;
-import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.repositories.*;
+import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
+import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.utils.EpochLocalDate;
 import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WebhookService {
-
-  private final SubscriptionService subscriptionService;
-
-  private final MembersRepository membersRepository;
 
   private final MembershipsRepository membershipsRepository;
 
@@ -116,28 +111,12 @@ public class WebhookService {
     log.info("Marking invoice with member with id {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice.getId());
 
-    //TODO: setear next_billing_date en función del Recurring
+    var memberId = stripeBridge.getId(invoice.getCustomer());
     var nextBillingDate = EpochLocalDate.toLocalDate(invoice.getLines().getData().getFirst().getPeriod().getEnd());
 
+    var event = new InvoicePaidEvent(null, invoice.getId(), memberId, nextBillingDate);
 
-    dev.jpitarch.ctrlgym.core.domain.Invoice inv = invoiceRepository
-      .getInvoice(invoice.getId())
-      .orElseThrow(() -> new IllegalArgumentException("Invoice with memberId " + invoice.getId() + " does not exist"));
-
-    if (invoice.getParent() != null
-      && "subscription_details".equals(invoice.getParent().getType())) {
-      String subscriptionId = invoice.getParent()
-        .getSubscriptionDetails()
-        .getSubscription();
-    }
-
-    var member = membersRepository.getById(stripeBridge.getId(invoice.getCustomer()));
-    inv.setName(member.getName());
-    inv.setFirstSurname(member.getFirstSurname());
-    inv.setSecondSurname(member.getSecondSurname());
-    inv.setNif(member.getNif());
-
-    eventPublisher.publishEvent(inv);
+    eventPublisher.publishEvent(event);
   }
 
   private void handlePaymentFailed(Invoice invoice) {

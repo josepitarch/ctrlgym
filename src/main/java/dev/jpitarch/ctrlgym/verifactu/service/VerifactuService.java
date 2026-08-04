@@ -1,14 +1,17 @@
 package dev.jpitarch.ctrlgym.verifactu.service;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
+import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceResponse;
 import dev.jpitarch.ctrlgym.verifactu.dto.StatusResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
@@ -23,7 +26,6 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class VerifactuService {
 
   private final RestClient restClient;
@@ -32,10 +34,21 @@ public class VerifactuService {
 
   private final InvoiceRepository invoiceRepository;
 
+  public VerifactuService(RestClient.Builder builder, GymsRepository gymsRepository, InvoiceRepository invoiceRepository) {
+    this.gymsRepository = gymsRepository;
+    this.invoiceRepository = invoiceRepository;
+    this.restClient = builder
+      .baseUrl("https://api.verifacti.com/verifactu")
+      .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+      .build();
+  }
+
   @Retryable(includes = HttpServerErrorException.class)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void createInvoice(Invoice invoice) {
-    var apiKey = gymsRepository.getVerifactuApiKey(1);
+  public void createInvoice(InvoicePaidEvent event) {
+    var apiKey = gymsRepository.getVerifactuApiKey(event.getMemberId().gymId());
+    var invoice = invoiceRepository.getInvoice(event.getInvoiceId()).orElseThrow();
+
     var body = CreateInvoiceRequest.builder()
       .serie(invoice.getSeries())
       .numero(invoice.getNumber())

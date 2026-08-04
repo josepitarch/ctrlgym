@@ -62,9 +62,9 @@ public class MemberController {
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable Integer membershipId, @RequestParam Integer gymId,
                                                @RequestParam Integer cancellationReasonId,
-                                               @RequestBody String comment
+                                               @RequestBody Map<String, String> body
   ) throws StripeException {
-    memberUseCase.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId, comment);
+    memberUseCase.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId, body.get("comment"));
     return ResponseEntity.noContent().build();
   }
 

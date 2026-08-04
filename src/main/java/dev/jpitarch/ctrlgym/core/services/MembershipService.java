@@ -6,8 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
+import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
@@ -15,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -34,7 +35,7 @@ public class MembershipService {
   private final StripeBridge stripeBridge;
 
   public void initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
-    if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
+    if (membershipsRepository.hasActiveMembership(memberId)) {
       throw new DuplicateMembershipException(memberId, membershipPlanId);
     }
 
@@ -98,6 +99,11 @@ public class MembershipService {
   public List<MembershipCancellationReason> getCancellationReasons() {
     var language = LocaleContextHolder.getLocale().getLanguage();
     return membershipsRepository.getCancellationReasons(language);
+  }
+
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void updateNextBillingDate(InvoicePaidEvent event) {
+    System.out.println(event);
   }
 
 

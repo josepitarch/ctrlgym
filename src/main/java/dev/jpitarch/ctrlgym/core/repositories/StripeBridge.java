@@ -67,16 +67,14 @@ public class StripeBridge {
     return gymRepository.findStripeAccountIdById(gymId);
   }
 
-  public String getStripeSubscriptionId(Member.Id memberId, Integer membershipId) {
+  public String getStripeSubscriptionId(Integer membershipId) {
     var sql = """
         SELECT stripe_subscription_id
         FROM memberships
-        WHERE member_id = :memberId AND gym_id = :gymId AND id = :membershipId
+        WHERE id = :id
       """;
 
     var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId(),
       "id", membershipId
     );
 

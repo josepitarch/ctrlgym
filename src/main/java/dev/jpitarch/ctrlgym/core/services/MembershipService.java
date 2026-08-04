@@ -64,7 +64,7 @@ public class MembershipService {
   public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
     var currentMembership = membershipsRepository.getMemberships(memberId).stream().filter(m -> m.getDatePeriod().isCurrent()).findFirst();
     if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
-    String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(memberId, currentMembership.get().getId());
+    String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(currentMembership.get().getId());
     String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
     String currentStripePriceId = stripeBridge.getStripePriceId(stripeSubscriptionId);
     String newCurrentStripePriceId = stripeBridge.getStripePriceId(newMembershipPlanId);
@@ -74,7 +74,7 @@ public class MembershipService {
   public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
       "stripeAccountId", stripeBridge.getStripeAccountId(memberId.gymId()),
-      "subscriptionId", stripeBridge.getStripeSubscriptionId(memberId, membershipId)
+      "subscriptionId", stripeBridge.getStripeSubscriptionId(membershipId)
     );
 
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);

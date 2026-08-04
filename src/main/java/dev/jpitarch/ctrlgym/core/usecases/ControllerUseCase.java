@@ -8,9 +8,11 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,16 +41,17 @@ public class ControllerUseCase {
   }
 
   public Heartbeat getHealth(Integer gymBranchId) {
+    var rateWindowStart = OffsetDateTime.now().truncatedTo(ChronoUnit.HOURS).minusHours(WINDOWS_RATE_HOURS);
+
     GymBranchHeartbeatMO latest = gymHeartbeatJpaRepository
-      .findTopByGymBranchIdOrderByCreatedAtDesc(gymBranchId)
+      .findTopByGymBranchIdAndCreatedAtAfterOrderByCreatedAtDesc(gymBranchId, rateWindowStart)
       .orElse(null);
 
     if (latest == null) return null;
 
-    double cpuPercent = latest.getCpuPercent() != null ? latest.getCpuPercent().doubleValue() : 0.0;
-    double temperature = latest.getTemperatureC() != null ? latest.getTemperatureC().doubleValue() : 0.0;
+    Double cpuPercent = Optional.ofNullable(latest.getCpuPercent()).map(BigDecimal::doubleValue).orElse(null);
+    Double temperature = Optional.ofNullable(latest.getTemperatureC()).map(BigDecimal::doubleValue).orElse(null);
 
-    var rateWindowStart = OffsetDateTime.now().truncatedTo(ChronoUnit.HOURS).minusHours(WINDOWS_RATE_HOURS);
     long countLastWindow = gymHeartbeatJpaRepository.countByGymBranchIdSince(gymBranchId, rateWindowStart);
 
     double rate = Math.round((double) countLastWindow / RATE_EMIT_INTERVAL_SECONDS * 1000.0) / 10.0;

@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface GymHeartbeatJpaRepository extends JpaRepository<GymBranchHeartbeatMO, Integer> {
 
-  Optional<GymBranchHeartbeatMO> findTopByGymBranchIdOrderByCreatedAtDesc(Integer gymBranchId);
+  Optional<GymBranchHeartbeatMO> findTopByGymBranchIdAndCreatedAtAfterOrderByCreatedAtDesc(Integer gymBranchId, OffsetDateTime after);
 
   @Query("SELECT COUNT(h) FROM GymBranchHeartbeatMO h WHERE h.gymBranchId = :gymBranchId AND h.createdAt >= :from")
   long countByGymBranchIdSince(Integer gymBranchId, OffsetDateTime from);

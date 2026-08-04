@@ -19,6 +19,8 @@ public class Invoice {
 
   private String id;
 
+  private Member.Id memberId;
+
   private String name;
 
   @JsonProperty("first_surname")

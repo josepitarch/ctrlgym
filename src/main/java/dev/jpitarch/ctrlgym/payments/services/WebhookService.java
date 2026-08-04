@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +37,6 @@ public class WebhookService {
   private String webhookSecret;
 
   @Transactional
-  @Retryable(delay = 500, maxRetries = 3)
   public void process(String payload, String signatureHeader) {
     Event event;
     try {
@@ -114,7 +112,7 @@ public class WebhookService {
     var memberId = stripeBridge.getId(invoice.getCustomer());
     var nextBillingDate = EpochLocalDate.toLocalDate(invoice.getLines().getData().getFirst().getPeriod().getEnd());
 
-    var event = new InvoicePaidEvent(null, invoice.getId(), memberId, nextBillingDate);
+    var event = new InvoicePaidEvent(this, invoice.getId(), memberId, nextBillingDate);
 
     eventPublisher.publishEvent(event);
   }

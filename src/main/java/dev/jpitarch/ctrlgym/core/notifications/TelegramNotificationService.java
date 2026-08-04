@@ -8,6 +8,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.HashMap;
+
 @Slf4j
 @Service
 public class TelegramNotificationService {
@@ -31,21 +33,24 @@ public class TelegramNotificationService {
     this.env = env;
   }
 
-  public void sendExceptionNotification(ExceptionEvent event) {
+  public void send(String message) {
     if (env.matchesProfiles("local")) return;
     if (botToken == null || botToken.isBlank() || chatId == null || chatId.isBlank()) {
       log.debug("Telegram notification disabled: missing bot token or chat id");
       return;
     }
 
-    String message = formatMessage(event);
-    sendTelegramMessage(message);
+    call(message);
+  }
+
+  public void send(ExceptionEvent event) {
+    send(formatMessage(event));
   }
 
   private String formatMessage(ExceptionEvent event) {
     return """
       🚨 *Excepción capturada*
-      
+
       *Tipo:* %s
       *Status:* %d
       *Mensaje:* %s
@@ -61,11 +66,11 @@ public class TelegramNotificationService {
     );
   }
 
-  private void sendTelegramMessage(String message) {
+  private void call(String message) {
     try {
       String url = "https://api.telegram.org/bot%s/sendMessage".formatted(botToken);
 
-      var requestBody = new java.util.HashMap<String, Object>();
+      var requestBody = new HashMap<String, Object>();
       requestBody.put("chat_id", chatId);
       requestBody.put("text", message);
       requestBody.put("parse_mode", "Markdown");

@@ -22,7 +22,7 @@ public class ExceptionNotificationListener {
   public void handleExceptionEvent(ExceptionEvent event) {
     virtualThreadExecutor.submit(() -> {
       try {
-        telegramNotificationService.sendExceptionNotification(event);
+        telegramNotificationService.send(event);
       } catch (Exception e) {
         log.error("Error processing exception notification: {}", e.getMessage(), e);
       }

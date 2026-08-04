@@ -41,6 +41,7 @@ public class InvoiceRepository {
   private Invoice mapToDomain(InvoiceMO invoiceMO) {
     return Invoice.builder()
       .id(invoiceMO.getId())
+      .memberId(invoiceMO.getMemberId())
       .series(invoiceMO.getSeries())
       .number(invoiceMO.getNumber())
       .issueAt(invoiceMO.getIssueAt())

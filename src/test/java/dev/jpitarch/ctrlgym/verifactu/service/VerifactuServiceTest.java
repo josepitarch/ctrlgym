@@ -3,8 +3,10 @@ package dev.jpitarch.ctrlgym.verifactu.service;
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
+import dev.jpitarch.ctrlgym.core.notifications.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.services.InvoiceService;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +20,6 @@ import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VerifactuServiceTest {
+
 
   VerifactuService verifactuService;
 
@@ -43,6 +45,12 @@ class VerifactuServiceTest {
 
   @Mock
   InvoiceRepository invoiceRepository;
+
+  @Mock
+  InvoiceService invoiceService;
+
+  @Mock
+  TelegramNotificationService telegramNotificationService;
 
   @Mock
   RestClient.RequestBodyUriSpec requestBodyUriSpec;
@@ -84,7 +92,7 @@ class VerifactuServiceTest {
     lenient().when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
     lenient().when(requestBodySpec.retrieve()).thenReturn(responseSpec);
 
-    verifactuService = new VerifactuService(restClientBuilder, gymsRepository, invoiceRepository);
+    verifactuService = new VerifactuService(restClientBuilder, gymsRepository, invoiceRepository, invoiceService, telegramNotificationService);
   }
 
   @Test
@@ -93,7 +101,7 @@ class VerifactuServiceTest {
     var event = new InvoicePaidEvent(this, "inv-001", memberId, LocalDate.of(2025, 4, 1));
 
     when(gymsRepository.getVerifactuApiKey(1)).thenReturn("test-api-key");
-    when(invoiceRepository.getInvoice("inv-001")).thenReturn(Optional.of(invoice));
+    when(invoiceService.getInvoiceWithMemberData("inv-001")).thenReturn(invoice);
     when(responseSpec.body(CreateInvoiceResponse.class)).thenReturn(createInvoiceResponse);
 
     verifactuService.createInvoice(event);

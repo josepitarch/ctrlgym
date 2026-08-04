@@ -32,7 +32,7 @@ public class GenerateInvoiceReportService {
 
   private final MembersRepository membersRepository;
 
-  private final InvoiceRepository invoiceRepository;
+  private final InvoiceService invoiceService;
 
   private final VerifactuService verifactuService;
 
@@ -149,7 +149,7 @@ public class GenerateInvoiceReportService {
   public byte[] generate(Member.Id memberId, String invoiceId) throws IOException {
     GymMO gym = gymsRepository.getById(memberId.gymId());
     Member member = membersRepository.getById(memberId);
-    Invoice invoice = invoiceRepository.getInvoice(invoiceId).orElseThrow();
+    Invoice invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
     String qrUrl = verifactuService.getStatus(memberId.gymId(), UUID.fromString("ef9136a0-c55a-4569-8db3-6eeb7a2ce9c0")).getQr();
 
     var decimalFormat = new DecimalFormat("#,##0.00");

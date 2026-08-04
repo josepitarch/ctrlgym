@@ -187,7 +187,7 @@ public class AnalyticsRepository {
       FROM active_memberships_per_month
       GROUP BY month_start
       ORDER BY month_start;
-      
+
       """;
 
     var params = Map.of(
@@ -214,7 +214,7 @@ public class AnalyticsRepository {
         FROM memberships
         WHERE gym_id = :gymId
         ),
-      
+
       cohort_activity AS (
         SELECT
       c.cohort_month,
@@ -228,7 +228,7 @@ public class AnalyticsRepository {
       CROSS JOIN generate_series(0, :currentMonth)AS gs (month_offset)
         GROUP BY 1, 2
         ),
-      
+
       cohort_sizes AS (
         SELECT
       cohort_month,
@@ -236,7 +236,7 @@ public class AnalyticsRepository {
       FROM cohorts
       GROUP BY 1
         )
-      
+
       SELECT
       ca.cohort_month,
         ca.month_offset,
@@ -367,7 +367,7 @@ public class AnalyticsRepository {
           FROM memberships mb
           JOIN membership_plans mp on mb.membership_plan_id = mp.id
           WHERE u.id = mb.member_id AND u.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
-          AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date > CURRENT_DATE)
+          AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date >= CURRENT_DATE)
       )
       GROUP BY GROUPING SETS (
         (gender),
@@ -472,7 +472,7 @@ public class AnalyticsRepository {
 
   public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
-      
+
        WITH months AS (
           SELECT generate_series(
               date_trunc('month', CAST(:from AS date)),

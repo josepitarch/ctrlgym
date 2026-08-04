@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.verifactu.service;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
-import dev.jpitarch.ctrlgym.core.notifications.TelegramNotificationService;
+import dev.jpitarch.ctrlgym.notifications.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;
@@ -84,7 +84,7 @@ public class VerifactuService {
             .totalAmount(invoice.getTotal().toString())
             .build();
 
-    log.info("Calling to Verifacti for invoice with memberId {}...", invoice.getId());
+    log.info("Calling to Verifactu for invoice with memberId {}...", invoice.getId());
 
     try {
 
@@ -102,10 +102,12 @@ public class VerifactuService {
 
 
     } catch(HttpServerErrorException e) {
-      telegramNotificationService.send("");
+      log.error("Attempts has been exceeded. Reason was: {}", e.getMessage(), e);
+      telegramNotificationService.send("Verifactu seems KO. All attempts has been exceeded. Check logs!");
 
     } catch(Exception e) {
-      telegramNotificationService.send("");
+      log.error("Unexpected error has occurred: {}", e.getMessage(), e);
+      telegramNotificationService.send("Unexpected error has occurred calling Verifactu API. Check logs!");
     }
 
 

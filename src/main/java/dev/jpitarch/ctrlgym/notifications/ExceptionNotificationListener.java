@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.notifications;
+package dev.jpitarch.ctrlgym.notifications;
 
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import lombok.RequiredArgsConstructor;

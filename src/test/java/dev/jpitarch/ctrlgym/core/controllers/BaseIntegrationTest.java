@@ -17,7 +17,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-//@Import(TestSecurityConfig.class)
 public abstract class BaseIntegrationTest {
 
   /*

@@ -17,7 +17,7 @@ public class CurrentOccupancySnapshotCron {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  @Scheduled(cron = "0 0/15 * * * *")
+  @Scheduled(cron = "0 0/15 * * * *", zone = "Europe/Madrid")
   public void snapshotCurrentOccupancy() {
     var sql = """
         INSERT INTO gym_branch_occupancy_snapshot (gym_branch_id, snapshot_time, count)

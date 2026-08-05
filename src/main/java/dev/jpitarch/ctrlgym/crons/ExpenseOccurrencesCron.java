@@ -17,7 +17,7 @@ public class ExpenseOccurrencesCron {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  @Scheduled(cron = "0 0 6 1 * *")
+  @Scheduled(cron = "0 0 6 1 * *", zone = "Europe/Madrid")
   public void generateMonthlyExpenseOccurrences() {
     var sql = """
         INSERT INTO expense_occurrences (expense_id, occurrence_date, amount)

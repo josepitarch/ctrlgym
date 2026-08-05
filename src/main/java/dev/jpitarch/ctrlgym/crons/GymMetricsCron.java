@@ -21,7 +21,7 @@ public class GymMetricsCron {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  @Scheduled(cron = "0 0 23 * * *")
+  @Scheduled(cron = "0 0 0 * * *", zone = "Europe/Madrid")
   public void calculateMonthlyMetrics() {
     var currentMonth = YearMonth.now();
     var yearMonth = currentMonth.atDay(1);

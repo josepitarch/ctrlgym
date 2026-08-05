@@ -63,10 +63,6 @@ public class DashboardUseCase {
     return analyticsRepository.getRetentionVsChurn(gymBranchId, datePeriod);
   }
 
-  public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId) {
-    return analyticsRepository.getCancellationReasons(gymBranchId, null);
-  }
-
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
     return expensesRepository.getExpenses(gymBranchId);
   }
@@ -88,6 +84,16 @@ public class DashboardUseCase {
       toObjectDistributionItemList(seniority, this::resolveSeniorityLabel)
     );
   }
+
+
+  public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId) {
+    return analyticsRepository.getCancellationReasons(gymBranchId, null);
+  }
+
+  public List<CancellationComment> getCancellationComments(GymBranchId gymBranchId) {
+    return analyticsRepository.getCancellationComments(gymBranchId);
+  }
+
 
   private List<DistributionItem> toStringDistributionItemList(List<String[]> entries, Function<String, String> labelMapper) {
     if (entries == null) return Collections.emptyList();

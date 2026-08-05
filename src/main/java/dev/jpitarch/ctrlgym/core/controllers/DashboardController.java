@@ -44,20 +44,9 @@ public class DashboardController {
     return ResponseEntity.ok(useCase.getMembershipSeniorityAverage(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
   }
 
-  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cohorts")
-  public ResponseEntity<List<Cohort>> getCohorts(@PathVariable int gymId, @PathVariable int branchId) {
-    return ResponseEntity.ok(useCase.getCohorts(GymBranchId.of(gymId, branchId)));
-  }
-
-  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/retention-vs-churn")
-  public ResponseEntity<RetentionVsChurn> getRetentionVsChurn(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
-    return ResponseEntity.ok(useCase.getRetentionVsChurn(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
-  }
-
-
-  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cancellation-reasons")
-  public ResponseEntity<List<Map<String, Integer>>> getCancellationReasons(@PathVariable int gymId, @PathVariable int branchId) {
-    return ResponseEntity.ok(useCase.getCancellationReasons(GymBranchId.of(gymId, branchId)));
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/distribution")
+  public ResponseEntity<List<MembershipPlanDistribution>> getMembershipsDistributionByPlan(@PathVariable int gymId, @PathVariable int branchId) {
+    return ResponseEntity.ok(useCase.getMembershipsDistributionByPlan(GymBranchId.of(gymId, branchId)));
   }
 
   @GetMapping("/gyms/{gymId}/branches/{branchId}/expenses")
@@ -70,14 +59,29 @@ public class DashboardController {
     return ResponseEntity.ok(useCase.getCashFlow(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
   }
 
-  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/distribution")
-  public ResponseEntity<List<MembershipPlanDistribution>> getMembershipsDistributionByPlan(@PathVariable int gymId, @PathVariable int branchId) {
-    return ResponseEntity.ok(useCase.getMembershipsDistributionByPlan(GymBranchId.of(gymId, branchId)));
-  }
-
   @GetMapping("/gyms/{gymId}/branches/{branchId}/members/distribution")
   public ResponseEntity<MembersDistribution> getMembersDistribution(@PathVariable int gymId, @PathVariable int branchId) {
     return ResponseEntity.ok(useCase.getMembersDistribution(GymBranchId.of(gymId, branchId)));
+  }
+
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cohorts")
+  public ResponseEntity<List<Cohort>> getCohorts(@PathVariable int gymId, @PathVariable int branchId) {
+    return ResponseEntity.ok(useCase.getCohorts(GymBranchId.of(gymId, branchId)));
+  }
+
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/retention-vs-churn")
+  public ResponseEntity<RetentionVsChurn> getRetentionVsChurn(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
+    return ResponseEntity.ok(useCase.getRetentionVsChurn(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
+  }
+
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cancellation-reasons")
+  public ResponseEntity<List<Map<String, Integer>>> getCancellationReasons(@PathVariable int gymId, @PathVariable int branchId) {
+    return ResponseEntity.ok(useCase.getCancellationReasons(GymBranchId.of(gymId, branchId)));
+  }
+
+  @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/cancellation-comments")
+  public ResponseEntity<List<CancellationComment>> getCancellationComments(@PathVariable int gymId, @PathVariable int branchId) {
+    return ResponseEntity.ok(useCase.getCancellationComments(GymBranchId.of(gymId, branchId)));
   }
 
 }

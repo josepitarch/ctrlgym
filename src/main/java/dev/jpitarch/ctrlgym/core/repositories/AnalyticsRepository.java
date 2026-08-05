@@ -4,6 +4,7 @@ import dev.jpitarch.ctrlgym.core.domain.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
+import dev.jpitarch.ctrlgym.core.dto.CancellationComment;
 import dev.jpitarch.ctrlgym.core.dto.MembershipPlanDistribution;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
@@ -11,12 +12,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -346,6 +349,34 @@ public class AnalyticsRepository {
         "count", count
       );
     });
+  }
+
+  public List<CancellationComment> getCancellationComments(GymBranchId gymBranchId) {
+    var sql = """
+      SELECT m.cancellation_reason_id, u.name, u.first_surname, u.second_surname, u.avatar_url, m.cancellation_comment
+      FROM memberships m
+      JOIN users u ON m.member_id = u.id AND m.gym_id = u.gym_id
+      JOIN membership_plans mp ON m.membership_plan_id = mp.id
+      WHERE m.gym_id = :gymId AND mp.gym_branch_id = :gymBranchId
+      AND m.cancellation_comment IS NOT NULL
+      ORDER BY m.end_date DESC
+      """;
+
+    var params = Map.of(
+      "gymId", gymBranchId.gymId(),
+      "gymBranchId", gymBranchId.branchId()
+    );
+
+    return jdbc.query(sql, params, (rs, _) -> new CancellationComment(
+      rs.getInt("cancellation_reason_id"),
+      new CancellationComment.Member(
+        rs.getString("name"),
+        rs.getString("first_surname"),
+        rs.getString("second_surname"),
+        Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null)
+      ),
+      rs.getString("cancellation_comment")
+    ));
   }
 
   public Map<MembersDistribution.Group, List<String[]>> getDistribution(GymBranchId gymBranchId) {

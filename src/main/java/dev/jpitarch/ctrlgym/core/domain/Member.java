@@ -41,6 +41,9 @@ public class Member {
   @JsonProperty("birth_date")
   private LocalDate birthDate;
 
+  @JsonProperty("is_active")
+  private boolean isActive;
+
   private Address address;
 
   private MemberStatus status;

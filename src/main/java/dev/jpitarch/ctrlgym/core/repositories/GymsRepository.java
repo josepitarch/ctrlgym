@@ -70,7 +70,12 @@ public class GymsRepository {
 
   public List<Member> getMembers(GymBranchId gymBranchId) {
     var sql = """
-      SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.gym_id
+      SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.gym_id,
+      CASE
+        WHEN mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date >= CURRENT_DATE)
+        THEN true
+        ELSE false
+      END AS is_active
       FROM users m
       JOIN memberships mb ON m.id = mb.member_id
       JOIN membership_plans mp ON mb.membership_plan_id = mp.id
@@ -82,7 +87,7 @@ public class GymsRepository {
       "gymBranchId", gymBranchId.branchId()
     );
 
-    return jdbc.query(sql, params, (rs, rowNum) -> Member.builder()
+    return jdbc.query(sql, params, (rs, _) -> Member.builder()
       .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
       .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
       .name(rs.getString("name"))
@@ -92,6 +97,7 @@ public class GymsRepository {
       .email(rs.getString("email"))
       .gender(mapGender(rs.getString("gender")))
       .birthDate(LocalDate.parse(rs.getString("birth_date")))
+      .isActive(rs.getBoolean("is_active"))
       .build()
     );
   }

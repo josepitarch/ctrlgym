@@ -34,7 +34,7 @@ public class InvoiceRepository {
     return invoiceJpaRepository.findById(id).map(this::mapToDomain);
   }
 
-  public Page<dev.jpitarch.ctrlgym.core.domain.Invoice> findByMemberId(Member.Id memberId, Pageable pageable) {
+  public Page<Invoice> findByMemberId(Member.Id memberId, Pageable pageable) {
     return invoiceJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId(), pageable)
       .map(this::mapToDomain);
   }
@@ -106,6 +106,9 @@ public class InvoiceRepository {
     invoiceJpaRepository.save(invoiceMO);
   }
 
+  public Optional<UUID> getVerifactuId(String invoiceId) {
+    return invoiceJpaRepository.getVerifactuId(invoiceId);
+  }
 
   private InvoiceMO createInvoiceMO(Invoice invoice, Member.Id memberId, Long membershipId) {
     var series = memberId.gymId() + "-" + Year.now();

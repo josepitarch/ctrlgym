@@ -8,8 +8,8 @@ import dev.jpitarch.ctrlgym.core.models.GymMO;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
+import dev.jpitarch.ctrlgym.verifactu.dto.StatusResponse;
 import dev.jpitarch.ctrlgym.verifactu.service.VerifactuService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 import java.util.logging.Level;
 
 @Slf4j
@@ -88,7 +87,7 @@ public class GenerateInvoiceReportService {
             </td>
           </tr>
         </table>
-    
+
         <div class="client">
           <div class="title">DATOS DEL CLIENTE</div>
           <div class="box">
@@ -98,7 +97,7 @@ public class GenerateInvoiceReportService {
             <div>NIF: {{CLIENT_NIF}}</div>
           </div>
         </div>
-    
+
         <table class="items">
           <thead>
             <tr>
@@ -117,7 +116,7 @@ public class GenerateInvoiceReportService {
             </tr>
           </tbody>
         </table>
-    
+
         <table class="totals">
           <tr>
             <td class="label">Subtotal</td>
@@ -132,7 +131,7 @@ public class GenerateInvoiceReportService {
             <td class="num">{{INVOICE_TOTAL}} &#8364;</td>
           </tr>
         </table>
-  
+
         <div class="footer">
           <img width="200px" height="200px" src="data:image/png;base64,{{QR_CODE_BASE64}}" />
           <div>Veri*Factu</div>
@@ -150,7 +149,7 @@ public class GenerateInvoiceReportService {
     GymMO gym = gymsRepository.getById(memberId.gymId());
     Member member = membersRepository.getById(memberId);
     Invoice invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
-    String qrUrl = verifactuService.getStatus(memberId.gymId(), UUID.fromString("ef9136a0-c55a-4569-8db3-6eeb7a2ce9c0")).getQr();
+    StatusResponse qrUrl = verifactuService.getStatus(memberId.gymId(), invoiceId);
 
     var decimalFormat = new DecimalFormat("#,##0.00");
     var dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -176,7 +175,7 @@ public class GenerateInvoiceReportService {
         .replace("{{INVOICE_SUBTOTAL}}", decimalFormat.format(invoice.getSubtotal()))
         .replace("{{INVOICE_TAX}}", decimalFormat.format(invoice.getTax()))
         .replace("{{INVOICE_TOTAL}}", decimalFormat.format(invoice.getTotal()))
-        .replace("{{QR_CODE_BASE64}}", qrUrl);
+        .replace("{{QR_CODE_BASE64}}", qrUrl != null ? qrUrl.getQr() : "");
       var builder = new PdfRendererBuilder();
       builder.withHtmlContent(html, null);
       builder.toStream(os);

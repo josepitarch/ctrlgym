@@ -10,6 +10,7 @@ import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceResponse;
 import dev.jpitarch.ctrlgym.verifactu.dto.StatusResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.retry.RetryPolicy;
 import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpHeaders;
@@ -115,12 +116,16 @@ public class VerifactuService {
     }
   }
 
-  public StatusResponse getStatus(Integer gymId, UUID uuid) {
+  public @Nullable StatusResponse getStatus(Integer gymId, String invoiceId) {
     var apiKey = gymsRepository.getVerifactuApiKey(gymId);
+    var verifactuId = invoiceRepository.getVerifactuId(invoiceId);
+
+    if (verifactuId.isEmpty()) return null;
+
     return restClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/status")
-        .queryParam("uuid", uuid)
+        .queryParam("uuid", verifactuId)
         .build())
       .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
       .retrieve()

@@ -86,7 +86,7 @@ public class WebhookService {
       .currency(invoice.getCurrency())
       .build();
 
-    Long membershipId = stripeBridge.getMembershipId(invoice.getLines().getData().getFirst().getSubscription());
+    Long membershipId = stripeBridge.getMembershipId(this.extractSubscriptionFromInvoice(invoice));
 
     invoiceRepository.create(inv, memberId, membershipId);
   }
@@ -131,6 +131,10 @@ public class WebhookService {
     }
 
     invoiceRepository.markAsFailed(invoice.getId(), nextAttempt);
+  }
+
+  private String extractSubscriptionFromInvoice(Invoice invoice) {
+    return invoice.getParent().getSubscriptionDetails().getSubscription();
   }
 
   @SuppressWarnings("unchecked")

@@ -45,7 +45,7 @@ public class InvoiceMO {
   @Column(name = "issue_at", nullable = false)
   private LocalDate issueAt;
 
-  @Column(name = "due_at", nullable = false)
+  @Column(name = "due_at")
   private LocalDate dueAt;
 
   @Enumerated(EnumType.STRING)

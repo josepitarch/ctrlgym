@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
 import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
-import dev.jpitarch.ctrlgym.core.usecases.AuthService;
+import dev.jpitarch.ctrlgym.core.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

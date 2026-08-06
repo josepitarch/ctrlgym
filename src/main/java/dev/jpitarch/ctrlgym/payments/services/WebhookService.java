@@ -8,7 +8,7 @@ import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
-import dev.jpitarch.ctrlgym.payments.utils.EpochLocalDate;
+import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 
 @Slf4j
 @Service
@@ -110,7 +111,7 @@ public class WebhookService {
     invoiceRepository.markAsPaid(invoice.getId());
 
     var memberId = stripeBridge.getId(invoice.getCustomer());
-    var nextBillingDate = EpochLocalDate.toLocalDate(invoice.getLines().getData().getFirst().getPeriod().getEnd());
+    var nextBillingDate = EpochConverter.toLocalDate(invoice.getLines().getData().getFirst().getPeriod().getEnd());
 
     var event = new InvoicePaidEvent(this, invoice.getId(), memberId, nextBillingDate);
 
@@ -118,9 +119,9 @@ public class WebhookService {
   }
 
   private void handlePaymentFailed(Invoice invoice) {
-    //TODO: push notification
     log.info("Marking invoice with memberId {} failed...", invoice.getId());
-    invoiceRepository.markAsFailed(invoice.getId());
+    var nextAttempt = EpochConverter.toZonedDateTime(invoice.getNextPaymentAttempt());
+    invoiceRepository.markAsFailed(invoice.getId(), nextAttempt);
   }
 
   @SuppressWarnings("unchecked")

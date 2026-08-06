@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
 import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
 import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.services.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

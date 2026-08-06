@@ -79,8 +79,8 @@ public class MembershipService {
 
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);
 
-    subscriptionService.cancel(props);
-    membershipsRepository.setCancellationReasonId(membershipId, cancellationReasonId, comment);
+    LocalDate endDate = subscriptionService.cancel(props);
+    membershipsRepository.setCancellationReasonId(membershipId, endDate, cancellationReasonId, comment);
   }
 
   public Optional<Membership> retrieve(Member.Id memberId) {

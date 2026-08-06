@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.domain;
+package dev.jpitarch.ctrlgym.core.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

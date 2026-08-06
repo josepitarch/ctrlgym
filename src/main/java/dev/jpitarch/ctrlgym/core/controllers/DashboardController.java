@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
-import dev.jpitarch.ctrlgym.core.domain.Cohort;
+import dev.jpitarch.ctrlgym.core.dto.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;

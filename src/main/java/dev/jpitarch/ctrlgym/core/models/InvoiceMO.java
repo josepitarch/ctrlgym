@@ -14,6 +14,7 @@ import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -73,6 +74,9 @@ public class InvoiceMO {
 
   @Column(name = "verifactu_id")
   private UUID verifactuId;
+
+  @Column(name = "next_attempt")
+  private ZonedDateTime nextAttempt;
 
   public Member.Id getMemberId() {
     return Member.Id.of(memberId, gymId);

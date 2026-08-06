@@ -5,7 +5,7 @@ import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.payments.utils.EpochLocalDate;
+import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -100,7 +99,7 @@ public class SubscriptionService {
     schedule.update(updateParams, requestOptions);
   }
 
-  public void cancel(Map<String, String> props) throws StripeException {
+  public LocalDate cancel(Map<String, String> props) throws StripeException {
     String stripeAccountId = props.get("stripeAccountId");
     String subscriptionId = props.get("subscriptionId");
 
@@ -115,6 +114,8 @@ public class SubscriptionService {
       .build();
 
     subscription.update(params, options);
+
+    return EpochConverter.toLocalDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd());
   }
 
 
@@ -124,7 +125,7 @@ public class SubscriptionService {
       .build();
 
     var subscription = Subscription.retrieve(subscriptionId, options);
-    return EpochLocalDate.toLocalDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd());
+    return EpochConverter.toLocalDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd());
   }
 
   public void createTaxRate() throws StripeException {

@@ -48,11 +48,11 @@ public class MembershipsRepository {
       .toList();
   }
 
-  public void setCancellationReasonId(Integer membershipId, Integer cancellationReasonId, String comment) {
+  public void setCancellationReasonId(Integer membershipId, LocalDate endDate, Integer cancellationReasonId, String comment) {
     membershipJpaRepository
       .findByIdAndEndDateIsNull(membershipId)
       .ifPresent(m -> {
-        m.setEndDate(LocalDate.now());
+        m.setEndDate(endDate);
         m.setCancellationReasonId(cancellationReasonId);
         m.setCancellationComment(comment);
         membershipJpaRepository.save(m);

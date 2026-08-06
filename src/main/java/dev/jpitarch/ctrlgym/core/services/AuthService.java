@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.usecases;
+package dev.jpitarch.ctrlgym.core.services;
 
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
 import dev.jpitarch.ctrlgym.core.dto.AuthResponse;

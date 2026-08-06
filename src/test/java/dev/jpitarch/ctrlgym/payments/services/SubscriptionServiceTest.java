@@ -222,9 +222,14 @@ class SubscriptionServiceTest {
       );
 
       Subscription mockSubscription = mock(Subscription.class);
+      SubscriptionItemCollection mockItems = mock(SubscriptionItemCollection.class);
+      SubscriptionItem mockItem = mock(SubscriptionItem.class);
 
       subscriptionMock.when(() -> Subscription.retrieve(eq("sub_test123"), any(RequestOptions.class)))
         .thenReturn(mockSubscription);
+      when(mockSubscription.getItems()).thenReturn(mockItems);
+      when(mockItems.getData()).thenReturn(List.of(mockItem));
+      when(mockItem.getCurrentPeriodEnd()).thenReturn(1735689600L);
       when(mockSubscription.update(any(SubscriptionUpdateParams.class), any(RequestOptions.class))).thenReturn(mockSubscription);
 
       subscriptionService.cancel(props);

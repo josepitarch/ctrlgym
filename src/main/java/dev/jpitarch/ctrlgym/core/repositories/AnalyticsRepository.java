@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.Cohort;
+import dev.jpitarch.ctrlgym.core.dto.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;

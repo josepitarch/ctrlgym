@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Year;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,8 +62,10 @@ public class InvoiceRepository {
       .findById(invoiceId)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
+    invoiceMO.setDueAt(null);
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
     invoiceMO.setStatus(InvoiceStatus.PROCESSING);
+
     invoiceJpaRepository.save(invoiceMO);
   }
 
@@ -71,18 +74,23 @@ public class InvoiceRepository {
       .findById(invoiceId)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
+    invoiceMO.setDueAt(null);
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
     invoiceMO.setStatus(InvoiceStatus.PAID);
+
     invoiceJpaRepository.save(invoiceMO);
   }
 
-  public void markAsFailed(String invoiceId) {
+  public void markAsFailed(String invoiceId, ZonedDateTime nextAttempt) {
     var invoiceMO = invoiceJpaRepository
       .findById(invoiceId)
       .orElseThrow(() -> new RuntimeException("Order reference not found"));
 
+    invoiceMO.setDueAt(LocalDate.now());
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
     invoiceMO.setStatus(InvoiceStatus.FAILED);
+    invoiceMO.setNextAttempt(nextAttempt);
+
     invoiceJpaRepository.save(invoiceMO);
   }
 
@@ -101,6 +109,7 @@ public class InvoiceRepository {
 
   private InvoiceMO createInvoiceMO(Invoice invoice, Member.Id memberId) {
     var series = memberId.gymId() + "-" + Year.now();
+
     var invoiceMO = new InvoiceMO();
     invoiceMO.setId(invoice.getId());
     invoiceMO.setGymId(memberId.gymId());
@@ -111,9 +120,8 @@ public class InvoiceRepository {
     invoiceMO.setSubtotal(invoice.getSubtotal());
     invoiceMO.setCurrency(invoice.getCurrency());
     invoiceMO.setIssueAt(LocalDate.now());
-    invoiceMO.setDueAt(LocalDate.now());
     invoiceMO.setStatus(InvoiceStatus.OPEN);
-    invoiceMO.setTax(BigDecimal.valueOf(21));
+    invoiceMO.setTax(BigDecimal.valueOf(Invoice.TAX));
     invoiceMO.setCreatedAt(OffsetDateTime.now());
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
 

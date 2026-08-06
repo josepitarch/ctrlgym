@@ -4,7 +4,7 @@ import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
-import dev.jpitarch.ctrlgym.payments.dto.InvoiceSummary;
+import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

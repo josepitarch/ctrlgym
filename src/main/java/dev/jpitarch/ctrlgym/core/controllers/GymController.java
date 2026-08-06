@@ -5,7 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
-import dev.jpitarch.ctrlgym.payments.dto.InvoiceSummary;
+import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

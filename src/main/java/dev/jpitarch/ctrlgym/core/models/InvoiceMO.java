@@ -78,6 +78,9 @@ public class InvoiceMO {
   @Column(name = "next_attempt")
   private ZonedDateTime nextAttempt;
 
+  @Column(name = "membership_id")
+  private Long membershipId;
+
   public Member.Id getMemberId() {
     return Member.Id.of(memberId, gymId);
   }

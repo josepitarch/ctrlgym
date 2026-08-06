@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Membership {
 
-  private Integer id;
+  private Long id;
 
   private MembershipPlan.Recurring recurring;
 

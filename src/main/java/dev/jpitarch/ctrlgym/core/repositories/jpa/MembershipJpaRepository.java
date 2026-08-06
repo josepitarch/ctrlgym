@@ -17,7 +17,7 @@ public interface MembershipJpaRepository extends JpaRepository<MembershipMO, Lon
     """)
   List<MembershipMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
 
-  Optional<MembershipMO> findByIdAndEndDateIsNull(Integer id);
+  Optional<MembershipMO> findByIdAndEndDateIsNull(Long id);
 
   @Query("SELECT m.id FROM MembershipMO m WHERE m.stripeSubscriptionId = :stripeSubscriptionId")
   Long getIdByStripeSubscriptionId(String stripeSubscriptionId);

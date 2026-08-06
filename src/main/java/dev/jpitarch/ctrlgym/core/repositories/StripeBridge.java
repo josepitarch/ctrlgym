@@ -67,7 +67,7 @@ public class StripeBridge {
     return gymRepository.findStripeAccountIdById(gymId);
   }
 
-  public String getStripeSubscriptionId(Integer membershipId) {
+  public String getStripeSubscriptionId(Long membershipId) {
     var sql = """
         SELECT stripe_subscription_id
         FROM memberships
@@ -81,7 +81,7 @@ public class StripeBridge {
     return jdbc.queryForObject(sql, params, String.class);
   }
 
-  public Integer getMembershipId(String stripeSubscriptionId) {
+  public Long getMembershipId(String stripeSubscriptionId) {
     var sql = """
         SELECT id
         FROM memberships
@@ -92,7 +92,7 @@ public class StripeBridge {
       "stripeSubscriptionId", stripeSubscriptionId
     );
 
-    return jdbc.queryForObject(sql, params, Integer.class);
+    return jdbc.queryForObject(sql, params, Long.class);
   }
 
 

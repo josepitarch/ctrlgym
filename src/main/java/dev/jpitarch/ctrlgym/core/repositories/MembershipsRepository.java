@@ -48,7 +48,7 @@ public class MembershipsRepository {
       .toList();
   }
 
-  public void setCancellationReasonId(Integer membershipId, LocalDate endDate, Integer cancellationReasonId, String comment) {
+  public void setCancellationReasonId(Long membershipId, LocalDate endDate, Integer cancellationReasonId, String comment) {
     membershipJpaRepository
       .findByIdAndEndDateIsNull(membershipId)
       .ifPresent(m -> {
@@ -119,7 +119,7 @@ public class MembershipsRepository {
 
   private Membership map(MembershipMO m) {
     return Membership.builder()
-      .id(Integer.valueOf(m.getId().intValue()))
+      .id(m.getId())
       .recurring(MembershipPlan.Recurring.from("MONTHLY")) //TODO
       .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
       .nextBillingDate(m.getNextBillingDate())

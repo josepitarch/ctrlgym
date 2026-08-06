@@ -53,7 +53,7 @@ public class MemberUseCase {
     membershipService.change(memberId, newMembershipPlanId);
   }
 
-  public void cancelMembership(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
+  public void cancelMembership(Member.Id memberId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     membershipService.cancel(memberId, membershipId, cancellationReasonId, comment);
   }
 

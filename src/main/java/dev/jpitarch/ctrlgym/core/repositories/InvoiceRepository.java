@@ -52,8 +52,8 @@ public class InvoiceRepository {
       .build();
   }
 
-  public void create(Invoice invoice, Member.Id memberId) {
-    var invoiceMO = createInvoiceMO(invoice, memberId);
+  public void create(Invoice invoice, Member.Id memberId, Long membershipId) {
+    var invoiceMO = createInvoiceMO(invoice, memberId, membershipId);
     invoiceJpaRepository.save(invoiceMO);
   }
 
@@ -107,7 +107,7 @@ public class InvoiceRepository {
   }
 
 
-  private InvoiceMO createInvoiceMO(Invoice invoice, Member.Id memberId) {
+  private InvoiceMO createInvoiceMO(Invoice invoice, Member.Id memberId, Long membershipId) {
     var series = memberId.gymId() + "-" + Year.now();
 
     var invoiceMO = new InvoiceMO();
@@ -124,6 +124,7 @@ public class InvoiceRepository {
     invoiceMO.setTax(BigDecimal.valueOf(Invoice.TAX));
     invoiceMO.setCreatedAt(OffsetDateTime.now());
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
+    invoiceMO.setMembershipId(membershipId);
 
     return invoiceMO;
   }

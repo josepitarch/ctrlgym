@@ -60,7 +60,7 @@ public class MemberController {
 
   @PatchMapping("/{memberId}/memberships/{membershipId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable Integer membershipId, @RequestParam Integer gymId,
+  public ResponseEntity<Void> cancelMembership(@PathVariable UUID memberId, @PathVariable Long membershipId, @RequestParam Integer gymId,
                                                @RequestParam Integer cancellationReasonId,
                                                @RequestBody Map<String, String> body
   ) throws StripeException {

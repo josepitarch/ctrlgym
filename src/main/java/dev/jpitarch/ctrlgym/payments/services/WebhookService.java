@@ -87,7 +87,9 @@ public class WebhookService {
       .currency(invoice.getCurrency())
       .build();
 
-    invoiceRepository.create(inv, memberId);
+    Long membershipId = stripeBridge.getMembershipId(invoice.getLines().getData().getFirst().getSubscription());
+
+    invoiceRepository.create(inv, memberId, membershipId);
   }
 
   private Long calculateSubtotal(Long totalInCents) {

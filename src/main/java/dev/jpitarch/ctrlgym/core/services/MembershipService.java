@@ -76,7 +76,7 @@ public class MembershipService {
     subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId, stripeAccountId);
   }
 
-  public void cancel(Member.Id memberId, Integer membershipId, Integer cancellationReasonId, String comment) throws StripeException {
+  public void cancel(Member.Id memberId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
       "stripeAccountId", stripeBridge.getStripeAccountId(memberId.gymId()),
       "subscriptionId", stripeBridge.getStripeSubscriptionId(membershipId)
@@ -114,7 +114,7 @@ public class MembershipService {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void cancelMembership(InvoiceFailedEvent event) {
-    Integer membershipId = stripeBridge.getMembershipId(event.getSubscriptionId());
+    Long membershipId = stripeBridge.getMembershipId(event.getSubscriptionId());
     membershipsRepository.setCancellationReasonId(membershipId, LocalDate.now(), PAYMENT_FAILED_ATTEMPTS_EXCEEDED, null);
   }
 

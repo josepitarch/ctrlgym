@@ -11,7 +11,7 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
+import dev.jpitarch.ctrlgym.core.services.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

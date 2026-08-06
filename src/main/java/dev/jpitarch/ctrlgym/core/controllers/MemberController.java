@@ -44,16 +44,17 @@ public class MemberController {
     return ResponseEntity.ok(memberUseCase.getMember(Member.Id.of(memberId, gymId)));
   }
 
+
   @PostMapping("/{memberId}/memberships/{membershipId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipId, @RequestParam Integer gymId) throws StripeException {
-    memberUseCase.initializeMembership(Member.Id.of(memberId, gymId), membershipId);
-    return ResponseEntity.noContent().build();
+  public ResponseEntity<Membership> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipPlanId, @RequestParam Integer gymId) throws StripeException {
+    var membership = memberUseCase.initializeMembership(Member.Id.of(memberId, gymId), membershipPlanId);
+    return ResponseEntity.ok(membership);
   }
 
   @PutMapping("/{memberId}/memberships")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> changeMembership(@PathVariable UUID memberId, @RequestBody String membershipPlanId, @RequestParam Integer gymId) throws StripeException {
+  public ResponseEntity<Void> changeMembership(@PathVariable UUID memberId, @RequestBody String membershipPlanId, @RequestParam Integer gymId) {
     memberUseCase.changeMembership(Member.Id.of(memberId, gymId), membershipPlanId);
     return ResponseEntity.noContent().build();
   }

@@ -8,7 +8,7 @@ import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
+import dev.jpitarch.ctrlgym.core.services.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 
 @Slf4j
 @Service

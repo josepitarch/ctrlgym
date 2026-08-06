@@ -23,7 +23,7 @@ public class MembershipsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public void save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
+  public Membership save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
     var membership = new MembershipMO();
     membership.setMemberId(memberId.memberId());
     membership.setGymId(memberId.gymId());
@@ -33,7 +33,7 @@ public class MembershipsRepository {
     membership.setAutoRenew(Boolean.TRUE);
     membership.setNextBillingDate(nextBillingDate);
 
-    membershipJpaRepository.save(membership);
+    return this.map(membershipJpaRepository.save(membership));
   }
 
   public Long getIdByStripeSubscriptionId(String subscriptionId) {

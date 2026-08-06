@@ -1,6 +1,7 @@
-package dev.jpitarch.ctrlgym.core.repositories;
+package dev.jpitarch.ctrlgym.core.services;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.repositories.GymJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -26,10 +27,6 @@ public class StripeBridge {
 
   public Optional<String> getStripeSetupIntentId(Member.Id id) {
     return memberJpaRepository.getStripeSetupIntentId(id.memberId(), id.gymId());
-  }
-
-  public Optional<String> getStripeSetupIntentId(String stripeCustomerId) {
-    return memberJpaRepository.getStripeSetupIntentId(stripeCustomerId);
   }
 
   public void saveStripeSetupIntentId(Member.Id memberId, String id) {

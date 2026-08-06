@@ -10,7 +10,7 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
+import dev.jpitarch.ctrlgym.core.services.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

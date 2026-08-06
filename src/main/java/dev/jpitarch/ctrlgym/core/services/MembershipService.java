@@ -1,7 +1,6 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
@@ -9,9 +8,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
-import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +36,7 @@ public class MembershipService {
 
   public static final Integer PAYMENT_FAILED_ATTEMPTS_EXCEEDED = 10;
 
-  public void initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
+  public Membership initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
     if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
       throw new DuplicateMembershipException(memberId, membershipPlanId);
     }
@@ -63,7 +60,7 @@ public class MembershipService {
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
 
     String subscriptionId = subscriptionService.create(memberId, props);
-    membershipsRepository.save(memberId, membershipPlanId, subscriptionId, LocalDate.now().withDayOfMonth(1).plusMonths(1));
+    return membershipsRepository.save(memberId, membershipPlanId, subscriptionId, LocalDate.now().withDayOfMonth(1).plusMonths(1));
   }
 
   public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {

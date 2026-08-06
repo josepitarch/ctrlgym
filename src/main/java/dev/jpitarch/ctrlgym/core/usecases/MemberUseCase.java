@@ -44,8 +44,8 @@ public class MemberUseCase {
     return membersService.getMember(memberId);
   }
 
-  public void initializeMembership(Member.Id memberId, String membershipId) throws StripeException {
-    membershipService.initialize(memberId, membershipId);
+  public Membership initializeMembership(Member.Id memberId, String membershipPlanId) throws StripeException {
+    return membershipService.initialize(memberId, membershipPlanId);
   }
 
   @SneakyThrows

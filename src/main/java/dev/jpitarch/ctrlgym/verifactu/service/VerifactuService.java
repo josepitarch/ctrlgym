@@ -74,7 +74,7 @@ public class VerifactuService {
             .invoiceType("F1")
             .name(invoice.getFullName())
             .nif(invoice.getNif())
-            .description("Probando...")
+            .description("Factura normal")
             .lines(Collections.singletonList(CreateInvoiceRequest.Line.builder()
               .taxableBase(invoice.getSubtotal().toString())
               .taxRate(Invoice.TAX.toString())

@@ -31,7 +31,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class VerifactuServiceTest {
 
-
   VerifactuService verifactuService;
 
   @Mock
@@ -119,7 +118,7 @@ class VerifactuServiceTest {
     assertThat(body.getInvoiceType()).isEqualTo("F1");
     assertThat(body.getName()).isEqualTo("Juan García López");
     assertThat(body.getNif()).isEqualTo("12345678A");
-    assertThat(body.getDescription()).isEqualTo("Probando...");
+    assertThat(body.getDescription()).isEqualTo("Factura normal");
     assertThat(body.getTotalAmount()).isEqualTo("121.00");
 
     assertThat(body.getLines()).hasSize(1);
@@ -130,4 +129,5 @@ class VerifactuServiceTest {
 
     verify(invoiceRepository).saveVerifactuId("inv-001", verifactuUuid);
   }
+
 }

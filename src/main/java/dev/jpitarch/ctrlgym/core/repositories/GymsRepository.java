@@ -88,18 +88,21 @@ public class GymsRepository {
     );
 
     return jdbc.query(sql, params, (rs, _) -> Member.builder()
-      .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
-      .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
-      .name(rs.getString("name"))
-      .nif(rs.getString("nif"))
-      .firstSurname(rs.getString("first_surname"))
-      .secondSurname(rs.getString("second_surname"))
-      .email(rs.getString("email"))
-      .gender(mapGender(rs.getString("gender")))
-      .birthDate(LocalDate.parse(rs.getString("birth_date")))
-      .isActive(rs.getBoolean("is_active"))
-      .build()
-    );
+        .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
+        .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
+        .name(rs.getString("name"))
+        .nif(rs.getString("nif"))
+        .firstSurname(rs.getString("first_surname"))
+        .secondSurname(rs.getString("second_surname"))
+        .email(rs.getString("email"))
+        .gender(mapGender(rs.getString("gender")))
+        .birthDate(LocalDate.parse(rs.getString("birth_date")))
+        .isActive(rs.getBoolean("is_active"))
+        .build()
+      )
+      .stream()
+      .distinct()
+      .toList();
   }
 
 

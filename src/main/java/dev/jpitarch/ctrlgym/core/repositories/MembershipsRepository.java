@@ -67,8 +67,8 @@ public class MembershipsRepository {
       });
   }
 
-  public boolean hasActiveMembership(Member.Id memberId) {
-    return membershipJpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId());
+  public boolean hasActiveMembership(Member.Id memberId, String membershipId) {
+    return membershipJpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipId);
   }
 
   public List<Integer> getAccessibleBranches(Member.Id memberId) {

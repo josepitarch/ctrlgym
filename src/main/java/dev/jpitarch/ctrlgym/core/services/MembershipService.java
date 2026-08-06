@@ -1,12 +1,15 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.stripe.exception.StripeException;
+import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
+import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
+import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
@@ -34,8 +37,10 @@ public class MembershipService {
 
   private final StripeBridge stripeBridge;
 
+  public static final Integer PAYMENT_FAILED_ATTEMPTS_EXCEEDED = 10;
+
   public void initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
-    if (membershipsRepository.hasActiveMembership(memberId)) {
+    if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
       throw new DuplicateMembershipException(memberId, membershipPlanId);
     }
 
@@ -103,8 +108,14 @@ public class MembershipService {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void updateNextBillingDate(InvoicePaidEvent event) {
+    //TODO
     System.out.println(event);
   }
 
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void cancelMembership(InvoiceFailedEvent event) {
+    Integer membershipId = stripeBridge.getMembershipId(event.getSubscriptionId());
+    membershipsRepository.setCancellationReasonId(membershipId, LocalDate.now(), PAYMENT_FAILED_ATTEMPTS_EXCEEDED, null);
+  }
 
 }

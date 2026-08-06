@@ -4,6 +4,7 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
@@ -69,9 +70,9 @@ public class WebhookService {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
 
     /* TODO
-    * Ahora se guarda el setup intent id y se guarda en ese preciso momento.
-    * Esto lo que hace es confirmar que el IBAN es OK simplemente
-    */
+     * Ahora se guarda el setup intent id y se guarda en ese preciso momento.
+     * Esto lo que hace es confirmar que el IBAN es OK simplemente
+     */
 
   }
 
@@ -93,8 +94,8 @@ public class WebhookService {
     if (totalInCents == null) return null;
 
     BigDecimal taxRate = BigDecimal
-            .valueOf(dev.jpitarch.ctrlgym.core.domain.Invoice.TAX)
-            .divide(BigDecimal.valueOf(100), 2, RoundingMode.DOWN);
+      .valueOf(dev.jpitarch.ctrlgym.core.domain.Invoice.TAX)
+      .divide(BigDecimal.valueOf(100), 2, RoundingMode.DOWN);
 
     BigDecimal subtotal = BigDecimal.valueOf(totalInCents).divide(BigDecimal.ONE.add(taxRate), 0, RoundingMode.HALF_UP);
 
@@ -121,6 +122,13 @@ public class WebhookService {
   private void handlePaymentFailed(Invoice invoice) {
     log.info("Marking invoice with memberId {} failed...", invoice.getId());
     var nextAttempt = EpochConverter.toZonedDateTime(invoice.getNextPaymentAttempt());
+
+    if (nextAttempt == null) {
+      var subscriptionId = invoice.getLines().getData().getFirst().getSubscription();
+      var event = new InvoiceFailedEvent(this, invoice.getId(), subscriptionId);
+      eventPublisher.publishEvent(event);
+    }
+
     invoiceRepository.markAsFailed(invoice.getId(), nextAttempt);
   }
 

@@ -81,5 +81,19 @@ public class StripeBridge {
     return jdbc.queryForObject(sql, params, String.class);
   }
 
+  public Integer getMembershipId(String stripeSubscriptionId) {
+    var sql = """
+        SELECT id
+        FROM memberships
+        WHERE stripe_subscription_id = :stripeSubscriptionId
+      """;
+
+    var params = Map.of(
+      "stripeSubscriptionId", stripeSubscriptionId
+    );
+
+    return jdbc.queryForObject(sql, params, Integer.class);
+  }
+
 
 }

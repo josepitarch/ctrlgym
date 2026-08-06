@@ -64,6 +64,7 @@ public class SecurityConfig {
         .requestMatchers("/public/**", "/v1/payments/webhook", "/v1/auth/**", "/health").permitAll()
         .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
         .requestMatchers("/v1/members/**").hasRole("MEMBER")
+        .requestMatchers("/admin/**").hasRole("MANAGER")
         .anyRequest().authenticated()
       )
       .oauth2ResourceServer(oauth -> oauth.jwt(

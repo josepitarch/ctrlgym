@@ -64,25 +64,29 @@ public class VerifactuService {
   @Retryable(includes = HttpServerErrorException.class)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void createInvoice(InvoicePaidEvent event) {
-    var apiKey = gymsRepository.getVerifactuApiKey(event.getMemberId().gymId());
-    var invoice = invoiceService.getInvoiceWithMemberData(event.getInvoiceId());
+    processInvoice(event.getInvoiceId());
+  }
+
+  public void processInvoice(String invoiceId) {
+    var invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
+    var apiKey = gymsRepository.getVerifactuApiKey(invoice.getMemberId().gymId());
 
     var body = CreateInvoiceRequest.builder()
-            .serie(invoice.getSeries())
-            .numero(invoice.getNumber())
-            .expeditionDate(invoice.getIssueAt().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")))
-            .invoiceType("F1")
-            .name(invoice.getFullName())
-            .nif(invoice.getNif())
-            .description("Factura normal")
-            .lines(Collections.singletonList(CreateInvoiceRequest.Line.builder()
-              .taxableBase(invoice.getSubtotal().toString())
-              .taxRate(Invoice.TAX.toString())
-              .repercussedQuota(this.getTaxes(invoice).toString())
-              .build()
-            ))
-            .totalAmount(invoice.getTotal().toString())
-            .build();
+      .serie(invoice.getSeries())
+      .numero(invoice.getNumber())
+      .expeditionDate(invoice.getIssueAt().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+      .invoiceType("F1")
+      .name(invoice.getFullName())
+      .nif(invoice.getNif())
+      .description("Factura normal")
+      .lines(Collections.singletonList(CreateInvoiceRequest.Line.builder()
+        .taxableBase(invoice.getSubtotal().toString())
+        .taxRate(Invoice.TAX.toString())
+        .repercussedQuota(this.getTaxes(invoice).toString())
+        .build()
+      ))
+      .totalAmount(invoice.getTotal().toString())
+      .build();
 
     log.info("Calling to Verifactu for invoice with memberId {}...", invoice.getId());
 
@@ -101,28 +105,26 @@ public class VerifactuService {
       });
 
 
-    } catch(HttpServerErrorException e) {
+    } catch (HttpServerErrorException e) {
       log.error("Attempts has been exceeded. Reason was: {}", e.getMessage(), e);
       telegramNotificationService.send("Verifactu seems KO. All attempts has been exceeded. Check logs!");
 
-    } catch(Exception e) {
+    } catch (Exception e) {
       log.error("Unexpected error has occurred: {}", e.getMessage(), e);
       telegramNotificationService.send("Unexpected error has occurred calling Verifactu API. Check logs!");
     }
-
-
   }
 
   public StatusResponse getStatus(Integer gymId, UUID uuid) {
     var apiKey = gymsRepository.getVerifactuApiKey(gymId);
     return restClient.get()
-            .uri(uriBuilder -> uriBuilder
-                    .path("/status")
-                    .queryParam("uuid", uuid)
-                    .build())
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-            .retrieve()
-            .body(StatusResponse.class);
+      .uri(uriBuilder -> uriBuilder
+        .path("/status")
+        .queryParam("uuid", uuid)
+        .build())
+      .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+      .retrieve()
+      .body(StatusResponse.class);
   }
 
   private BigDecimal getTaxes(Invoice invoice) {

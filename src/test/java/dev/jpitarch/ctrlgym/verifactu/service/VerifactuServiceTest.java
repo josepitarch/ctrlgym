@@ -63,9 +63,12 @@ class VerifactuServiceTest {
   private final UUID verifactuUuid = UUID.randomUUID();
   private final CreateInvoiceResponse createInvoiceResponse = new CreateInvoiceResponse(verifactuUuid);
 
+  private final Member.Id memberId = new Member.Id(UUID.randomUUID(), 1);
+
   private final Invoice invoice = Invoice.builder()
     .id("inv-001")
     .name("Juan")
+    .memberId(memberId)
     .firstSurname("García")
     .secondSurname("López")
     .nif("12345678A")
@@ -77,8 +80,6 @@ class VerifactuServiceTest {
     .total(new BigDecimal("121.00"))
     .currency("EUR")
     .build();
-
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID(), 1);
 
   @BeforeEach
   void setUp() {

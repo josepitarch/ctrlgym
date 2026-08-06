@@ -45,7 +45,7 @@ public class MemberController {
   }
 
 
-  @PostMapping("/{memberId}/memberships/{membershipId}")
+  @PostMapping("/{memberId}/memberships/{membershipPlanId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Membership> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipPlanId, @RequestParam Integer gymId) throws StripeException {
     var membership = memberUseCase.initializeMembership(Member.Id.of(memberId, gymId), membershipPlanId);

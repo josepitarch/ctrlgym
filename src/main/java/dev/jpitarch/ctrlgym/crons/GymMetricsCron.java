@@ -84,7 +84,23 @@ public class GymMetricsCron {
                  AND (exp.end_date IS NULL OR exp.end_date >= :yearMonth::date)
                  AND expo.occurrence_date >= :yearMonth::date
                  AND expo.occurrence_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
-              ), 0) AS expense
+              ), 0) AS expense,
+            COALESCE(
+              (SELECT COALESCE(SUM(i.total), 0)
+               FROM invoices i
+               WHERE i.gym_id = gb.gym_id
+                 AND i.status = 'FAILED'
+                 AND i.due_at >= :yearMonth::date
+                 AND i.due_at <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+                 AND EXISTS (
+                   SELECT 1
+                   FROM memberships m
+                   JOIN membership_plans mp ON m.membership_plan_id = mp.id
+                   WHERE m.member_id = i.member_id
+                     AND m.gym_id = i.gym_id
+                     AND mp.gym_branch_id = gb.id
+                 )
+              ), 0) AS overdue_amount
           FROM gym_branches gb
           WHERE gb.is_active = true
         )
@@ -96,6 +112,7 @@ public class GymMetricsCron {
           is_active,
           revenue,
           expense,
+          overdue_amount,
           CASE WHEN (active_members + new_members) > 0
             THEN ROUND(churned_members::numeric / (active_members + new_members) * 100, 2)
             ELSE 0
@@ -109,9 +126,9 @@ public class GymMetricsCron {
 
     var upsertSql = """
         INSERT INTO gym_metrics_monthly
-          (gym_branch_id, year_month, active_members, new_members, churned_members, churn_rate, revenue, expense, is_closed, calculated_at)
+          (gym_branch_id, year_month, active_members, new_members, churned_members, churn_rate, revenue, expense, overdue_amount, is_closed, calculated_at)
         VALUES
-          (:gymBranchId, :yearMonth, :activeMembers, :newMembers, :churnedMembers, :churnRate, :revenue, :expense, :isClosed, NOW())
+          (:gymBranchId, :yearMonth, :activeMembers, :newMembers, :churnedMembers, :churnRate, :revenue, :expense, :overdueAmount, :isClosed, NOW())
         ON CONFLICT (gym_branch_id, year_month) DO UPDATE SET
           active_members = EXCLUDED.active_members,
           new_members = EXCLUDED.new_members,
@@ -119,6 +136,7 @@ public class GymMetricsCron {
           churn_rate = EXCLUDED.churn_rate,
           revenue = EXCLUDED.revenue,
           expense = EXCLUDED.expense,
+          overdue_amount = EXCLUDED.overdue_amount,
           is_closed = EXCLUDED.is_closed,
           calculated_at = NOW()
       """;
@@ -133,6 +151,7 @@ public class GymMetricsCron {
       ps.addValue("churnRate", row.get("churn_rate"));
       ps.addValue("revenue", row.get("revenue"));
       ps.addValue("expense", row.get("expense"));
+      ps.addValue("overdueAmount", row.get("overdue_amount"));
       ps.addValue("isClosed", isLastDayOfMonth);
       return ps;
     }).toArray(MapSqlParameterSource[]::new);

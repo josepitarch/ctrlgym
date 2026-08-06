@@ -517,7 +517,7 @@ public class AnalyticsRepository {
               total
           FROM invoices
           WHERE gym_id = :gymId
-            AND issue_at BETWEEN :from AND :to
+          AND issue_at BETWEEN :from AND :to AND status = 'PAID'
       )
       SELECT
           m.month AS month,

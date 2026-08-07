@@ -52,6 +52,7 @@ public class AuthService {
     }
 
     if (membersRepository.existsAnotherGym(request.gymId(), request.email())) {
+      //TODO: crear para este nuevo gimnasio solicitado solo si es miembro
       throw new AuthException(AuthException.Signup.ANOTHER_GYM, request.gymId(), request.email());
     }
 

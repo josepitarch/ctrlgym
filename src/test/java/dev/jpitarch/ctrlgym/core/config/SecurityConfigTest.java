@@ -19,9 +19,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({DashboardController.class, MemberController.class})
 @Import(SecurityConfig.class)
 @ActiveProfiles("test")
+@WebMvcTest({DashboardController.class, MemberController.class})
 class SecurityConfigTest {
 
   @MockitoBean

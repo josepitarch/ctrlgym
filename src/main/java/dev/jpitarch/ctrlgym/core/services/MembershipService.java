@@ -4,6 +4,7 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
@@ -43,18 +44,14 @@ public class MembershipService {
 
     String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
     String stripePriceId = stripeBridge.getStripePriceId(membershipPlanId);
-    Optional<String> setupIntentId = stripeBridge.getStripeSetupIntentId(memberId);
-    Optional<String> customerId = stripeBridge.getStripeCustomerId(memberId);
-
-    if (setupIntentId.isEmpty() || customerId.isEmpty()) {
-      throw new IllegalStateException("Customer or payment method not found for member with id " + memberId);
-    }
+    String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow(() -> new CoreBusinessException(Member.class, "Member with id %s has no customer id configured".formatted(memberId)));
+    String setupIntentId = stripeBridge.getStripeSetupIntentId(memberId).orElseThrow(() -> new CoreBusinessException(Member.class, "Member with id %s has no setup intent configured".formatted(memberId)));
 
     var props = Map.of(
       "stripeAccountId", stripeAccountId,
       "stripePriceId", stripePriceId,
-      "setupIntentId", setupIntentId.get(),
-      "customerId", customerId.get()
+      "setupIntentId", setupIntentId,
+      "customerId", customerId
     );
 
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);

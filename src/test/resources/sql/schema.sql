@@ -356,7 +356,7 @@ CREATE TABLE users
   postal_code              int4 NULL,
   created_at               timestamptz DEFAULT now() NULL,
   stripe_customer_id       text NULL,
-  stripe_payment_method_id text NULL,
+  stripe_setup_intent_id text NULL,
   nif                      varchar(20) NULL,
   street                   varchar(80) NULL,
   status public.member_status NOT NULL,
@@ -364,7 +364,7 @@ CREATE TABLE users
   CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),
   CONSTRAINT members_pkey PRIMARY KEY (id, gym_id),
   CONSTRAINT members_stripe_customer_id_uk UNIQUE (stripe_customer_id),
-  CONSTRAINT members_stripe_payment_method_id_uk UNIQUE (stripe_payment_method_id),
+  CONSTRAINT members_stripe_setup_intent_id_uk UNIQUE (stripe_setup_intent_id),
   CONSTRAINT members_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
 );
 

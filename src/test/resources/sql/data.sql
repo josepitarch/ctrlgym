@@ -119,8 +119,8 @@ VALUES (1, 'es', 'Alquiler del local del gimnasio', null),
        (7, 'es', 'Licencias y SaaS', null),
        (8, 'es', 'Otros gastos', null);
 
-INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at",  "stripe_payment_method_id", "status", "role")
-VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'pm_test456',  'AUTH', 'MEMBER');
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "stripe_customer_id", "stripe_setup_intent_id", "status", "role")
+VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'cus_test','seti_test456',  'AUTH', 'MEMBER');
 
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
                                          "stripe_price_id", "gym_branch_id", "all_branches")

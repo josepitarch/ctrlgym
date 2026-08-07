@@ -21,6 +21,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -28,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -57,6 +61,11 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   Member.Id memberId = Member.Id.of(UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), 1);
 
+  private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtAuth() {
+    return jwt().jwt(j -> j.subject(memberId.memberId().toString()))
+      .authorities(new SimpleGrantedAuthority("ROLE_MEMBER"));
+  }
+
   @Test
   @Order(1)
   @DisplayName("Creates a new member successfully")
@@ -81,6 +90,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
     mockMvc.perform(post("/v1/members/{memberId}", memberId.memberId())
         .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(jsonMapper.writeValueAsString(member)))
       .andExpect(status().isCreated());
@@ -96,6 +106,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   void getMember_returnsMember() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}", memberId.memberId())
         .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -116,6 +127,8 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
     mockMvc.perform(get("/v1/members/{memberId}", nonExistentId)
         .param("gymId", memberId.gymId().toString())
+        .with(jwt().jwt(j -> j.subject(nonExistentId.toString()))
+          .authorities(new SimpleGrantedAuthority("ROLE_MEMBER")))
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isNotFound());
   }
@@ -125,7 +138,8 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns 409 when generating QR without active membership")
   void generateQr_returns409_whenMemberHasNoActiveMembership() throws Exception {
     mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId.memberId())
-        .param("gymId", memberId.gymId().toString()))
+        .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth()))
       .andExpect(status().isConflict());
   }
 
@@ -136,7 +150,8 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     when(subscriptionService.create(any(), any())).thenReturn("sub_test123");
 
     mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipId}", memberId.memberId(), "plan_basic")
-        .param("gymId", memberId.gymId().toString()))
+        .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth()))
       .andExpect(status().isNoContent());
   }
 
@@ -145,7 +160,8 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns all memberships for a member")
   void getMemberships_returnsAllMemberships() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}/memberships", memberId.memberId())
-        .param("gymId", memberId.gymId().toString()))
+        .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth()))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$.length()").value(1))
@@ -164,6 +180,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     mockMvc.perform(patch("/v1/members/{memberId}/memberships/{membershipId}", memberId.memberId(), "plan_basic")
         .param("gymId", memberId.gymId().toString())
         .param("cancellationReasonId", "1")
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(body))
       .andExpect(status().isNoContent());
@@ -181,6 +198,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
     mockMvc.perform(post("/v1/members/{memberId}/routines", memberId.memberId())
         .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(routineJson))
       .andExpect(status().isCreated());
@@ -191,7 +209,8 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns member routines")
   void getRoutines_returnsRoutines() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}/routines", memberId.memberId())
-        .param("gymId", memberId.gymId().toString()))
+        .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth()))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.length()").value(1))
       .andExpect(jsonPath("$[0].name").value("Push Pull Legs"))
@@ -209,7 +228,8 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     RoutineMO routine = routineJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId()).getFirst();
 
     mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId.memberId(), routine.getId())
-        .param("gymId", memberId.gymId().toString()))
+        .param("gymId", memberId.gymId().toString())
+        .with(jwtAuth()))
       .andExpect(status().isNoContent());
 
     assertThat(routineJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())).isEmpty();

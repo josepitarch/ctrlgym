@@ -34,12 +34,6 @@ public interface MemberJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
     """)
   Optional<String> getStripeSetupIntentId(UUID memberId, Integer gymId);
 
-  @Query("""
-        SELECT m.stripeSetupIntentId
-        FROM UserMO m
-        WHERE m.stripeCustomerId = :stripeCustomerId
-    """)
-  Optional<String> getStripeSetupIntentId(String stripeCustomerId);
 
   @Modifying
   @Transactional

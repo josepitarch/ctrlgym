@@ -15,7 +15,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc(addFilters = true)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class BaseIntegrationTest {
 

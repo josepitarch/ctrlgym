@@ -26,24 +26,25 @@ public class GymController {
 
   private final GymUseCase useCase;
 
+  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches")
   public ResponseEntity<List<GymBranch>> getBranches(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getBranches(gymId));
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE')")
+  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members")
   public ResponseEntity<List<Member>> getMembers(@PathVariable int gymId, @PathVariable int branchId) {
     return ResponseEntity.ok(useCase.getMembers(GymBranchId.of(gymId, branchId)));
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE')")
+  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/retention")
   public ResponseEntity<MemberRetention> getMemberRetention(@PathVariable int gymId, @PathVariable int branchId, @PathVariable UUID memberId) {
     return ResponseEntity.ok(useCase.getMemberRetention(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId)));
   }
 
-  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE')")
+  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/invoices")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, Pageable pageable) {
     return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), pageable)
@@ -55,49 +56,52 @@ public class GymController {
       )));
   }
 
+  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/occupancy")
   public ResponseEntity<CurrentOccupancy> getCurrentOccupancy(@PathVariable Integer gymId, @PathVariable Integer branchId) {
     return ResponseEntity.ok(useCase.getCurrentOccupancy(GymBranchId.of(gymId, branchId)));
   }
 
-  @PreAuthorize("hasRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   @PostMapping("/{gymId}/exercises")
   public ResponseEntity<Exercise> createExercise(@PathVariable Integer gymId, @RequestBody Exercise exercise) {
     return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise));
   }
 
+  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/exercises")
   public ResponseEntity<List<Exercise>> getExercises(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getAll(gymId));
   }
 
-  @PreAuthorize("hasRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   @DeleteMapping("/{gymId}/exercises/{exerciseId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteExercise(@PathVariable Integer gymId, @PathVariable Integer exerciseId) {
     useCase.deleteExercise(exerciseId, gymId);
   }
 
-  @PreAuthorize("hasRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   @PostMapping("/{gymId}/memberships/plans")
   public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody MembershipPlan plan) throws StripeException {
     useCase.createMembershipPlan(gymId, plan);
     return ResponseEntity.noContent().build();
   }
 
+  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/memberships/plans")
   public ResponseEntity<List<MembershipPlan>> getMembershipPlans(@PathVariable Integer gymId, @RequestParam(required = false) Integer gymBranchId) {
     return ResponseEntity.ok(useCase.getMembershipPlans(GymBranchId.of(gymId, gymBranchId)));
   }
 
-  @PreAuthorize("hasRole('MANAGER')")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping("/{gymId}/memberships/plans/{planId}")
   public void deleteMembershipPlan(@PathVariable Integer gymId, @PathVariable String planId) throws StripeException {
     useCase.deleteMembershipPlan(planId, gymId);
   }
 
-  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER')")
+  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER') and #gymId == authentication.gymId")
   @GetMapping(value = "/{gymId}/branches/{branchId}/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<byte[]> getInvoiceReport(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, @PathVariable String invoiceId) throws IOException {
     byte[] pdfReport = useCase.getMemberInvoiceReport(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), invoiceId);

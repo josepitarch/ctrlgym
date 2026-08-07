@@ -32,15 +32,16 @@ public class AnalyticsRepository {
     var sql = """
       SELECT
       month::date,
-        COUNT(branch_m.id) AS active_memberships
+        COUNT(m.id) AS active_memberships
       FROM generate_series (
             :from::date,
             :to::date,
         INTERVAL '1 month'
       ) month
-      LEFT JOIN memberships branch_m ON branch_m.gym_id = :gymId
-        AND branch_m.start_date <= month AND (branch_m.end_date IS NULL OR branch_m.end_date >= month)
-        AND branch_m.membership_plan_id IN (SELECT mp.id FROM membership_plans mp WHERE mp.gym_branch_id = :gymBranchId)
+      LEFT JOIN memberships m ON m.gym_id = :gymId
+        AND DATE_TRUNC('month', m.start_date)::date <= month
+        AND (m.end_date IS NULL OR m.end_date >= month)
+        AND m.membership_plan_id IN (SELECT mp.id FROM membership_plans mp WHERE mp.gym_branch_id = :gymBranchId)
       GROUP BY 1
       ORDER BY 1;
       """;
@@ -97,16 +98,16 @@ public class AnalyticsRepository {
     var sql = """
       SELECT
       month::date,
-        COUNT(branch_m.id) AS cancellations
+        COUNT(m.id) AS cancellations
       FROM generate_series (
             :from::date,
             :to::date,
         INTERVAL '1 month'
       ) month
-      LEFT JOIN memberships branch_m ON branch_m.gym_id = :gymId
-        AND branch_m.end_date IS NOT NULL
-        AND DATE_TRUNC('month', branch_m.end_date)::date = month
-        AND branch_m.membership_plan_id IN (
+      LEFT JOIN memberships m ON m.gym_id = :gymId
+        AND m.end_date IS NOT NULL
+        AND DATE_TRUNC('month', m.end_date)::date = month
+        AND m.membership_plan_id IN (
           SELECT mp.id FROM membership_plans mp WHERE mp.gym_branch_id = :gymBranchId
         )
       GROUP BY 1

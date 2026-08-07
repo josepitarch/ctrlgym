@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
+import dev.jpitarch.ctrlgym.core.mappers.RoutineMapper;
 import dev.jpitarch.ctrlgym.core.models.*;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
@@ -9,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -20,6 +19,8 @@ public class RoutinesRepository {
   private final RoutineJpaRepository routineJpaRepository;
 
   private final ExerciseJpaRepository exerciseJpaRepository;
+
+  private final RoutineMapper mapper;
 
   public Routine save(Routine routine, Member.Id memberId) {
     RoutineMO routineMO = new RoutineMO();
@@ -54,7 +55,7 @@ public class RoutinesRepository {
     }
 
     RoutineMO saved = routineJpaRepository.save(routineMO);
-    return mapToDomain(saved, Collections.emptyList());
+    return mapper.map(saved);
   }
 
   public void deleteById(Integer id) {
@@ -66,47 +67,8 @@ public class RoutinesRepository {
     return routineJpaRepository
       .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
       .stream()
-      .map(r -> mapToDomain(r, exercises))
+      .map(r -> mapper.mapWithContext(r, exercises))
       .toList();
-  }
-
-  private Routine mapToDomain(RoutineMO routineMO, List<ExerciseMO> exercisesMO) {
-    List<Routine.Day> days = new ArrayList<>();
-    if (routineMO.getDays() != null) {
-      for (RoutineDayMO dayMO : routineMO.getDays()) {
-        List<Routine.Day.Exercise> exercises = new ArrayList<>();
-
-        for (RoutineDayExerciseMO exerciseMO : dayMO.getExercises()) {
-
-          List<Routine.Day.Exercise.Set> sets = new ArrayList<>();
-          for (RoutineDayExerciseSetMO setMO : exerciseMO.getSets()) {
-            sets.add(Routine.Day.Exercise.Set.builder()
-              .number(setMO.getSet())
-              .repetition(setMO.getReps())
-              .build());
-          }
-
-          exercises.add(Routine.Day.Exercise.builder()
-            .id(exerciseMO.getExerciseId())
-            .name(exercisesMO.stream().filter(e -> e.getId().equals(exerciseMO.getExerciseId())).findFirst().map(ExerciseMO::getName).orElse(null))
-            .muscleGroup(exercisesMO.stream().filter(e -> e.getId().equals(exerciseMO.getExerciseId())).findFirst().map(ExerciseMO::getMuscleGroup).orElse(null))
-            .position(exerciseMO.getPosition().intValue())
-            .sets(sets)
-            .build());
-        }
-
-        days.add(Routine.Day.builder()
-          .dayNumber(dayMO.getDayNumber().intValue())
-          .name(dayMO.getName())
-          .exercises(exercises)
-          .build());
-      }
-    }
-    return Routine.builder()
-      .id(routineMO.getId())
-      .name(routineMO.getName())
-      .days(days)
-      .build();
   }
 
 }

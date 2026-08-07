@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
+import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationToken;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.DisplayName;
@@ -13,13 +14,23 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +51,23 @@ public class GymControllerTestIT extends BaseIntegrationTest {
 
   JsonMapper objectMapper = new JsonMapper();
 
+  Integer gymId = 1;
+
+  private RequestPostProcessor jwtAuth() {
+    Jwt jwt = Jwt.withTokenValue("token")
+      .header("alg", "none")
+      .claim("user_metadata", Map.of("gym_id", gymId))
+      .claim("user_roles", List.of("MANAGER"))
+      .subject(UUID.randomUUID().toString())
+      .issuedAt(Instant.now())
+      .build();
+
+    var authorities = List.of(new SimpleGrantedAuthority("ROLE_MANAGER"));
+    var authentication = new CustomJwtAuthenticationToken(jwt, authorities, gymId);
+
+    return authentication(authentication);
+  }
+
   @Test
   @Order(1)
   @DisplayName("Creates an exercise successfully")
@@ -51,7 +79,8 @@ public class GymControllerTestIT extends BaseIntegrationTest {
       .image("https://example.com/curl.jpg")
       .build();
 
-    mockMvc.perform(post("/v1/gyms/{gymId}/exercises", 1)
+    mockMvc.perform(post("/v1/gyms/{gymId}/exercises", gymId)
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(exercise)))
       .andExpect(status().isCreated())
@@ -63,7 +92,8 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(2)
   @DisplayName("Returns all gym exercises")
   void getExercises_returnsAllExercises() throws Exception {
-    mockMvc.perform(get("/v1/gyms/{gymId}/exercises", 1)
+    mockMvc.perform(get("/v1/gyms/{gymId}/exercises", gymId)
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.length()").value(21))
@@ -75,7 +105,8 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(3)
   @DisplayName("Deletes an exercise successfully")
   void deleteExercise_returns204() throws Exception {
-    mockMvc.perform(delete("/v1/gyms/{gymId}/exercises/{exerciseId}", 1, 21))
+    mockMvc.perform(delete("/v1/gyms/{gymId}/exercises/{exerciseId}", gymId, 21)
+        .with(jwtAuth()))
       .andExpect(status().isNoContent());
 
     assertThat(exerciseJpaRepository.findById(21)).isEmpty();
@@ -87,22 +118,24 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   void createMembershipPlan_returns204() throws Exception {
     var request = new MembershipPlan(null, "Premium Plan", 49.99, MembershipPlan.Recurring.MONTHLY, 1, false);
 
-    when(productService.create(eq(1), any(MembershipPlan.class)))
+    when(productService.create(eq(gymId), any(MembershipPlan.class)))
       .thenReturn(new String[]{ "new_plan_id", "price" });
 
-    mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", 1)
+    mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", gymId)
+        .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isNoContent());
 
-    verify(productService).create(eq(1), any(MembershipPlan.class));
+    verify(productService).create(eq(gymId), any(MembershipPlan.class));
   }
 
   @Test
   @Order(5)
   @DisplayName("Returns all membership plans")
   void getMembershipPlans_returnsAllPlans() throws Exception {
-    mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans", 1)
+    mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans", gymId)
+        .with(jwtAuth())
         .queryParam("gymBranchId", "1")
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
@@ -120,7 +153,8 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(6)
   @DisplayName("Deletes a membership plan successfully")
   void deleteMembershipPlan_returns204() throws Exception {
-    mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", 1, "new_plan_id")
+    mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", gymId, "new_plan_id")
+        .with(jwtAuth())
         .queryParam("gymBranchId", "1")
       )
       .andExpect(status().isNoContent());
@@ -133,7 +167,8 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   @Order(7)
   @DisplayName("Returns members of a branch")
   void getBranchMembers_returnsMembers() throws Exception {
-    mockMvc.perform(get("/v1/gyms/{gymId}/branches/{branchId}/members", 1, 1)
+    mockMvc.perform(get("/v1/gyms/{gymId}/branches/{branchId}/members", gymId, 1)
+        .with(jwtAuth())
         .queryParam("gymBranchId", "1")
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())

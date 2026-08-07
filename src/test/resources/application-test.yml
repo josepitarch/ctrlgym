@@ -11,6 +11,10 @@ spring:
         jwt:
           issuer-uri: https://test.auth.com
 
+supabase:
+  url: https://test.auth.com
+  service-role-key: secret-key
+
 stripe:
   secret-key: test-key
   whsec-connected-account: test-whsec
@@ -19,3 +23,8 @@ stripe:
 qr:
   jwt-secret: test-secret-key-that-is-at-least-256-bits-long-for-hs256
   expiration-seconds: 10
+
+notifications:
+  telegram:
+    bot.token: bot-token
+    chat.id: chat-id

@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,9 @@ public class Invoice {
   @JsonProperty("issue_at")
   private LocalDate issueAt;
 
+  @JsonProperty("due_at")
+  private LocalDate dueAt;
+
   private BigDecimal subtotal;
 
   private BigDecimal tax;
@@ -45,6 +49,8 @@ public class Invoice {
   private BigDecimal total;
 
   private String currency;
+
+  private InvoiceStatus status;
 
   public String getFullName() {
     return name + " " + firstSurname + " " + secondSurname;

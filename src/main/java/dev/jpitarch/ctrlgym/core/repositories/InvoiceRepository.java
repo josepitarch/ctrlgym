@@ -3,6 +3,8 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
+import dev.jpitarch.ctrlgym.core.mappers.InvoiceMapper;
 import dev.jpitarch.ctrlgym.core.models.InvoiceMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.InvoiceJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,37 +32,34 @@ public class InvoiceRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
+  private final InvoiceMapper mapper;
+
   public Optional<Invoice> getInvoice(String id) {
-    return invoiceJpaRepository.findById(id).map(this::mapToDomain);
+    return invoiceJpaRepository.findById(id).map(mapper::map);
   }
 
   public Page<Invoice> findByMemberId(Member.Id memberId, Pageable pageable) {
     return invoiceJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId(), pageable)
-      .map(this::mapToDomain);
+      .map(mapper::map);
   }
 
-  private Invoice mapToDomain(InvoiceMO invoiceMO) {
-    return Invoice.builder()
-      .id(invoiceMO.getId())
-      .memberId(invoiceMO.getMemberId())
-      .series(invoiceMO.getSeries())
-      .number(invoiceMO.getNumber())
-      .issueAt(invoiceMO.getIssueAt())
-      .subtotal(invoiceMO.getSubtotal())
-      .tax(invoiceMO.getTax())
-      .total(invoiceMO.getTotal())
-      .build();
-  }
 
   public void create(Invoice invoice, Member.Id memberId, Long membershipId) {
-    var invoiceMO = createInvoiceMO(invoice, memberId, membershipId);
-    invoiceJpaRepository.save(invoiceMO);
+    invoiceJpaRepository.findById(invoice.getId())
+      .ifPresentOrElse(inv -> {
+          //TODO: logica de estados
+        },
+        () -> {
+        var invoiceMO = createInvoiceMO(invoice, memberId, membershipId);
+        invoiceJpaRepository.save(invoiceMO);
+      });
+
   }
 
   public void markAsProcessing(String invoiceId) {
     var invoiceMO = invoiceJpaRepository
       .findById(invoiceId)
-      .orElseThrow(() -> new RuntimeException("Order reference not found"));
+      .orElseThrow(() -> new InvoiceNotFoundException(invoiceId));
 
     invoiceMO.setDueAt(null);
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
@@ -72,7 +71,7 @@ public class InvoiceRepository {
   public void markAsPaid(String invoiceId) {
     var invoiceMO = invoiceJpaRepository
       .findById(invoiceId)
-      .orElseThrow(() -> new RuntimeException("Order reference not found"));
+      .orElseThrow(() -> new InvoiceNotFoundException(invoiceId));
 
     invoiceMO.setDueAt(null);
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
@@ -84,7 +83,7 @@ public class InvoiceRepository {
   public void markAsFailed(String invoiceId, ZonedDateTime nextAttempt) {
     var invoiceMO = invoiceJpaRepository
       .findById(invoiceId)
-      .orElseThrow(() -> new RuntimeException("Order reference not found"));
+      .orElseThrow(() -> new InvoiceNotFoundException(invoiceId));
 
     invoiceMO.setDueAt(LocalDate.now());
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
@@ -97,9 +96,9 @@ public class InvoiceRepository {
   public void saveVerifactuId(String id, UUID verifactuId) {
     var invoiceMO = invoiceJpaRepository
       .findById(id)
-      .orElseThrow(() -> new RuntimeException("Order reference not found"));
+      .orElseThrow(() -> new InvoiceNotFoundException(id));
 
-    log.info("Saving memberId of Verifactu to invoice with memberId {}: {}", id, verifactuId);
+    log.info("Saving memberId of Verifactu to invoice with member with id {}: {}...", id, verifactuId);
 
     invoiceMO.setUpdatedAt(OffsetDateTime.now());
     invoiceMO.setVerifactuId(verifactuId);

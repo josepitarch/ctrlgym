@@ -1,9 +1,11 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
@@ -34,11 +36,13 @@ public class WebhookService {
 
   private final StripeBridge stripeBridge;
 
+  private final InvoiceService invoiceService;
+
   @Value("${stripe.whsec-account}")
   private String webhookSecret;
 
   @Transactional
-  public void process(String payload, String signatureHeader) {
+  public void process(String payload, String signatureHeader) throws StripeException {
     Event event;
     try {
       event = Webhook.constructEvent(payload, signatureHeader, webhookSecret);
@@ -103,9 +107,18 @@ public class WebhookService {
     return subtotal.longValueExact();
   }
 
-  private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) {
-    log.info("Marking invoice with {} as processing...", paymentIntent.getPaymentDetails().getOrderReference());
-    invoiceRepository.markAsProcessing(paymentIntent.getPaymentDetails().getOrderReference());
+  private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) throws StripeException {
+    var invoiceId = paymentIntent.getPaymentDetails().getOrderReference();
+    log.info("Marking invoice with {} as processing...", invoiceId);
+
+    try {
+      invoiceRepository.markAsProcessing(invoiceId);
+    } catch (InvoiceNotFoundException e) {
+      log.warn("Race condition of invoice with id {}. Processing event arrives before invoice has been created", invoiceId);
+      Invoice invoice = invoiceService.retrieve(invoiceId, stripeBridge.getId(paymentIntent.getCustomer()).gymId());
+      this.handleInvoiceCreated(invoice);
+    }
+
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {

@@ -14,6 +14,8 @@ public interface RoutineJpaRepository extends JpaRepository<RoutineMO, Integer> 
 
   List<RoutineMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
 
+  List<RoutineMO> findByGymIdAndMemberIdIsNull(Integer gymId);
+
   @Query("SELECT r FROM RoutineDayMO r WHERE r.routine.id = :routineId AND r.dayNumber = :dayNumber")
   RoutineDayMO findDay(Integer routineId, Short dayNumber);
 

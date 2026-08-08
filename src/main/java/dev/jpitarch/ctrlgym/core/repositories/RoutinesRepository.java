@@ -71,4 +71,49 @@ public class RoutinesRepository {
       .toList();
   }
 
+  public Routine saveForGym(Routine routine, Integer gymId) {
+    RoutineMO routineMO = new RoutineMO();
+    routineMO.setName(routine.getName());
+    routineMO.setMemberId(null);
+    routineMO.setGymId(gymId);
+    routineMO.setCreatedAt(Instant.now());
+
+    if (routine.getDays() != null) {
+      for (Routine.Day day : routine.getDays()) {
+        var dayMO = new RoutineDayMO();
+        dayMO.setDayNumber(day.getDayNumber().shortValue());
+        dayMO.setName(day.getName());
+
+        if (day.getExercises() != null) {
+          for (Routine.Day.Exercise exercise : day.getExercises()) {
+            var exerciseMO = new RoutineDayExerciseMO();
+            exerciseMO.setExerciseId(exercise.getId());
+            exerciseMO.setPosition(exercise.getPosition().shortValue());
+            for (var set : exercise.getSets()) {
+              var setMO = new RoutineDayExerciseSetMO();
+              setMO.setExercise(exerciseMO);
+              setMO.setSet(set.getNumber());
+              setMO.setReps(set.getRepetition());
+              exerciseMO.addSet(setMO);
+            }
+            dayMO.addExercise(exerciseMO);
+          }
+        }
+        routineMO.addDay(dayMO);
+      }
+    }
+
+    RoutineMO saved = routineJpaRepository.save(routineMO);
+    return mapper.map(saved);
+  }
+
+  public List<Routine> findByGymId(Integer gymId) {
+    List<ExerciseMO> exercises = exerciseJpaRepository.findAll();
+    return routineJpaRepository
+      .findByGymIdAndMemberIdIsNull(gymId)
+      .stream()
+      .map(r -> mapper.mapWithContext(r, exercises))
+      .toList();
+  }
+
 }

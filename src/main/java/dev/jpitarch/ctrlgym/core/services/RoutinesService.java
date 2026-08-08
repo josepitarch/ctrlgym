@@ -31,4 +31,19 @@ public class RoutinesService {
     routinesRepository.deleteById(id);
   }
 
+  public Routine createForGym(Routine routine, Integer gymId) {
+    log.info("Creating a routine for gym with id {}... ", gymId);
+    return routinesRepository.saveForGym(routine, gymId);
+  }
+
+  public List<Routine> getGymRoutines(Integer gymId) {
+    log.info("Retrieving routines for gym with id {}...", gymId);
+    return routinesRepository.findByGymId(gymId);
+  }
+
+  public void deleteForGym(Integer id, Integer gymId) {
+    log.info("Deleting routine with id {} for gym with id {}... ", id, gymId);
+    routinesRepository.deleteById(id);
+  }
+
 }

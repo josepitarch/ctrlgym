@@ -51,7 +51,7 @@ public class GymController {
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
-        null,
+        invoice.getDueAt(),
         invoice.getTotal()
       )));
   }
@@ -106,6 +106,26 @@ public class GymController {
   public ResponseEntity<byte[]> getInvoiceReport(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, @PathVariable String invoiceId) throws IOException {
     byte[] pdfReport = useCase.getMemberInvoiceReport(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
+  }
+
+  @PostMapping("/{gymId}/routines")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> createRoutine(@PathVariable Integer gymId, @RequestBody Routine routine) {
+    useCase.createGymRoutine(gymId, routine);
+    return new ResponseEntity<>(HttpStatus.CREATED);
+  }
+
+  @GetMapping("/{gymId}/routines")
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<List<Routine>> getRoutines(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getGymRoutines(gymId));
+  }
+
+  @DeleteMapping("/{gymId}/routines/{routineId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> deleteRoutine(@PathVariable Integer gymId, @PathVariable Integer routineId) {
+    useCase.deleteGymRoutine(routineId, gymId);
+    return ResponseEntity.noContent().build();
   }
 
 

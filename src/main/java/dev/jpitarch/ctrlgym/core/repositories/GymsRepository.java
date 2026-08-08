@@ -70,16 +70,30 @@ public class GymsRepository {
 
   public List<Member> getMembers(GymBranchId gymBranchId) {
     var sql = """
+      WITH ranked_memberships AS (
+        SELECT
+          mb.member_id,
+          mb.start_date,
+          mb.end_date,
+          ROW_NUMBER() OVER (
+            PARTITION BY mb.member_id
+            ORDER BY
+              CASE WHEN mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date >= CURRENT_DATE) THEN 0 ELSE 1 END,
+              mb.start_date DESC
+          ) AS rn
+        FROM memberships mb
+        JOIN membership_plans mp ON mb.membership_plan_id = mp.id
+        WHERE mp.gym_branch_id = :gymBranchId
+      )
       SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.gym_id,
       CASE
-        WHEN mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date >= CURRENT_DATE)
+        WHEN rm.start_date <= CURRENT_DATE AND (rm.end_date IS NULL OR rm.end_date >= CURRENT_DATE)
         THEN true
         ELSE false
       END AS is_active
       FROM users m
-      JOIN memberships mb ON m.id = mb.member_id
-      JOIN membership_plans mp ON mb.membership_plan_id = mp.id
-      WHERE m.gym_id = :gymId AND mp.gym_branch_id = :gymBranchId
+      JOIN ranked_memberships rm ON m.id = rm.member_id AND rm.rn = 1
+      WHERE m.gym_id = :gymId
       """;
 
     var params = Map.of(
@@ -99,10 +113,7 @@ public class GymsRepository {
         .birthDate(LocalDate.parse(rs.getString("birth_date")))
         .isActive(rs.getBoolean("is_active"))
         .build()
-      )
-      .stream()
-      .distinct()
-      .toList();
+      );
   }
 
 

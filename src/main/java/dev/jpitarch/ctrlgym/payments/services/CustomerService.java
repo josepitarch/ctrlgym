@@ -8,6 +8,7 @@ import com.stripe.model.Subscription;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
+import com.stripe.param.SetupIntentRetrieveParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.services.StripeBridge;
@@ -18,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -101,6 +103,28 @@ public class CustomerService {
     log.info("Detaching payment method with id {}...", oldPaymentMethodId);
 
     PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
+  }
+
+  public Optional<String> getIbanLast4(Member.Id memberId) {
+    var options = RequestOptions.builder()
+      .setStripeAccount(stripeBridge.getStripeAccountId(memberId.gymId()))
+      .build();
+    var params = SetupIntentRetrieveParams.builder()
+      .addExpand("payment_method")
+      .build();
+
+    return stripeBridge.getStripeSetupIntentId(memberId)
+      .flatMap(s -> {
+        try {
+          return Optional.ofNullable(
+            SetupIntent.retrieve(s, params, options).getPaymentMethodObject().getSepaDebit().getLast4()
+          );
+        } catch (StripeException e) {
+          log.warn("Failed to retrieve IBAN last4 for member {}: {}", memberId, e.getMessage(), e);
+          return Optional.empty();
+        }
+      });
+
   }
 
 }

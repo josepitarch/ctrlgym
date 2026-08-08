@@ -275,6 +275,7 @@ public class AnalyticsRepository {
 
   }
 
+  //TODO: creo que no termina de funcionar correctamente la query
   public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DatePeriod datePeriod) {
     var sql = """
       WITH months AS (

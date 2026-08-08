@@ -42,6 +42,8 @@ public class Member {
   @JsonProperty("birth_date")
   private LocalDate birthDate;
 
+  private String iban;
+
   @JsonProperty("is_active")
   private boolean isActive;
 

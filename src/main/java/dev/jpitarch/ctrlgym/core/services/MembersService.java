@@ -50,7 +50,9 @@ public class MembersService {
   }
 
   public Member getMember(Member.Id memberId) {
-    return membersRepository.getById(memberId);
+    var member = membersRepository.getById(memberId);
+    member.setIban(customerService.getIbanLast4(memberId).orElse(null));
+    return member;
   }
 
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {

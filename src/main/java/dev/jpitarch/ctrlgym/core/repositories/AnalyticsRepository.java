@@ -32,7 +32,7 @@ public class AnalyticsRepository {
     var sql = """
       SELECT
       month::date,
-        COUNT(m.id) AS active_memberships
+        COUNT(DISTINCT m.member_id) AS active_memberships
       FROM generate_series (
             :from::date,
             :to::date,
@@ -131,17 +131,16 @@ public class AnalyticsRepository {
 
   public List<Object[]> getSeniorityDistribution(GymBranchId gymBranchId) {
     var sql = """
-      WITH membresias_vigentes AS (
-          SELECT
-              id,
+      WITH miembros_unicos AS (
+          SELECT DISTINCT ON (member_id)
               member_id,
-              gym_id,
               start_date,
               (DATE_PART('year', AGE(CURRENT_DATE, start_date)) * 12
                   + DATE_PART('month', AGE(CURRENT_DATE, start_date)))::int AS meses_antiguedad
           FROM public.memberships
           WHERE membership_plan_id in (SELECT membership_plan_id FROM membership_plans WHERE gym_branch_id = :gymBranchId)
           AND (end_date IS NULL OR end_date >= CURRENT_DATE)
+          ORDER BY member_id, start_date DESC
       )
       SELECT
           CASE
@@ -154,7 +153,7 @@ public class AnalyticsRepository {
               WHEN meses_antiguedad >= 36              THEN '+3y'
               END AS rango_antiguedad,
           COUNT(*) AS cantidad_membresias
-      FROM membresias_vigentes
+      FROM miembros_unicos
       GROUP BY rango_antiguedad
       ORDER BY MIN(meses_antiguedad);
       """;
@@ -171,24 +170,28 @@ public class AnalyticsRepository {
                                      date_trunc('month', CAST(:from AS date)),
                                      date_trunc('month', CAST(:to AS date)),
                                      INTERVAL '1 month'
-                             )::date AS month_start),
-           active_memberships_per_month AS (SELECT m.month_start,
-                                                   mb.id,
-                                                   (DATE_PART('year', AGE(
-                                                           (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
-                                                           mb.start_date)) * 12
-                                                       + DATE_PART('month', AGE(
-                                                               (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
-                                                               mb.start_date)))::int AS tenure_months
-                                            FROM months m
-                                                     LEFT JOIN public.memberships mb
-                                                          ON mb.start_date <=
-                                                             (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date
-                                                              AND (mb.end_date IS NULL OR mb.end_date >=
-                                                                                          (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date))
+                              )::date AS month_start),
+           miembros_unicos_por_mes AS (
+               SELECT DISTINCT ON (m.month_start, mb.member_id)
+                   m.month_start,
+                   mb.member_id,
+                   (DATE_PART('year', AGE(
+                           (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
+                           mb.start_date)) * 12
+                       + DATE_PART('month', AGE(
+                               (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date,
+                               mb.start_date)))::int AS tenure_months
+               FROM months m
+                        LEFT JOIN public.memberships mb
+                                  ON mb.start_date <=
+                                     (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date
+                                     AND (mb.end_date IS NULL OR mb.end_date >=
+                                         (m.month_start + INTERVAL '1 month' - INTERVAL '1 day')::date)
+               ORDER BY m.month_start, mb.member_id, mb.start_date DESC
+           )
       SELECT TO_CHAR(month_start, 'YYYY-MM') AS month,
              ROUND(AVG(tenure_months), 1)    AS average_tenure_months
-      FROM active_memberships_per_month
+      FROM miembros_unicos_por_mes
       GROUP BY month_start
       ORDER BY month_start;
 
@@ -209,14 +212,16 @@ public class AnalyticsRepository {
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {
     var sql = """
-      WITH cohorts AS(
-        SELECT
-        id,
-        DATE_TRUNC('month', start_date)::date AS cohort_month,
-        start_date,
-        end_date
+      WITH miembros_unicos AS (
+        SELECT DISTINCT ON (member_id)
+          member_id,
+          gym_id,
+          DATE_TRUNC('month', start_date)::date AS cohort_month,
+          start_date,
+          end_date
         FROM memberships
         WHERE gym_id = :gymId
+        ORDER BY member_id, start_date ASC
         ),
 
       cohort_activity AS (
@@ -228,7 +233,7 @@ public class AnalyticsRepository {
         OR c.end_date >= c.cohort_month
           + (gs.month_offset || ' month')::interval
       ) AS active_members
-      FROM cohorts c
+      FROM miembros_unicos c
       CROSS JOIN generate_series(0, :currentMonth)AS gs (month_offset)
         GROUP BY 1, 2
         ),
@@ -237,7 +242,7 @@ public class AnalyticsRepository {
         SELECT
       cohort_month,
         COUNT( *)AS cohort_size
-      FROM cohorts
+      FROM miembros_unicos
       GROUP BY 1
         )
 
@@ -279,21 +284,32 @@ public class AnalyticsRepository {
                          INTERVAL '1 month'
                   )::date AS month_start
       ),
+           miembros_unicos_por_mes AS (
+               SELECT DISTINCT ON (m.month_start, mb.member_id)
+                   m.month_start,
+                   mb.member_id,
+                   mb.start_date,
+                   mb.end_date
+               FROM months m
+                        LEFT JOIN public.memberships mb
+                                  ON mb.gym_id = :gymId
+               ORDER BY m.month_start, mb.member_id, mb.start_date DESC
+           ),
            monthly_stats AS (
                SELECT
                    m.month_start,
-                   COUNT(*) FILTER (
+                   COUNT(DISTINCT mb.member_id) FILTER (
                        WHERE mb.start_date <= m.month_start
                            AND (mb.end_date IS NULL OR mb.end_date >= m.month_start)
                        ) AS active_at_start,
-                   COUNT(*) FILTER (
+                   COUNT(DISTINCT mb.member_id) FILTER (
                        WHERE mb.start_date <= m.month_start
                            AND mb.end_date >= m.month_start
                            AND mb.end_date < (m.month_start + INTERVAL '1 month')::date
                        ) AS churned_during_month
                FROM months m
-                         LEFT JOIN public.memberships mb
-                                   ON mb.gym_id = :gymId
+                        LEFT JOIN miembros_unicos_por_mes mb
+                                  ON m.month_start = mb.month_start
                GROUP BY m.month_start
            )
       SELECT
@@ -436,7 +452,7 @@ public class AnalyticsRepository {
 
   public List<MembershipPlanDistribution> getMembershipsDistributionByPlan(GymBranchId gymBranchId) {
     var sql = """
-      SELECT mp.id, mp.name, COUNT(*) AS count
+      SELECT mp.id, mp.name, COUNT(DISTINCT m.member_id) AS count
       FROM memberships m
       JOIN membership_plans mp ON m.membership_plan_id = mp.id
       WHERE mp.gym_branch_id = :gymBranchId

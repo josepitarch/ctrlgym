@@ -116,7 +116,6 @@ public class GymController {
   }
 
   @GetMapping("/{gymId}/routines")
-  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<List<Routine>> getRoutines(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getGymRoutines(gymId));
   }

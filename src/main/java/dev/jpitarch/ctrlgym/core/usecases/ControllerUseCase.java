@@ -54,7 +54,8 @@ public class ControllerUseCase {
 
     long countLastWindow = gymHeartbeatJpaRepository.countByGymBranchIdSince(gymBranchId, rateWindowStart);
 
-    double rate = Math.round((double) countLastWindow / RATE_EMIT_INTERVAL_SECONDS * 1000.0) / 10.0;
+    double expectedCount = (double) WINDOWS_RATE_HOURS * 3600 / RATE_EMIT_INTERVAL_SECONDS;
+    double rate = Math.min(100, Math.round(countLastWindow * 100.0 / expectedCount));
 
     return new Heartbeat(rate, cpuPercent, temperature);
   }

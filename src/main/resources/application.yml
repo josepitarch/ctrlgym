@@ -31,7 +31,7 @@ supabase:
   service-role-key: ${SUPABASE_SECRET_KEY}
 
 qr:
-  jwt-secret: "tu-clave-secreta-muy-larga-de-al-menos-256-bits-aqui"
+  jwt-secret: ${ACCESS_QR_JWT_TOKEN_SECRET}
   expiration-seconds: 10
 
 notifications:

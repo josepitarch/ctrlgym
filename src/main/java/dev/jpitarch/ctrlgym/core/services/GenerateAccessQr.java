@@ -7,16 +7,14 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -24,10 +22,9 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GenerateAccessQrService {
+public class GenerateAccessQr {
 
-  @Value("${qr.jwt-secret}")
-  private String secret;
+  private final PrivateKey signingKey;
 
   @Value("${qr.expiration-seconds}")
   private int expirationSeconds;
@@ -44,7 +41,6 @@ public class GenerateAccessQrService {
     return pngOutputStream.toByteArray();
   }
 
-  //TODO: hacer firma asimétrica
   private String generateQrToken(Member.Id memberId, List<Integer> gymIds) {
     var now = Instant.now();
     return Jwts.builder()
@@ -52,12 +48,8 @@ public class GenerateAccessQrService {
       .claim("gym_branches", gymIds)
       .issuedAt(Date.from(now))
       .expiration(Date.from(now.plusSeconds(expirationSeconds)))
-      .signWith(getSigningKey(), Jwts.SIG.HS256)
+      .signWith(signingKey, Jwts.SIG.ES256)
       .compact();
-  }
-
-  private SecretKey getSigningKey() {
-    return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
   }
 
 }

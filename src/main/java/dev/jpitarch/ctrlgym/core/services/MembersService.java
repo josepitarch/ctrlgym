@@ -33,7 +33,7 @@ public class MembersService {
 
   private final MembershipsRepository membershipsRepository;
 
-  private final GenerateAccessQrService generateAccessQrService;
+  private final GenerateAccessQr generateAccessQr;
 
   private final CustomerService customerService;
 
@@ -62,7 +62,7 @@ public class MembersService {
 
     log.info("Generating QR code for member {}...: {}", memberId, branches);
 
-    return generateAccessQrService.generateQrCode(memberId, branches);
+    return generateAccessQr.generateQrCode(memberId, branches);
   }
 
   public List<MemberAccess> getAccesses(Member.Id memberId) {

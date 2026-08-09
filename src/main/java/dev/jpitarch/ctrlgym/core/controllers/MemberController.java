@@ -129,8 +129,8 @@ public class MemberController {
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
-        null,
-        invoice.getTotal()
+        invoice.getTotal(),
+        invoice.getStatus()
       )));
   }
 

@@ -51,8 +51,8 @@ public class GymController {
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
-        invoice.getDueAt(),
-        invoice.getTotal()
+        invoice.getTotal(),
+        invoice.getStatus()
       )));
   }
 

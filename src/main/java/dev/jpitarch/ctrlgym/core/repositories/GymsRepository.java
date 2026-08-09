@@ -86,6 +86,7 @@ public class GymsRepository {
         WHERE mp.gym_branch_id = :gymBranchId
       )
       SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.gym_id,
+      m.street, m.postal_code,
       CASE
         WHEN rm.start_date <= CURRENT_DATE AND (rm.end_date IS NULL OR rm.end_date >= CURRENT_DATE)
         THEN true
@@ -112,6 +113,10 @@ public class GymsRepository {
         .gender(mapGender(rs.getString("gender")))
         .birthDate(LocalDate.parse(rs.getString("birth_date")))
         .isActive(rs.getBoolean("is_active"))
+        .address(Member.Address.builder()
+          .street(rs.getString("street"))
+          .postalCode(rs.getObject("postal_code", Integer.class))
+          .build())
         .build()
       );
   }

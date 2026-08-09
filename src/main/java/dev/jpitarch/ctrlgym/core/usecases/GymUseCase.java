@@ -5,9 +5,11 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
+import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,12 +43,32 @@ public class GymUseCase {
 
   private final RoutinesService routinesService;
 
+  private final PostalCodeJpaRepository postalCodeJpaRepository;
+
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
   }
 
   public List<Member> getMembers(GymBranchId gymBranchId) {
-    return gymsRepository.getMembers(gymBranchId);
+    List<Member> members = gymsRepository.getMembers(gymBranchId);
+    List<Integer> postalCodes = members.stream()
+      .filter(m -> m.getAddress() != null && m.getAddress().getPostalCode() != null)
+      .map(m -> m.getAddress().getPostalCode())
+      .distinct()
+      .toList();
+    if (!postalCodes.isEmpty()) {
+      Map<Integer, PostalCodeMO> postalCodeMap = postalCodeJpaRepository.findMapByPostalCodeIn(postalCodes);
+      members.forEach(m -> {
+        if (m.getAddress() != null && m.getAddress().getPostalCode() != null) {
+          PostalCodeMO pc = postalCodeMap.get(m.getAddress().getPostalCode());
+          if (pc != null) {
+            m.getAddress().setCity(pc.getCity());
+            m.getAddress().setState(pc.getState());
+          }
+        }
+      });
+    }
+    return members;
   }
 
   public MemberRetention getMemberRetention(GymBranchId gymBranchId, Member.Id memberId) {

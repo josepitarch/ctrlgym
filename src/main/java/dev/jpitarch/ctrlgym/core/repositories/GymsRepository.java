@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,7 +69,7 @@ public class GymsRepository {
       .build();
   }
 
-  public List<Member> getMembers(GymBranchId gymBranchId) {
+  public List<Member> getMembers(GymBranchId gymBranchId, String q) {
     var sql = """
       WITH ranked_memberships AS (
         SELECT
@@ -97,10 +98,18 @@ public class GymsRepository {
       WHERE m.gym_id = :gymId
       """;
 
-    var params = Map.of(
-      "gymId", gymBranchId.gymId(),
-      "gymBranchId", gymBranchId.branchId()
-    );
+    var params = new HashMap<String, Object>();
+    params.put("gymId", gymBranchId.gymId());
+    params.put("gymBranchId", gymBranchId.branchId());
+
+    if (q != null) {
+      if (Character.isDigit(q.charAt(0))) {
+        sql += " AND m.nif LIKE :q";
+      } else {
+        sql += " AND (LOWER(m.name) LIKE LOWER(:q) OR LOWER(m.first_surname) LIKE LOWER(:q) OR LOWER(m.second_surname) LIKE LOWER(:q) OR LOWER(m.email) LIKE LOWER(:q))";
+      }
+      params.put("q", "%" + q + "%");
+    }
 
     return jdbc.query(sql, params, (rs, _) -> Member.builder()
         .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))

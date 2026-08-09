@@ -49,8 +49,8 @@ public class GymUseCase {
     return gymsRepository.getBranches(gymId);
   }
 
-  public List<Member> getMembers(GymBranchId gymBranchId) {
-    List<Member> members = gymsRepository.getMembers(gymBranchId);
+  public List<Member> getMembers(GymBranchId gymBranchId, String q) {
+    List<Member> members = gymsRepository.getMembers(gymBranchId, q);
     List<Integer> postalCodes = members.stream()
       .filter(m -> m.getAddress() != null && m.getAddress().getPostalCode() != null)
       .map(m -> m.getAddress().getPostalCode())

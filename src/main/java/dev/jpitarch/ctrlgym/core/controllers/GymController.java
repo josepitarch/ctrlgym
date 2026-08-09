@@ -34,8 +34,11 @@ public class GymController {
 
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members")
-  public ResponseEntity<List<Member>> getMembers(@PathVariable int gymId, @PathVariable int branchId) {
-    return ResponseEntity.ok(useCase.getMembers(GymBranchId.of(gymId, branchId)));
+  public ResponseEntity<List<Member>> getMembers(@PathVariable int gymId, @PathVariable int branchId, @RequestParam(required = false) String q) {
+    if (q != null && q.length() < 3) {
+      throw new IllegalArgumentException("Query parameter 'q' must have at least 3 characters");
+    }
+    return ResponseEntity.ok(useCase.getMembers(GymBranchId.of(gymId, branchId), q));
   }
 
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")

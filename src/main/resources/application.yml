@@ -30,8 +30,8 @@ supabase:
   url: ${SUPABASE_URL}
   service-role-key: ${SUPABASE_SECRET_KEY}
 
-qr:
-  jwt-secret: ${ACCESS_QR_JWT_TOKEN_SECRET}
+member-access-qr:
+  private-key: ${MEMBER_ACCESS_QR_PRIVATE_KEY}
   expiration-seconds: 10
 
 notifications:

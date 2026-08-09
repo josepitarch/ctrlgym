@@ -20,8 +20,8 @@ stripe:
   whsec-connected-account: test-whsec
   whsec-account: test-whsec
 
-qr:
-  jwt-secret: test-secret-key-that-is-at-least-256-bits-long-for-hs256
+member-access-qr:
+  private-key: ${MEMBER_ACCESS_QR_PRIVATE_KEY}
   expiration-seconds: 10
 
 notifications:

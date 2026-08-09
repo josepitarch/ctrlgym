@@ -13,7 +13,7 @@ import java.util.Base64;
 public class JwtSigningConfig {
 
   @Bean
-  public PrivateKey jwtSigningKey(@Value("${qr.jwt-secret}") String privateKeyPem) throws Exception {
+  public PrivateKey jwtSigningKey(@Value("${member-access-qr.private-key}") String privateKeyPem) throws Exception {
     String cleaned = privateKeyPem
       .replace("-----BEGIN PRIVATE KEY-----", "")
       .replace("-----END PRIVATE KEY-----", "")

@@ -26,7 +26,7 @@ public class GenerateAccessQr {
 
   private final PrivateKey signingKey;
 
-  @Value("${qr.expiration-seconds}")
+  @Value("${member-access-qr.expiration-seconds:10}")
   private int expirationSeconds;
 
   private static final int QR_SIZE = 300;

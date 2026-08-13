@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,7 @@ public class WebhookService {
   private String webhookSecret;
 
   @Transactional
+  @Retryable(multiplier = 1.5, includes = InvoiceNotFoundException.class)
   public void process(String payload, String signatureHeader) throws StripeException {
     Event event;
     try {
@@ -110,15 +112,7 @@ public class WebhookService {
   private void handlePaymentIntentProcessing(PaymentIntent paymentIntent) throws StripeException {
     var invoiceId = paymentIntent.getPaymentDetails().getOrderReference();
     log.info("Marking invoice with {} as processing...", invoiceId);
-
-    try {
-      invoiceRepository.markAsProcessing(invoiceId);
-    } catch (InvoiceNotFoundException e) {
-      log.warn("Race condition of invoice with id {}. Processing event arrives before invoice has been created", invoiceId);
-      Invoice invoice = invoiceService.retrieve(invoiceId, stripeBridge.getId(paymentIntent.getCustomer()).gymId());
-      this.handleInvoiceCreated(invoice);
-    }
-
+    invoiceRepository.markAsProcessing(invoiceId);
   }
 
   private void handlePaymentSucceeded(Invoice invoice) {

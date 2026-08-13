@@ -45,15 +45,8 @@ public class InvoiceRepository {
 
 
   public void create(Invoice invoice, Member.Id memberId, Long membershipId) {
-    invoiceJpaRepository.findById(invoice.getId())
-      .ifPresentOrElse(inv -> {
-          //TODO: logica de estados
-        },
-        () -> {
-        var invoiceMO = createInvoiceMO(invoice, memberId, membershipId);
-        invoiceJpaRepository.save(invoiceMO);
-      });
-
+    var invoiceMO = createInvoiceMO(invoice, memberId, membershipId);
+    invoiceJpaRepository.save(invoiceMO);
   }
 
   public void markAsProcessing(String invoiceId) {

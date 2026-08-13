@@ -75,6 +75,9 @@ public class UserMO {
   @Column(name = "stripe_setup_intent_id", length = Integer.MAX_VALUE)
   private String stripeSetupIntentId;
 
+  @Column(name = "role")
+  private String role;
+
 
   @Override
   public final boolean equals(Object o) {

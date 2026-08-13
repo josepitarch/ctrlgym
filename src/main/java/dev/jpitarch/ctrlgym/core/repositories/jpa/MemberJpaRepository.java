@@ -35,6 +35,13 @@ public interface MemberJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
   Optional<String> getStripeSetupIntentId(UUID memberId, Integer gymId);
 
 
+  @Query("""
+        SELECT u.role
+        FROM UserMO u
+        WHERE u.id = :memberId AND u.gymId = :gymId
+    """)
+  Optional<String> findRoleById(UUID memberId, Integer gymId);
+
   @Modifying
   @Transactional
   @Query("UPDATE UserMO u SET u.stripeSetupIntentId = :setupIntentId WHERE u.id = :memberId AND u.gymId = :gymId")

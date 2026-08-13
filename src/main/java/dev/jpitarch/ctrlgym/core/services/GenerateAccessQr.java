@@ -31,9 +31,9 @@ public class GenerateAccessQr {
 
   private static final int QR_SIZE = 300;
 
-  public byte[] generateQrCode(Member.Id memberId, List<Integer> branches) throws WriterException, IOException {
+  public byte[] generateQrCode(Member.Id memberId, String role, List<Integer> branches) throws WriterException, IOException {
     var qrCodeWriter = new QRCodeWriter();
-    var data = this.generateQrToken(memberId, branches);
+    var data = this.generateQrToken(memberId, role, branches);
     BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
 
     var pngOutputStream = new ByteArrayOutputStream();
@@ -41,11 +41,13 @@ public class GenerateAccessQr {
     return pngOutputStream.toByteArray();
   }
 
-  private String generateQrToken(Member.Id memberId, List<Integer> gymIds) {
+  private String generateQrToken(Member.Id memberId, String role, List<Integer> gymIds) {
     var now = Instant.now();
     return Jwts.builder()
       .subject(memberId.memberId().toString())
+      .claim("gym_id", memberId.gymId())
       .claim("gym_branches", gymIds)
+      .claim("role", role)
       .issuedAt(Date.from(now))
       .expiration(Date.from(now.plusSeconds(expirationSeconds)))
       .signWith(signingKey, Jwts.SIG.ES256)

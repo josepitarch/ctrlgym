@@ -57,12 +57,13 @@ public class MembersService {
 
   public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
     List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId);
+    String role = membersRepository.getRoleById(memberId);
 
     if (CollectionUtils.isEmpty(branches)) throw new MemberWithoutAccessException(memberId);
 
-    log.info("Generating QR code for member {}...: {}", memberId, branches);
+    log.info("Generating QR code for member with id {}: {}...", memberId, branches);
 
-    return generateAccessQr.generateQrCode(memberId, branches);
+    return generateAccessQr.generateQrCode(memberId, role, branches);
   }
 
   public List<MemberAccess> getAccesses(Member.Id memberId) {

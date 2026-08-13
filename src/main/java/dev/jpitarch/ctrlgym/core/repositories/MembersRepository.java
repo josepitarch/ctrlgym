@@ -22,8 +22,6 @@ public class MembersRepository {
 
   private final MemberJpaRepository jpaRepository;
 
-  private final NamedParameterJdbcTemplate jdbc;
-
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
   public boolean exists(Member.Id memberId) {
@@ -89,6 +87,12 @@ public class MembersRepository {
     jpaRepository.save(memberMO);
   }
 
+
+  public String getRoleById(Member.Id memberId) {
+    return jpaRepository
+      .findRoleById(memberId.memberId(), memberId.gymId())
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+  }
 
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
     return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())

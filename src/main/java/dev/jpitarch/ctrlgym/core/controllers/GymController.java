@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -65,10 +66,13 @@ public class GymController {
     return ResponseEntity.ok(useCase.getCurrentOccupancy(GymBranchId.of(gymId, branchId)));
   }
 
+  @PostMapping(value = "/{gymId}/exercises", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  @PostMapping("/{gymId}/exercises")
-  public ResponseEntity<Exercise> createExercise(@PathVariable Integer gymId, @RequestBody Exercise exercise) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise));
+  public ResponseEntity<Exercise> createExercise(
+    @PathVariable Integer gymId,
+    @RequestPart("exercise") Exercise exercise,
+    @RequestPart(value = "image", required = false) MultipartFile image) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise, image));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")

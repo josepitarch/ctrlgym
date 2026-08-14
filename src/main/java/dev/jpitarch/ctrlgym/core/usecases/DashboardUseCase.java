@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
-import dev.jpitarch.ctrlgym.core.dto.Cohort;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
@@ -9,9 +8,9 @@ import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.ExpensesService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
+import dev.jpitarch.ctrlgym.core.services.ExpensesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;

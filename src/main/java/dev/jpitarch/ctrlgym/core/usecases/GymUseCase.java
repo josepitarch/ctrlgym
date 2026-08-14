@@ -11,6 +11,7 @@ import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
+import dev.jpitarch.ctrlgym.core.services.ExpensesService;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
@@ -42,6 +43,8 @@ public class GymUseCase {
   private final GenerateInvoiceReportService generateInvoiceReportService;
 
   private final RoutinesService routinesService;
+
+  private final ExpensesService expensesService;
 
   private final PostalCodeJpaRepository postalCodeJpaRepository;
 
@@ -130,6 +133,10 @@ public class GymUseCase {
 
   public void deleteGymRoutine(Integer routineId, Integer gymId) {
     routinesService.deleteForGym(routineId, gymId);
+  }
+
+  public byte[] generateExpensesExcel() throws IOException {
+    return expensesService.generateExpensesExcel();
   }
 
 }

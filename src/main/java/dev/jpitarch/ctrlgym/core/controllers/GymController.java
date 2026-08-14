@@ -77,22 +77,22 @@ public class GymController {
     return ResponseEntity.ok(useCase.getAll(gymId));
   }
 
-  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  @DeleteMapping("/{gymId}/exercises/{exerciseId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping("/{gymId}/exercises/{exerciseId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   public void deleteExercise(@PathVariable Integer gymId, @PathVariable Integer exerciseId) {
     useCase.deleteExercise(exerciseId, gymId);
   }
 
-  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   @PostMapping("/{gymId}/memberships/plans")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody MembershipPlan plan) throws StripeException {
     useCase.createMembershipPlan(gymId, plan);
     return ResponseEntity.noContent().build();
   }
 
-  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/memberships/plans")
+  @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<MembershipPlan>> getMembershipPlans(@PathVariable Integer gymId, @RequestParam(required = false) Integer gymBranchId) {
     return ResponseEntity.ok(useCase.getMembershipPlans(GymBranchId.of(gymId, gymBranchId)));
   }
@@ -130,5 +130,13 @@ public class GymController {
     return ResponseEntity.noContent().build();
   }
 
+  @PreAuthorize("hasRole('MANAGER')")
+  @GetMapping(value = "/expenses/export", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  public ResponseEntity<byte[]> exportExpenses() throws IOException {
+    byte[] excelFile = useCase.generateExpensesExcel();
+    return ResponseEntity.ok()
+      .header("Content-Disposition", "attachment; filename=\"gastos.xlsx\"")
+      .body(excelFile);
+  }
 
 }

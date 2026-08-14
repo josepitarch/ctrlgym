@@ -54,9 +54,6 @@ public class UserMO {
   @Column(name = "birth_date")
   private LocalDate birthDate;
 
-  @Column(name = "street")
-  private String street;
-
   @Column(name = "postal_code", length = 20)
   private Integer postalCode;
 

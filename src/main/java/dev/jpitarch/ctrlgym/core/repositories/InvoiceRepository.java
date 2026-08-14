@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.mappers.InvoiceMapper;

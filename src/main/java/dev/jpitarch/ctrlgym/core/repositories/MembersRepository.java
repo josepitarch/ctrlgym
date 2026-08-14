@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
@@ -9,12 +10,10 @@ import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
@@ -57,7 +56,6 @@ public class MembersRepository {
       .gender(mapGender(userMO.getGender()))
       .birthDate(userMO.getBirthDate())
       .address(Member.Address.builder()
-        .street(userMO.getStreet())
         .postalCode(userMO.getPostalCode())
         .build()
       )
@@ -80,7 +78,6 @@ public class MembersRepository {
 
     if (member.getAddress() != null) {
       var address = member.getAddress();
-      memberMO.setStreet(address.getStreet());
       memberMO.setPostalCode(address.getPostalCode());
     }
 

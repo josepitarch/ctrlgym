@@ -9,7 +9,6 @@ import dev.jpitarch.ctrlgym.core.models.RoutineDayMO;
 import dev.jpitarch.ctrlgym.core.models.RoutineMO;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Context;
-import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

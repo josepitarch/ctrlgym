@@ -50,25 +50,24 @@ public class GymUseCase {
   }
 
   public List<Member> getMembers(GymBranchId gymBranchId, String q) {
-    List<Member> members = gymsRepository.getMembers(gymBranchId, q);
-    List<Integer> postalCodes = members.stream()
+    List<Member> users = gymsRepository.getMembers(gymBranchId, q);
+    List<Integer> postalCodes = users.stream()
       .filter(m -> m.getAddress() != null && m.getAddress().getPostalCode() != null)
       .map(m -> m.getAddress().getPostalCode())
       .distinct()
       .toList();
     if (!postalCodes.isEmpty()) {
       Map<Integer, PostalCodeMO> postalCodeMap = postalCodeJpaRepository.findMapByPostalCodeIn(postalCodes);
-      members.forEach(m -> {
+      users.forEach(m -> {
         if (m.getAddress() != null && m.getAddress().getPostalCode() != null) {
           PostalCodeMO pc = postalCodeMap.get(m.getAddress().getPostalCode());
           if (pc != null) {
             m.getAddress().setCity(pc.getCity());
-            m.getAddress().setState(pc.getState());
           }
         }
       });
     }
-    return members;
+    return users;
   }
 
   public MemberRetention getMemberRetention(GymBranchId gymBranchId, Member.Id memberId) {

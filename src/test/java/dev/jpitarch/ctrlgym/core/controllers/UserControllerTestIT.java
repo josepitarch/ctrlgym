@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
@@ -35,7 +36,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class MemberControllerTestIT extends BaseIntegrationTest {
+class UserControllerTestIT extends BaseIntegrationTest {
 
   @MockitoBean
   SubscriptionService subscriptionService;
@@ -79,9 +80,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
       .gender(Gender.MALE)
       .birthDate(LocalDate.of(1990, 5, 15))
       .address(Member.Address.builder()
-        .street("123 Main St")
         .city("Springfield")
-        .state("IL")
         .postalCode(62701)
         .build())
       .build();

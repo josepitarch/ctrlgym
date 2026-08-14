@@ -45,7 +45,7 @@ La configuración de seguridad se encuentra en `SecurityConfig.java` y define do
 | Rol | Endpoints |
 |---|---|
 | `MANAGER` | `/v1/dashboard/**`, `/admin/**` |
-| `MEMBER` | `/v1/members/**` |
+| `MEMBER` | `/v1/users/**` |
 | Autenticado (cualquier rol) | El resto de rutas |
 | Público (sin autenticación) | `/public/**`, `/v1/payments/webhook`, `/v1/auth/**`, `/v1/gyms/*/routines`, `/health` |
 

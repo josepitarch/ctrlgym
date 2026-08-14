@@ -1,9 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
-import dev.jpitarch.ctrlgym.core.domain.GymBranch;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
@@ -87,7 +84,7 @@ public class GymsRepository {
         WHERE mp.gym_branch_id = :gymBranchId
       )
       SELECT m.id, m.name, m.first_surname, m.second_surname, m.avatar_url, m.nif, m.email, m.gender, m.birth_date, m.gym_id,
-      m.street, m.postal_code,
+      m.postal_code,
       CASE
         WHEN rm.start_date <= CURRENT_DATE AND (rm.end_date IS NULL OR rm.end_date >= CURRENT_DATE)
         THEN true
@@ -112,7 +109,7 @@ public class GymsRepository {
     }
 
     return jdbc.query(sql, params, (rs, _) -> Member.builder()
-        .id(Member.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
+        .id(User.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
         .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
         .name(rs.getString("name"))
         .nif(rs.getString("nif"))
@@ -123,7 +120,6 @@ public class GymsRepository {
         .birthDate(LocalDate.parse(rs.getString("birth_date")))
         .isActive(rs.getBoolean("is_active"))
         .address(Member.Address.builder()
-          .street(rs.getString("street"))
           .postalCode(rs.getObject("postal_code", Integer.class))
           .build())
         .build()

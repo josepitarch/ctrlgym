@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;

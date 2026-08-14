@@ -1,10 +1,7 @@
 package dev.jpitarch.ctrlgym.core.events;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-
-import java.time.LocalDate;
 
 @Getter
 public class InvoiceFailedEvent extends ApplicationEvent {

@@ -162,7 +162,6 @@ public class GenerateInvoiceReportService {
         .replace("{{COMPANY_LOCALITY}}", gym.getLocality())
         .replace("{{COMPANY_CIF}}", gym.getCif())
         .replace("{{CLIENT_NAME}}", member.getFullName())
-        .replace("{{CLIENT_STREET}}", member.getAddress().getStreet())
         .replace("{{CLIENT_POSTAL_CODE}}", String.valueOf(member.getAddress().getPostalCode()))
         .replace("{{CLIENT_CITY}}", postalCodeJpaRepository.findByPostalCode(member.getAddress().getPostalCode()).map(PostalCodeMO::getCity).orElse(""))
         .replace("{{CLIENT_NIF}}", member.getNif())

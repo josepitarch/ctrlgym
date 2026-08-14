@@ -11,6 +11,7 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
+import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.services.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +60,6 @@ class CustomerServiceTest {
         .email("john.doe@example.com")
         .nif("12345678A")
         .address(Member.Address.builder()
-          .street("Calle Mayor 1")
           .city("Madrid")
           .postalCode(28001)
           .build())
@@ -100,7 +100,6 @@ class CustomerServiceTest {
         .email("john@example.com")
         .nif("12345678A")
         .address(Member.Address.builder()
-          .street("Calle Mayor 1")
           .city("Madrid")
           .postalCode(28001)
           .build())

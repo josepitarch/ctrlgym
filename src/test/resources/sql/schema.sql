@@ -336,11 +336,11 @@ CREATE TABLE machines
 );
 
 
--- public.members definition
+-- public.users definition
 
 -- Drop table
 
--- DROP TABLE members;
+-- DROP TABLE users;
 
 CREATE TABLE users
 (
@@ -358,7 +358,6 @@ CREATE TABLE users
   stripe_customer_id       text NULL,
   stripe_setup_intent_id text NULL,
   nif                      varchar(20) NULL,
-  street                   varchar(80) NULL,
   status public.member_status NOT NULL,
   "role" public.app_role NOT NULL
   CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),

@@ -3,8 +3,6 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.models.ExpenseCategoryMO;
-import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseCategoryJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,15 +16,9 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class ExpensesRepository {
+public class ExpensesService {
 
   private final NamedParameterJdbcTemplate jdbc;
-
-  private final ExpenseCategoryJpaRepository expenseCategoryJpaRepository;
-
-  public List<ExpenseCategoryMO> getAllCategories() {
-    return expenseCategoryJpaRepository.findAll();
-  }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
     var sql = """

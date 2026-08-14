@@ -8,8 +8,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.models.MembershipMO;
 import dev.jpitarch.ctrlgym.core.models.RoutineMO;
-import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
@@ -45,10 +44,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   CustomerService customerService;
 
   @Autowired
-  MembersRepository membersRepository;
-
-  @Autowired
-  MemberJpaRepository memberJpaRepository;
+  UserJpaRepository userJpaRepository;
 
   @Autowired
   MembershipJpaRepository membershipJpaRepository;
@@ -94,7 +90,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
         .content(jsonMapper.writeValueAsString(member)))
       .andExpect(status().isCreated());
 
-    memberJpaRepository
+    userJpaRepository
       .findById(new UserMO.ID(memberId.memberId(), memberId.gymId()))
       .ifPresentOrElse(m -> assertThat(m.getStripeCustomerId()).isEqualTo("cus_test123"), () -> fail("Member not found"));
   }

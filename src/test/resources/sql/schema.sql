@@ -368,6 +368,25 @@ CREATE TABLE users
 );
 
 
+-- public.employee_workplace definition
+
+CREATE TABLE employee_workplace
+(
+  user_id       uuid        NOT NULL,
+  gym_id        int4        NOT NULL,
+  gym_branch_id int4 NULL,
+  all_branches  bool        NOT NULL,
+  created_at    timestamptz DEFAULT now() NOT NULL,
+  CONSTRAINT employee_workplace_pkey PRIMARY KEY (user_id, gym_id),
+  CONSTRAINT employee_workplace_user_fk FOREIGN KEY (user_id, gym_id) REFERENCES users(id, gym_id),
+  CONSTRAINT employee_workplace_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches(id),
+  CONSTRAINT chk_all_branches_or_gym_branch_id CHECK (
+    (all_branches IS TRUE AND gym_branch_id IS NULL) OR
+    (all_branches IS FALSE AND gym_branch_id IS NOT NULL)
+  )
+);
+
+
 -- public.membership_cancellation_reason_translations definition
 
 -- Drop table

@@ -1,14 +1,13 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.models.UserMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
-import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MembersRepository {
 
-  private final MemberJpaRepository jpaRepository;
+  private final UserJpaRepository jpaRepository;
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
@@ -63,6 +62,12 @@ public class MembersRepository {
       .build();
   }
 
+  public String getRoleById(Member.Id memberId) {
+    return jpaRepository
+      .findRoleById(memberId.memberId(), memberId.gymId())
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+  }
+
   public void save(Member member, String customerId) {
     var memberMO = new UserMO();
     memberMO.setId(member.getId().memberId());
@@ -82,13 +87,6 @@ public class MembersRepository {
     }
 
     jpaRepository.save(memberMO);
-  }
-
-
-  public String getRoleById(Member.Id memberId) {
-    return jpaRepository
-      .findRoleById(memberId.memberId(), memberId.gymId())
-      .orElseThrow(() -> new MemberNotFoundException(memberId));
   }
 
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {

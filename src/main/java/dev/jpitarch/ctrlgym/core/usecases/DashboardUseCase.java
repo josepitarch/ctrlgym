@@ -9,7 +9,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
 import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.ExpensesRepository;
+import dev.jpitarch.ctrlgym.core.repositories.ExpensesService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class DashboardUseCase {
 
   private final AnalyticsRepository analyticsRepository;
 
-  private final ExpensesRepository expensesRepository;
+  private final ExpensesService expensesService;
 
   private final PostalCodeJpaRepository postalCodeJpaRepository;
 
@@ -63,11 +63,11 @@ public class DashboardUseCase {
   }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
-    return expensesRepository.getExpenses(gymBranchId);
+    return expensesService.getExpenses(gymBranchId);
   }
 
   public CashFlow getCashFlow(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    var expenses = expensesRepository.getTotalPerMonth(gymBranchId, datePeriod);
+    var expenses = expensesService.getTotalPerMonth(gymBranchId, datePeriod);
     var revenues = analyticsRepository.getTotalPerMonth(gymBranchId, datePeriod);
 
     return new CashFlow(expenses, revenues);

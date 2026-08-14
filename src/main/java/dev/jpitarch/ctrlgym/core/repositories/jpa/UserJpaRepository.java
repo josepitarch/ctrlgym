@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MemberJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
+public interface UserJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
 
   boolean existsByGymIdAndEmail(Integer gymId, String email);
 

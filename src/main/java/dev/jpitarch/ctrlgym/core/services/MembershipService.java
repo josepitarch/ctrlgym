@@ -102,8 +102,7 @@ public class MembershipService {
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void updateNextBillingDate(InvoicePaidEvent event) {
-    //TODO
-    System.out.println(event);
+    membershipsRepository.updateNextBillingDate(1L, event.getNextBillingDate());
   }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.core.services;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.repositories.GymJpaRepository;
-import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -20,18 +20,18 @@ public class StripeBridge {
 
   private final GymJpaRepository gymRepository;
 
-  private final MemberJpaRepository memberJpaRepository;
+  private final UserJpaRepository userJpaRepository;
 
   public Optional<String> getStripeCustomerId(Member.Id memberId) {
-    return memberJpaRepository.getStripeCustomerId(memberId.memberId(), memberId.gymId());
+    return userJpaRepository.getStripeCustomerId(memberId.memberId(), memberId.gymId());
   }
 
   public Optional<String> getStripeSetupIntentId(Member.Id id) {
-    return memberJpaRepository.getStripeSetupIntentId(id.memberId(), id.gymId());
+    return userJpaRepository.getStripeSetupIntentId(id.memberId(), id.gymId());
   }
 
   public void saveStripeSetupIntentId(Member.Id memberId, String id) {
-    memberJpaRepository.saveStripeSetupIntentId(memberId.memberId(), memberId.gymId(), id);
+    userJpaRepository.saveStripeSetupIntentId(memberId.memberId(), memberId.gymId(), id);
   }
 
   public Member.Id getId(String stripeCustomerId) {

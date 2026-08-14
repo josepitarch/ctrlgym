@@ -48,6 +48,10 @@ public class MembershipsRepository {
       .toList();
   }
 
+  public void updateNextBillingDate(Long membershipId, LocalDate nextBillingDate) {
+    membershipJpaRepository.findById(membershipId).ifPresent(m -> m.setNextBillingDate(nextBillingDate));
+  }
+
   public void setCancellationReasonId(Long membershipId, LocalDate endDate, Integer cancellationReasonId, String comment) {
     membershipJpaRepository
       .findByIdAndEndDateIsNull(membershipId)

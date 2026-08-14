@@ -19,7 +19,7 @@ public class R2Config {
   public S3Client r2Client(R2Properties properties) {
     return S3Client.builder()
       .endpointOverride(properties.endpoint())
-      .region(Region.EU_WEST_1)
+      .region(Region.of("auto"))
       .credentialsProvider(StaticCredentialsProvider.create(
         AwsBasicCredentials.create(properties.accessKeyId(), properties.secretAccessKey())
       ))
@@ -30,7 +30,7 @@ public class R2Config {
   public S3Presigner r2Presigner(R2Properties properties) {
     return S3Presigner.builder()
       .endpointOverride(properties.endpoint())
-      .region(Region.EU_WEST_1)
+      .region(Region.of("auto"))
       .credentialsProvider(StaticCredentialsProvider.create(
         AwsBasicCredentials.create(properties.accessKeyId(), properties.secretAccessKey())
       ))

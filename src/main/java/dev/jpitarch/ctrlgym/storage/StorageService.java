@@ -19,6 +19,7 @@ import java.util.UUID;
 public class StorageService {
 
   private final S3Client r2Client;
+
   private final R2Properties properties;
 
   public String uploadFile(MultipartFile file, String folder) {
@@ -40,22 +41,6 @@ public class StorageService {
       log.error("Error uploading file: {}", e.getMessage(), e);
       throw new StorageException("Failed to upload file", e);
     }
-  }
-
-  public String uploadFile(byte[] content, String filename, String contentType, String folder) {
-    String key = generateKey(filename, folder);
-
-    var request = PutObjectRequest.builder()
-      .bucket(properties.bucket())
-      .key(key)
-      .contentType(contentType)
-      .contentLength((long) content.length)
-      .build();
-
-    r2Client.putObject(request, RequestBody.fromBytes(content));
-
-    log.info("File uploaded successfully: {}", key);
-    return properties.publicUrl() + "/" + key;
   }
 
   public void deleteFile(String fileUrl) {

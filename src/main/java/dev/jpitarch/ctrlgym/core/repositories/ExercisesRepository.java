@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -30,6 +31,11 @@ public class ExercisesRepository {
     exerciseMO.setGymId(gymId);
     ExerciseMO saved = jpaRepository.save(exerciseMO);
     return toDomain(saved);
+  }
+
+  public Optional<Exercise> findById(Integer exerciseId) {
+    return jpaRepository.findById(exerciseId)
+      .map(this::toDomain);
   }
 
   public void delete(Integer exerciseId) {

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -23,6 +24,10 @@ public class ExercisesService {
   public Exercise create(Exercise exercise, Integer gymId) {
     log.info("Creating exercise {} for gym with id {}...", exercise.getName(), gymId);
     return exercisesRepository.create(exercise, gymId);
+  }
+
+  public Optional<Exercise> findById(Integer exerciseId) {
+    return exercisesRepository.findById(exerciseId);
   }
 
   public void delete(Integer exerciseId, Integer gymId) {

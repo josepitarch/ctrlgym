@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
@@ -126,6 +127,11 @@ public class GymUseCase {
   }
 
   public void deleteExercise(Integer exerciseId, Integer gymId) {
+    Exercise exercise = exercisesService.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+
+    if (exercise.getImage() != null && !exercise.getImage().isBlank()) {
+      storageService.deleteFile(exercise.getImage());
+    }
     exercisesService.delete(exerciseId, gymId);
   }
 

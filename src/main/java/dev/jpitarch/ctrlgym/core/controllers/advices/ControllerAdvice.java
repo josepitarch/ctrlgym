@@ -31,6 +31,18 @@ public class ControllerAdvice {
     return problem;
   }
 
+  @ExceptionHandler(ExerciseNotFoundException.class)
+  public ProblemDetail handleExerciseNotFoundException(ExerciseNotFoundException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    problem.setTitle("Exercise Not Found");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.NOT_FOUND, request);
+
+    return problem;
+  }
+
   @ExceptionHandler(MemberWithoutAccessException.class)
   public ProblemDetail handleMemberWithoutAccessException(MemberWithoutAccessException e, HttpServletRequest request) {
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());

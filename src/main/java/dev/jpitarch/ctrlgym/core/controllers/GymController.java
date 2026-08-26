@@ -75,17 +75,17 @@ public class GymController {
     return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise, image));
   }
 
-  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/exercises")
+  @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<Exercise>> getExercises(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getAll(gymId));
   }
 
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping("/{gymId}/exercises/{exerciseId}")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public void deleteExercise(@PathVariable Integer gymId, @PathVariable Integer exerciseId) {
+  public ResponseEntity<Void> deleteExercise(@PathVariable Integer gymId, @PathVariable Integer exerciseId) {
     useCase.deleteExercise(exerciseId, gymId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @PostMapping("/{gymId}/memberships/plans")

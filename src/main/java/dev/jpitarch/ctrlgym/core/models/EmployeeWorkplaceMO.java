@@ -21,8 +21,8 @@ import java.util.UUID;
 public class EmployeeWorkplaceMO {
 
   @Id
-  @Column(name = "user_id")
-  private UUID userId;
+  @Column(name = "employee_id")
+  private UUID employeeId;
 
   @Id
   @Column(name = "gym_id")
@@ -47,13 +47,13 @@ public class EmployeeWorkplaceMO {
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
     EmployeeWorkplaceMO that = (EmployeeWorkplaceMO) o;
-    return getUserId() != null && Objects.equals(getUserId(), that.getUserId())
+    return getEmployeeId() != null && Objects.equals(getEmployeeId(), that.getEmployeeId())
       && getGymId() != null && Objects.equals(getGymId(), that.getGymId());
   }
 
   @Override
   public final int hashCode() {
-    return Objects.hash(userId, gymId);
+    return Objects.hash(employeeId, gymId);
   }
 
   @Getter

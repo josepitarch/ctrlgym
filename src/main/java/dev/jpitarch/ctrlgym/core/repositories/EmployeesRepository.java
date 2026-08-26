@@ -27,7 +27,7 @@ public class EmployeesRepository {
 
   public void assignToBranch(Member.Id employeeId, Integer gymBranchId) {
     var assignment = new EmployeeWorkplaceMO();
-    assignment.setUserId(employeeId.memberId());
+    assignment.setEmployeeId(employeeId.memberId());
     assignment.setGymId(employeeId.gymId());
     assignment.setAllBranches(false);
 
@@ -42,7 +42,7 @@ public class EmployeesRepository {
 
   public void assignToAllBranches(Member.Id employeeId) {
     var assignment = new EmployeeWorkplaceMO();
-    assignment.setUserId(employeeId.memberId());
+    assignment.setEmployeeId(employeeId.memberId());
     assignment.setGymId(employeeId.gymId());
     assignment.setAllBranches(true);
 
@@ -58,8 +58,8 @@ public class EmployeesRepository {
     return assignments.stream()
       .map(assignment -> {
         UserMO userMO = userJpaRepository.findById(
-          new UserMO.ID(assignment.getUserId(), assignment.getGymId())
-        ).orElseThrow(() -> new MemberNotFoundException(Member.Id.of(assignment.getUserId(), assignment.getGymId())));
+          new UserMO.ID(assignment.getEmployeeId(), assignment.getGymId())
+        ).orElseThrow(() -> new MemberNotFoundException(Member.Id.of(assignment.getEmployeeId(), assignment.getGymId())));
 
         Employee employee = Employee.builder()
           .id(Member.Id.of(userMO.getId(), userMO.getGymId()))

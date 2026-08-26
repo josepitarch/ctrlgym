@@ -66,7 +66,7 @@ public class EmployeeWorkplaceMO {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private UUID userId;
+    private UUID employeeId;
 
     private Integer gymId;
 

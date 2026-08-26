@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
@@ -51,6 +52,8 @@ public class GymUseCase {
   private final PostalCodeJpaRepository postalCodeJpaRepository;
 
   private final StorageService storageService;
+
+  private final EmployeesRepository employeesRepository;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -145,6 +148,10 @@ public class GymUseCase {
 
   public byte[] generateExpensesExcel() throws IOException {
     return expensesService.generateExpensesExcel();
+  }
+
+  public List<Employee> getEmployees(GymBranchId gymBranchId) {
+    return employeesRepository.getEmployees(gymBranchId);
   }
 
 }

@@ -11,13 +11,10 @@ import java.util.UUID;
 @Repository
 public interface EmployeeJpaRepository extends JpaRepository<EmployeeWorkplaceMO, EmployeeWorkplaceMO.ID> {
 
-  List<EmployeeWorkplaceMO> findByUserIdAndGymId(UUID userId, Integer gymId);
-
   @Query("""
     SELECT ew FROM EmployeeWorkplaceMO ew
-    WHERE ew.gymId = :gymId
-      AND ew.gymBranch.id = :gymBranchId
-      AND ew.allBranches = false
+    WHERE ew.gymId = :gymId AND ew.gymBranch.id = :gymBranchId
+    AND ew.allBranches IS FALSE
   """)
   List<EmployeeWorkplaceMO> findByGymIdAndGymBranchIdAndAllBranchesFalse(Integer gymId, Integer gymBranchId);
 

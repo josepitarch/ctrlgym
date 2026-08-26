@@ -22,7 +22,7 @@ public class RoutinesService {
   }
 
   public List<Routine> getRoutines(Member.Id memberId) {
-    log.info("Retrieving routines for member  with id {}...", memberId);
+    log.debug("Retrieving routines for member  with id {}...", memberId);
     return routinesRepository.findByMemberId(memberId);
   }
 

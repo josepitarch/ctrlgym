@@ -13,12 +13,13 @@ import org.springframework.web.client.RestClient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
 public class AuthService {
 
-  private final RestClient supabaseAuthRestClient;
+  private final RestClient restClient;
 
   private final MembersRepository membersRepository;
 
@@ -26,7 +27,7 @@ public class AuthService {
                      @Value("${supabase.url}") String supabaseUrl,
                      @Value("${supabase.service-role-key}") String serviceRoleKey,
                      MembersRepository membersRepository) {
-    this.supabaseAuthRestClient = builder
+    this.restClient = builder
       .baseUrl(supabaseUrl + "/auth/v1")
       .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
       .defaultHeader("apikey", serviceRoleKey)
@@ -39,7 +40,7 @@ public class AuthService {
     if (membersRepository.exists(request.gymId(), request.email())) {
       if (membersRepository.isInMigration(request.gymId(), request.email())) {
         log.info("User with email {} of gym with id {} is in migration yet. Sending a new invitation...", request.email(), request.gymId());
-        supabaseAuthRestClient.post()
+        restClient.post()
           .uri("/invite")
           .body(Map.of("email", request.email()))
           .retrieve()
@@ -57,7 +58,7 @@ public class AuthService {
     }
 
     log.info("Registering a new user with email {} associated to gym with id {}...", request.email(), request.gymId());
-    return supabaseAuthRestClient.post()
+    return restClient.post()
       .uri("/signup")
       .body(Map.of(
         "email", request.email(),
@@ -75,7 +76,7 @@ public class AuthService {
 
 
   public AuthResponse login(SigninRequest request) {
-    return supabaseAuthRestClient.post()
+    return restClient.post()
       .uri("/token?grant_type=password")
       .body(Map.of(
         "email", request.email(),
@@ -83,6 +84,13 @@ public class AuthService {
       ))
       .retrieve()
       .body(AuthResponse.class);
+  }
+
+  public void deleteEmployee(UUID employeeId) {
+    restClient.delete()
+      .uri("/admin/users/{id}", employeeId)
+      .retrieve()
+      .toBodilessEntity();
   }
 
 }

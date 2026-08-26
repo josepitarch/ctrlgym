@@ -49,10 +49,6 @@ public class EmployeesRepository {
     jpaRepository.save(assignment);
   }
 
-  public List<EmployeeWorkplaceMO> getAssignments(Member.Id employeeId) {
-    return jpaRepository.findByUserIdAndGymId(employeeId.memberId(), employeeId.gymId());
-  }
-
   public List<Employee> getEmployees(GymBranchId gymBranchId) {
     List<EmployeeWorkplaceMO> assignments = jpaRepository.findByGymIdAndGymBranchIdAndAllBranchesFalse(
       gymBranchId.gymId(),

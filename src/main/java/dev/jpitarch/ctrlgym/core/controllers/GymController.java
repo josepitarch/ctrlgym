@@ -143,4 +143,10 @@ public class GymController {
       .body(excelFile);
   }
 
+  @PreAuthorize("hasRole('MANAGER')")
+  @GetMapping("/{gymId}/branches/{branchId}/employees")
+  public ResponseEntity<List<Employee>> getEmployees(@PathVariable Integer gymId, @PathVariable Integer branchId) {
+    return ResponseEntity.ok(useCase.getEmployees(GymBranchId.of(gymId, branchId)));
+  }
+
 }

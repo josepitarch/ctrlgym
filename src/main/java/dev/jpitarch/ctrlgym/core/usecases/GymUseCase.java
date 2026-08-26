@@ -4,6 +4,7 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
@@ -11,6 +12,7 @@ import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
+import dev.jpitarch.ctrlgym.core.repositories.ProductRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.core.services.ExpensesService;
@@ -55,6 +57,8 @@ public class GymUseCase {
   private final StorageService storageService;
 
   private final EmployeesRepository employeesRepository;
+
+  private final ProductRepository productRepository;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -158,6 +162,27 @@ public class GymUseCase {
 
   public List<Employee> getEmployees(GymBranchId gymBranchId) {
     return employeesRepository.getEmployees(gymBranchId);
+  }
+
+  public Product createProduct(Integer gymId, Integer branchId, Product product, MultipartFile image) {
+    if (image != null && !image.isEmpty()) {
+      String imageUrl = storageService.uploadFile(image, "products");
+      product.setImage(imageUrl);
+    }
+    return productRepository.create(product, gymId, branchId);
+  }
+
+  public List<Product> getProducts(GymBranchId gymBranchId) {
+    return productRepository.findByBranchId(gymBranchId.branchId());
+  }
+
+  public void deleteProduct(Integer productId) {
+    Product product = productRepository.findById(productId)
+      .orElseThrow(() -> new ProductNotFoundException(productId));
+    if (product.getImage() != null && !product.getImage().isBlank()) {
+      storageService.deleteFile(product.getImage());
+    }
+    productRepository.delete(productId);
   }
 
 }

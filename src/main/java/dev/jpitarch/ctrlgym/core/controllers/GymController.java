@@ -149,4 +149,27 @@ public class GymController {
     return ResponseEntity.ok(useCase.getEmployees(GymBranchId.of(gymId, branchId)));
   }
 
+  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
+  @GetMapping("/{gymId}/branches/{branchId}/products")
+  public ResponseEntity<List<Product>> getProducts(@PathVariable Integer gymId, @PathVariable Integer branchId) {
+    return ResponseEntity.ok(useCase.getProducts(GymBranchId.of(gymId, branchId)));
+  }
+
+  @PostMapping(value = "/{gymId}/branches/{branchId}/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Product> createProduct(
+    @PathVariable Integer gymId,
+    @PathVariable Integer branchId,
+    @RequestPart("product") Product product,
+    @RequestPart(value = "image", required = false) MultipartFile image) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createProduct(gymId, branchId, product, image));
+  }
+
+  @DeleteMapping("/{gymId}/branches/{branchId}/products/{productId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> deleteProduct(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Integer productId) {
+    useCase.deleteProduct(productId);
+    return ResponseEntity.noContent().build();
+  }
+
 }

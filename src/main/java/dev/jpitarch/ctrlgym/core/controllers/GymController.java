@@ -3,7 +3,10 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
+import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
+import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
+import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -169,6 +173,55 @@ public class GymController {
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   public ResponseEntity<Void> deleteProduct(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Integer productId) {
     useCase.deleteProduct(productId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/{gymId}/branches/{branchId}/schedule/series")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<ShiftSeries> createShiftSeries(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody CreateShiftSeriesRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createShiftSeries(gymId, branchId, request));
+  }
+
+  @GetMapping("/{gymId}/branches/{branchId}/schedule/series")
+  @PreAuthorize("#gymId == authentication.gymId")
+  public ResponseEntity<List<ShiftSeries>> getShiftSeries(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestParam UUID employeeId) {
+    return ResponseEntity.ok(useCase.getShiftSeries(employeeId, gymId, branchId));
+  }
+
+  @DeleteMapping("/{gymId}/branches/{branchId}/schedule/series/{seriesId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> deleteShiftSeries(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Long seriesId) {
+    useCase.deleteShiftSeries(seriesId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/{gymId}/branches/{branchId}/schedule/shifts")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Shift> createShift(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody CreateShiftRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createShift(gymId, branchId, request));
+  }
+
+  @GetMapping("/{gymId}/branches/{branchId}/schedule/shifts")
+  @PreAuthorize("#gymId == authentication.gymId")
+  public ResponseEntity<List<Shift>> getShifts(
+      @PathVariable Integer gymId,
+      @PathVariable Integer branchId,
+      @RequestParam UUID employeeId,
+      @RequestParam(required = false) LocalDate from,
+      @RequestParam(required = false) LocalDate to) {
+    return ResponseEntity.ok(useCase.getShifts(employeeId, gymId, branchId, from, to));
+  }
+
+  @PutMapping("/{gymId}/branches/{branchId}/schedule/shifts/{shiftId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Shift> updateShift(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Long shiftId, @RequestBody UpdateShiftRequest request) {
+    return ResponseEntity.ok(useCase.updateShift(shiftId, request));
+  }
+
+  @DeleteMapping("/{gymId}/branches/{branchId}/schedule/shifts/{shiftId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> deleteShift(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Long shiftId) {
+    useCase.deleteShift(shiftId);
     return ResponseEntity.noContent().build();
   }
 

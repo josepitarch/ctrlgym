@@ -809,3 +809,41 @@ create trigger trg_update_gym_current_occupancy
     public.member_accesses
   for each row
   execute function update_gym_branch_current_occupancy();
+
+CREATE TABLE employee_schedule_shift_series
+(
+    id              bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+    employee_id     uuid                                NOT NULL,
+    gym_id          integer                             NOT NULL,
+    gym_branch_id   integer                             NOT NULL,
+    start_time      time without time zone              NOT NULL,
+    end_time        time without time zone              NOT NULL,
+    recurrence_type character varying(20)               NOT NULL,
+    interval_value  integer           DEFAULT 1         NOT NULL,
+    days_of_week    smallint[],
+    series_start    date                                NOT NULL,
+    series_end      date,
+    created_at      timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT employee_schedule_shift_series_pkey PRIMARY KEY (id),
+    CONSTRAINT employee_schedule_shift_series_employee_fk FOREIGN KEY (employee_id, gym_id) REFERENCES users (id, gym_id),
+    CONSTRAINT employee_schedule_shift_series_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id)
+);
+
+CREATE TABLE employee_schedule_shift
+(
+    id              bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+    series_id       bigint,
+    employee_id     uuid                                NOT NULL,
+    gym_id          integer                             NOT NULL,
+    gym_branch_id   integer                             NOT NULL,
+    shift_date      date                                NOT NULL,
+    start_time      time without time zone              NOT NULL,
+    end_time        time without time zone              NOT NULL,
+    status          character varying(20) DEFAULT 'SCHEDULED'::character varying NOT NULL,
+    is_exception    boolean           DEFAULT false     NOT NULL,
+    created_at      timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT employee_schedule_shift_pkey PRIMARY KEY (id),
+    CONSTRAINT employee_schedule_shift_employee_fk FOREIGN KEY (employee_id, gym_id) REFERENCES users (id, gym_id),
+    CONSTRAINT employee_schedule_shift_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id),
+    CONSTRAINT employee_schedule_shift_series_id_fkey FOREIGN KEY (series_id) REFERENCES employee_schedule_shift_series (id)
+);

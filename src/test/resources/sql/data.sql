@@ -122,6 +122,9 @@ VALUES (1, 'es', 'Alquiler del local del gimnasio', null),
 INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "stripe_customer_id", "stripe_setup_intent_id", "status", "role")
 VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'cus_test','seti_test456',  'AUTH', 'MEMBER');
 
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role")
+VALUES ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 1, 'jane.employee@example.com', 'Jane', 'Employee', 'Doe', 'F', '1985-03-20', now(), 'MEMBER', 'EMPLOYEE');
+
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
                                          "stripe_price_id", "gym_branch_id", "all_branches")
 VALUES ('plan_basic', 1, 'Basic', 29.99, 'MONTHLY', true, '2026-01-01', 'price_basic123', 1, false);
@@ -132,6 +135,12 @@ VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'pri
 
 INSERT INTO "public"."gym_branches" ("id", "gym_id", "name", "is_active", "capacity", latitude, longitude, full_address, api_key)
 VALUES (1, 1, 'Main Branch', true, 100, 39.939724, -0.097686, null, 'X1Tip67aw5fp9CBLrLpX7GSWnpa09Q7ibSJiGq/laoI=');
+
+INSERT INTO "public"."employee_workplace" ("user_id", "gym_id", "gym_branch_id", "all_branches")
+VALUES ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 1, 1, false);
+
+INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
+VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);
 
 --INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
 --VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);

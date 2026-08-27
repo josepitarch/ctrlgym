@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
+import java.time.LocalDate;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
@@ -14,6 +15,10 @@ import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.ProductRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
+import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
+import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
+import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
+import dev.jpitarch.ctrlgym.core.services.EmployeeScheduleService;
 import dev.jpitarch.ctrlgym.core.services.ExercisesService;
 import dev.jpitarch.ctrlgym.core.services.ExpensesService;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
@@ -30,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -59,6 +65,8 @@ public class GymUseCase {
   private final EmployeesRepository employeesRepository;
 
   private final ProductRepository productRepository;
+
+  private final EmployeeScheduleService employeeScheduleService;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -183,6 +191,37 @@ public class GymUseCase {
       storageService.deleteFile(product.getImage());
     }
     productRepository.delete(productId);
+  }
+
+  public ShiftSeries createShiftSeries(Integer gymId, Integer gymBranchId, CreateShiftSeriesRequest request) {
+    return employeeScheduleService.createSeries(gymId, gymBranchId, request);
+  }
+
+  public Shift createShift(Integer gymId, Integer gymBranchId, CreateShiftRequest request) {
+    return employeeScheduleService.createSingleShift(gymId, gymBranchId, request);
+  }
+
+  public List<Shift> getShifts(UUID employeeId, Integer gymId, Integer gymBranchId, LocalDate from, LocalDate to) {
+    if (from != null && to != null) {
+      return employeeScheduleService.getShiftsByDateRange(employeeId, gymId, gymBranchId, from, to);
+    }
+    return employeeScheduleService.getAllShifts(employeeId, gymId, gymBranchId);
+  }
+
+  public List<ShiftSeries> getShiftSeries(UUID employeeId, Integer gymId, Integer gymBranchId) {
+    return employeeScheduleService.getAllSeries(employeeId, gymId, gymBranchId);
+  }
+
+  public void deleteShiftSeries(Long seriesId) {
+    employeeScheduleService.deleteSeries(seriesId);
+  }
+
+  public void deleteShift(Long shiftId) {
+    employeeScheduleService.deleteShift(shiftId);
+  }
+
+  public Shift updateShift(Long shiftId, UpdateShiftRequest request) {
+    return employeeScheduleService.updateShift(shiftId, request);
   }
 
 }

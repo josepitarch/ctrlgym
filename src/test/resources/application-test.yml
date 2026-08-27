@@ -21,10 +21,23 @@ stripe:
   whsec-account: test-whsec
 
 member-access-qr:
-  private-key: ${MEMBER_ACCESS_QR_PRIVATE_KEY}
+  private-key: |
+    -----BEGIN PRIVATE KEY-----
+    MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg7b6HtULmYcXlTnli
+    6Dyyo4lzjUnQ4lR1xpqRrNP37lGhRANCAAQ0/n2o/AMAXjyCOrOgKJGIlOKBxrYh
+    qeX2wSf0sd0IDs9C2RZMTv4ot5QDtjCQ8if7W2ePc3jS2KRx5yNXuwc1
+    -----END PRIVATE KEY-----
   expiration-seconds: 10
 
 notifications:
   telegram:
     bot.token: bot-token
     chat.id: chat-id
+
+storage:
+  r2:
+    account-id: test-account-id
+    access-key-id: test-access-key
+    secret-access-key: test-secret-key
+    bucket: test-bucket
+    public-url: https://test.r2.cloudflarestorage.com

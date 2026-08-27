@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.payments.services;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Invoice;
 import com.stripe.net.RequestOptions;
-import dev.jpitarch.ctrlgym.core.services.StripeBridge;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

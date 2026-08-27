@@ -10,7 +10,7 @@ import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.core.services.StripeBridge;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
 import lombok.RequiredArgsConstructor;

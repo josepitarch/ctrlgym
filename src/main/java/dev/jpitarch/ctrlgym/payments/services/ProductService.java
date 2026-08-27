@@ -7,7 +7,7 @@ import com.stripe.model.TaxRate;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
-import dev.jpitarch.ctrlgym.core.services.StripeBridge;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.stripe.exception.StripeException;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;

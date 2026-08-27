@@ -6,7 +6,7 @@ import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
-import dev.jpitarch.ctrlgym.core.services.StripeBridge;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

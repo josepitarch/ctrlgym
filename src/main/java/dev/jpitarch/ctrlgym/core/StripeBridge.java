@@ -1,7 +1,6 @@
-package dev.jpitarch.ctrlgym.core.services;
+package dev.jpitarch.ctrlgym.core;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.repositories.GymJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;

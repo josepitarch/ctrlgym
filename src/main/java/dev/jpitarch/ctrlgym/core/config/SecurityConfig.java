@@ -74,13 +74,6 @@ public class SecurityConfig {
   }
 
   @Bean
-  public JwtDecoder jwtDecoder(@Value("${jwt.secret}") String secret) {
-    byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-    var secretKeySpec = new SecretKeySpec(keyBytes, "HmacSHA256");
-    return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS256).build();
-  }
-
-  @Bean
   CorsConfigurationSource corsConfigurationSource() {
     var configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://app.ctrlgym.es"));

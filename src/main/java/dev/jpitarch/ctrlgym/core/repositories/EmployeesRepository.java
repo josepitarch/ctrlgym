@@ -5,9 +5,9 @@ import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
-import dev.jpitarch.ctrlgym.core.models.EmployeeWorkplaceMO;
-import dev.jpitarch.ctrlgym.core.models.GymBranchMO;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
+import dev.jpitarch.ctrlgym.core.entities.EmployeeWorkplaceEntity;
+import dev.jpitarch.ctrlgym.core.entities.GymBranchEntity;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.EmployeeJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +26,12 @@ public class EmployeesRepository {
   private final GymJpaRepository gymJpaRepository;
 
   public void assignToBranch(Member.Id employeeId, Integer gymBranchId) {
-    var assignment = new EmployeeWorkplaceMO();
+    var assignment = new EmployeeWorkplaceEntity();
     assignment.setEmployeeId(employeeId.memberId());
     assignment.setGymId(employeeId.gymId());
     assignment.setAllBranches(false);
 
-    GymBranchMO branch = gymJpaRepository.findBranchByGymIdAndBranchId(employeeId.gymId(), gymBranchId);
+    GymBranchEntity branch = gymJpaRepository.findBranchByGymIdAndBranchId(employeeId.gymId(), gymBranchId);
     if (branch == null) {
       throw new IllegalArgumentException("Gym branch not found");
     }
@@ -41,7 +41,7 @@ public class EmployeesRepository {
   }
 
   public void assignToAllBranches(Member.Id employeeId) {
-    var assignment = new EmployeeWorkplaceMO();
+    var assignment = new EmployeeWorkplaceEntity();
     assignment.setEmployeeId(employeeId.memberId());
     assignment.setGymId(employeeId.gymId());
     assignment.setAllBranches(true);
@@ -50,24 +50,24 @@ public class EmployeesRepository {
   }
 
   public List<Employee> getEmployees(GymBranchId gymBranchId) {
-    List<EmployeeWorkplaceMO> assignments = jpaRepository.findByGymIdAndGymBranchIdAndAllBranchesFalse(
+    List<EmployeeWorkplaceEntity> assignments = jpaRepository.findByGymIdAndGymBranchIdAndAllBranchesFalse(
       gymBranchId.gymId(),
       gymBranchId.branchId()
     );
 
     return assignments.stream()
       .map(assignment -> {
-        UserMO userMO = userJpaRepository.findById(
-          new UserMO.ID(assignment.getEmployeeId(), assignment.getGymId())
+        UserEntity UserEntity = userJpaRepository.findById(
+          new UserEntity.ID(assignment.getEmployeeId(), assignment.getGymId())
         ).orElseThrow(() -> new MemberNotFoundException(Member.Id.of(assignment.getEmployeeId(), assignment.getGymId())));
 
         Employee employee = Employee.builder()
-          .id(Member.Id.of(userMO.getId(), userMO.getGymId()))
-          .name(userMO.getName())
-          .firstSurname(userMO.getFirstSurname())
-          .secondSurname(userMO.getSecondSurname())
-          .email(userMO.getEmail())
-          .gender(mapGender(userMO.getGender()))
+          .id(Member.Id.of(UserEntity.getId(), UserEntity.getGymId()))
+          .name(UserEntity.getName())
+          .firstSurname(UserEntity.getFirstSurname())
+          .secondSurname(UserEntity.getSecondSurname())
+          .email(UserEntity.getEmail())
+          .gender(mapGender(UserEntity.getGender()))
           .build();
         return employee;
       })

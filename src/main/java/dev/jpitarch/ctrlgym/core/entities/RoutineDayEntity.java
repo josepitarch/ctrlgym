@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 
 import jakarta.persistence.*;
@@ -17,8 +17,8 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "routine_days")
-@IdClass(RoutineDayMO.ID.class)
-public class RoutineDayMO {
+@IdClass(RoutineDayEntity.ID.class)
+public class RoutineDayEntity {
 
   @Id
   @Column(name = "day_number", nullable = false)
@@ -27,15 +27,15 @@ public class RoutineDayMO {
   @Id
   @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "routine_id", nullable = false)
-  private RoutineMO routine;
+  private RoutineEntity routine;
 
   @Column(name = "name", length = 100)
   private String name;
 
   @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<RoutineDayExerciseMO> exercises = new ArrayList<>();
+  private List<RoutineDayExerciseEntity> exercises = new ArrayList<>();
 
-  public void addExercise(RoutineDayExerciseMO exercise) {
+  public void addExercise(RoutineDayExerciseEntity exercise) {
     exercises.add(exercise);
     exercise.setDay(this);
   }
@@ -62,7 +62,7 @@ public class RoutineDayMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    RoutineDayMO that = (RoutineDayMO) o;
+    RoutineDayEntity that = (RoutineDayEntity) o;
     return getRoutine() != null && Objects.equals(getRoutine(), that.getRoutine())
       && getDayNumber() != null && Objects.equals(getDayNumber(), that.getDayNumber());
   }

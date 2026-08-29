@@ -1,9 +1,9 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Workout;
-import dev.jpitarch.ctrlgym.core.models.RoutineDayMO;
-import dev.jpitarch.ctrlgym.core.models.WorkoutMO;
-import dev.jpitarch.ctrlgym.core.models.WorkoutSetMO;
+import dev.jpitarch.ctrlgym.core.entities.RoutineDayEntity;
+import dev.jpitarch.ctrlgym.core.entities.WorkoutEntity;
+import dev.jpitarch.ctrlgym.core.entities.WorkoutSetEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.WorkoutJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,44 +24,44 @@ public class WorkoutsRepository {
   private final RoutineJpaRepository routineJpaRepository;
 
   public void save(Workout workout, UUID memberId) {
-    var workoutMO = new WorkoutMO();
-    workoutMO.setStartedAt(workout.getStartedAt());
-    workoutMO.setFinishedAt(workout.getFinishedAt());
-    workoutMO.setStatus(workout.getStatus());
-    workoutMO.setMemberId(memberId);
+    var WorkoutEntity = new WorkoutEntity();
+    WorkoutEntity.setStartedAt(workout.getStartedAt());
+    WorkoutEntity.setFinishedAt(workout.getFinishedAt());
+    WorkoutEntity.setStatus(workout.getStatus());
+    WorkoutEntity.setMemberId(memberId);
 
     if (workout.getRoutineId() != null && workout.getDayNumber() != null) {
-      RoutineDayMO routineDay = routineJpaRepository.findDay(workout.getRoutineId(), workout.getDayNumber().shortValue());
-      workoutMO.setRoutine(routineDay);
+      RoutineDayEntity routineDay = routineJpaRepository.findDay(workout.getRoutineId(), workout.getDayNumber().shortValue());
+      WorkoutEntity.setRoutine(routineDay);
     }
 
     if (workout.getExercises() != null) {
       for (Workout.Exercise exercise : workout.getExercises()) {
         if (exercise.getSets() != null) {
           for (Workout.Exercise.Set set : exercise.getSets()) {
-            var setMO = new WorkoutSetMO();
-            setMO.setExerciseId(exercise.getId());
-            setMO.setSet(set.getSetNumber());
-            setMO.setReps(set.getReps());
-            workoutMO.addSet(setMO);
+            var setEntity = new WorkoutSetEntity();
+            setEntity.setExerciseId(exercise.getId());
+            setEntity.setSet(set.getSetNumber());
+            setEntity.setReps(set.getReps());
+            WorkoutEntity.addSet(setEntity);
           }
         }
       }
     }
 
-    workoutJpaRepository.save(workoutMO);
+    workoutJpaRepository.save(WorkoutEntity);
   }
 
   public Page<Workout> findByMemberId(UUID memberId, Pageable pageable) {
     return workoutJpaRepository.findByMemberId(memberId, pageable).map(this::mapToDomain);
   }
 
-  private Workout mapToDomain(WorkoutMO workoutMO) {
+  private Workout mapToDomain(WorkoutEntity WorkoutEntity) {
     List<Workout.Exercise> exercises = new ArrayList<>();
 
-    if (workoutMO.getSets() != null) {
-      workoutMO.getSets().stream()
-        .collect(java.util.stream.Collectors.groupingBy(WorkoutSetMO::getExerciseId))
+    if (WorkoutEntity.getSets() != null) {
+      WorkoutEntity.getSets().stream()
+        .collect(java.util.stream.Collectors.groupingBy(WorkoutSetEntity::getExerciseId))
         .forEach((exerciseId, sets) -> {
           List<Workout.Exercise.Set> exerciseSets = sets.stream()
             .map(s -> Workout.Exercise.Set.builder()
@@ -78,11 +78,11 @@ public class WorkoutsRepository {
     }
 
     return Workout.builder()
-      .routineId(workoutMO.getRoutine() != null ? workoutMO.getRoutine().getRoutine().getId() : null)
-      .dayNumber(workoutMO.getRoutine() != null ? workoutMO.getRoutine().getDayNumber().intValue() : null)
-      .startedAt(workoutMO.getStartedAt())
-      .finishedAt(workoutMO.getFinishedAt())
-      .status(workoutMO.getStatus())
+      .routineId(WorkoutEntity.getRoutine() != null ? WorkoutEntity.getRoutine().getRoutine().getId() : null)
+      .dayNumber(WorkoutEntity.getRoutine() != null ? WorkoutEntity.getRoutine().getDayNumber().intValue() : null)
+      .startedAt(WorkoutEntity.getStartedAt())
+      .finishedAt(WorkoutEntity.getFinishedAt())
+      .status(WorkoutEntity.getStatus())
       .exercises(exercises)
       .build();
   }

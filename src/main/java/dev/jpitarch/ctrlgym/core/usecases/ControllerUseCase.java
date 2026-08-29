@@ -1,8 +1,8 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
 import dev.jpitarch.ctrlgym.core.dto.Heartbeat;
-import dev.jpitarch.ctrlgym.core.models.GymBranchHeartbeatMO;
-import dev.jpitarch.ctrlgym.core.models.MemberAccessMO;
+import dev.jpitarch.ctrlgym.core.entities.GymBranchHeartbeatEntity;
+import dev.jpitarch.ctrlgym.core.entities.MemberAccessEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.GymHeartbeatJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,29 +29,29 @@ public class ControllerUseCase {
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
-  public void saveHeartbeat(Integer gymBranchId, GymBranchHeartbeatMO heartbeat) {
+  public void saveHeartbeat(Integer gymBranchId, GymBranchHeartbeatEntity heartbeat) {
     heartbeat.setGymBranchId(gymBranchId);
     heartbeat.setReceivedAt(OffsetDateTime.now());
     gymHeartbeatJpaRepository.save(heartbeat);
   }
 
-  public void uploadAccessEvent(Integer gymBranchId, List<MemberAccessMO> memberAccessMO) {
-    if(CollectionUtils.isEmpty(memberAccessMO)) return;
+  public void uploadAccessEvent(Integer gymBranchId, List<MemberAccessEntity> MemberAccessEntity) {
+    if(CollectionUtils.isEmpty(MemberAccessEntity)) return;
 
-    log.info("Uploading {} access events for branch with id {}", memberAccessMO.size(), gymBranchId);
+    log.info("Uploading {} access events for branch with id {}", MemberAccessEntity.size(), gymBranchId);
 
-    memberAccessMO.forEach(ma -> {
+    MemberAccessEntity.forEach(ma -> {
       ma.setGymBranchId(gymBranchId);
       ma.setReceivedAt(OffsetDateTime.now());
     });
 
-    memberAccessJpaRepository.saveAll(memberAccessMO);
+    memberAccessJpaRepository.saveAll(MemberAccessEntity);
   }
 
   public Heartbeat getHealth(Integer gymBranchId) {
     var rateWindowStart = OffsetDateTime.now().truncatedTo(ChronoUnit.HOURS).minusHours(WINDOWS_RATE_HOURS);
 
-    GymBranchHeartbeatMO latest = gymHeartbeatJpaRepository
+    GymBranchHeartbeatEntity latest = gymHeartbeatJpaRepository
       .findTopByGymBranchIdAndCreatedAtAfterOrderByCreatedAtDesc(gymBranchId, rateWindowStart)
       .orElse(null);
 

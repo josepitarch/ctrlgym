@@ -2,23 +2,23 @@ package dev.jpitarch.ctrlgym.core.mappers;
 
 import dev.jpitarch.ctrlgym.core.domain.Shift;
 import dev.jpitarch.ctrlgym.core.domain.ShiftSeries;
-import dev.jpitarch.ctrlgym.core.models.ShiftMO;
-import dev.jpitarch.ctrlgym.core.models.ShiftSeriesMO;
+import dev.jpitarch.ctrlgym.core.entities.ShiftEntity;
+import dev.jpitarch.ctrlgym.core.entities.ShiftSeriesEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(config = BaseMapper.class)
 public interface ShiftMapper {
 
-  ShiftSeries map(ShiftSeriesMO mo);
+  ShiftSeries map(ShiftSeriesEntity mo);
 
   @Mapping(target = "createdAt", ignore = true)
-  ShiftSeriesMO map(ShiftSeries series);
+  ShiftSeriesEntity map(ShiftSeries series);
 
-  Shift map(ShiftMO mo);
+  Shift map(ShiftEntity mo);
 
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "series", ignore = true)
-  ShiftMO map(Shift shift);
+  ShiftEntity map(Shift shift);
 
 }

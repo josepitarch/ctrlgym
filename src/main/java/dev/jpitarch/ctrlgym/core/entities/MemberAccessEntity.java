@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "member_accesses")
-public class MemberAccessMO implements Comparable<MemberAccessMO> {
+public class MemberAccessEntity implements Comparable<MemberAccessEntity> {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +44,7 @@ public class MemberAccessMO implements Comparable<MemberAccessMO> {
   private OffsetDateTime receivedAt;
 
   @Override
-  public int compareTo(@NonNull MemberAccessMO o) {
+  public int compareTo(@NonNull MemberAccessEntity o) {
     return createdAt.compareTo(o.createdAt);
   }
 }

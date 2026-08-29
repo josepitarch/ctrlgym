@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @Setter
 @Entity
 @Table(name = "gym_branch_heartbeat")
-public class GymBranchHeartbeatMO {
+public class GymBranchHeartbeatEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")

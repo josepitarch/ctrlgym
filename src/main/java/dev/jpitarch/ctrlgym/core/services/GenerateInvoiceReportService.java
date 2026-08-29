@@ -4,8 +4,8 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.util.XRLog;
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.models.GymMO;
-import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.entities.GymEntity;
+import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
@@ -146,7 +146,7 @@ public class GenerateInvoiceReportService {
   }
 
   public byte[] generate(Member.Id memberId, String invoiceId) throws IOException {
-    GymMO gym = gymsRepository.getById(memberId.gymId());
+    GymEntity gym = gymsRepository.getById(memberId.gymId());
     Member member = membersRepository.getById(memberId);
     Invoice invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
     StatusResponse qrUrl = verifactuService.getStatus(memberId.gymId(), invoiceId);
@@ -163,7 +163,7 @@ public class GenerateInvoiceReportService {
         .replace("{{COMPANY_CIF}}", gym.getCif())
         .replace("{{CLIENT_NAME}}", member.getFullName())
         .replace("{{CLIENT_POSTAL_CODE}}", String.valueOf(member.getAddress().getPostalCode()))
-        .replace("{{CLIENT_CITY}}", postalCodeJpaRepository.findByPostalCode(member.getAddress().getPostalCode()).map(PostalCodeMO::getCity).orElse(""))
+        .replace("{{CLIENT_CITY}}", postalCodeJpaRepository.findByPostalCode(member.getAddress().getPostalCode()).map(PostalCodeEntity::getCity).orElse(""))
         .replace("{{CLIENT_NIF}}", member.getNif())
         .replace("{{INVOICE_SERIES}}", invoice.getSeries())
         .replace("{{INVOICE_NUMBER}}", invoice.getNumber())

@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "invoices")
-public class InvoiceMO {
+public class InvoiceEntity {
 
   @Id
   @Column(name = "id")
@@ -92,8 +92,8 @@ public class InvoiceMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    InvoiceMO invoiceMO = (InvoiceMO) o;
-    return getId() != null && Objects.equals(getId(), invoiceMO.getId());
+    InvoiceEntity InvoiceEntity = (InvoiceEntity) o;
+    return getId() != null && Objects.equals(getId(), InvoiceEntity.getId());
   }
 
   @Override

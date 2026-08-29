@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -11,9 +11,9 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Entity
-@IdClass(MembershipPlanBranchMO.ID.class)
+@IdClass(MembershipPlanBranchEntity.ID.class)
 @Table(name = "membership_plan_branches")
-public class MembershipPlanBranchMO {
+public class MembershipPlanBranchEntity {
 
   @Id
   @Column(name = "membership_plan_id", nullable = false)

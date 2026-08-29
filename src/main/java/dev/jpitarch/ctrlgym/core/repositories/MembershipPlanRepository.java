@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
-import dev.jpitarch.ctrlgym.core.models.MembershipPlanMO;
+import dev.jpitarch.ctrlgym.core.entities.MembershipPlanEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,7 +20,7 @@ public class MembershipPlanRepository {
   private final MembershipPlanJpaRepository membershipPlanJpaRepository;
 
   public void create(MembershipPlan membershipPlan, Integer gymId, String stripePriceId) {
-    var plan = new MembershipPlanMO();
+    var plan = new MembershipPlanEntity();
     plan.setId(membershipPlan.getId());
     plan.setGymId(gymId);
     plan.setName(membershipPlan.getName());
@@ -44,13 +44,13 @@ public class MembershipPlanRepository {
   }
 
   public void delete(String planId, Integer gymId) {
-    MembershipPlanMO planMO = membershipPlanJpaRepository.findById(planId)
+    MembershipPlanEntity planEntity = membershipPlanJpaRepository.findById(planId)
       .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
-    planMO.setDeletedAt(LocalDate.now());
-    membershipPlanJpaRepository.save(planMO);
+    planEntity.setDeletedAt(LocalDate.now());
+    membershipPlanJpaRepository.save(planEntity);
   }
 
-  private MembershipPlan map(MembershipPlanMO plan) {
+  private MembershipPlan map(MembershipPlanEntity plan) {
     return MembershipPlan.builder()
       .id(plan.getId())
       .name(plan.getName())

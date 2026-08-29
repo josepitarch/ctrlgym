@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -18,8 +18,8 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "gym_metrics_monthly")
-@IdClass(GymMetricsMO.ID.class)
-public class GymMetricsMO {
+@IdClass(GymMetricsEntity.ID.class)
+public class GymMetricsEntity {
 
   @Id
   @Column(name = "gym_branch_id")
@@ -74,7 +74,7 @@ public class GymMetricsMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    GymMetricsMO that = (GymMetricsMO) o;
+    GymMetricsEntity that = (GymMetricsEntity) o;
     return getGymBranch() != null && Objects.equals(getGymBranch(), that.getGymBranch())
       && getYearMonth() != null && Objects.equals(getYearMonth(), that.getYearMonth());
   }

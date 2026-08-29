@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.authentication.repositories;
 
-import dev.jpitarch.ctrlgym.authentication.models.RefreshTokenMO;
+import dev.jpitarch.ctrlgym.authentication.entities.RefreshTokenEntity;
 import dev.jpitarch.ctrlgym.authentication.repositories.jpa.RefreshTokenJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,11 +14,11 @@ public class RefreshTokenRepository {
 
   private final RefreshTokenJpaRepository jpaRepository;
 
-  public Optional<RefreshTokenMO> findByTokenHash(String tokenHash) {
+  public Optional<RefreshTokenEntity> findByTokenHash(String tokenHash) {
     return jpaRepository.findByTokenHash(tokenHash);
   }
 
-  public RefreshTokenMO save(RefreshTokenMO refreshToken) {
+  public RefreshTokenEntity save(RefreshTokenEntity refreshToken) {
     return jpaRepository.save(refreshToken);
   }
 

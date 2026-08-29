@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "routines")
 @NamedEntityGraph(
-  name = "RoutineMO.withAllRelations",
+  name = "RoutineEntity.withAllRelations",
   attributeNodes = {
     @NamedAttributeNode(value = "days", subgraph = "days-with-exercises")
   },
@@ -32,7 +32,7 @@ import java.util.UUID;
     })
   }
 )
-public class RoutineMO {
+public class RoutineEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,9 +59,9 @@ public class RoutineMO {
 
   @OnDelete(action = OnDeleteAction.CASCADE)
   @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<RoutineDayMO> days = new ArrayList<>();
+  private List<RoutineDayEntity> days = new ArrayList<>();
 
-  public void addDay(RoutineDayMO day) {
+  public void addDay(RoutineDayEntity day) {
     days.add(day);
     day.setRoutine(this);
   }
@@ -73,8 +73,8 @@ public class RoutineMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    RoutineMO routineMO = (RoutineMO) o;
-    return getId() != null && Objects.equals(getId(), routineMO.getId());
+    RoutineEntity RoutineEntity = (RoutineEntity) o;
+    return getId() != null && Objects.equals(getId(), RoutineEntity.getId());
   }
 
   @Override

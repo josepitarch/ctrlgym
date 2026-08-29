@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
-import dev.jpitarch.ctrlgym.core.models.InvoiceMO;
+import dev.jpitarch.ctrlgym.core.entities.InvoiceEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,11 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface InvoiceJpaRepository extends JpaRepository<InvoiceMO, String> {
+public interface InvoiceJpaRepository extends JpaRepository<InvoiceEntity, String> {
 
-  Page<InvoiceMO> findByMemberIdAndGymId(UUID memberId, Integer gymId, Pageable pageable);
+  Page<InvoiceEntity> findByMemberIdAndGymId(UUID memberId, Integer gymId, Pageable pageable);
 
-  @Query("SELECT i.verifactuId FROM InvoiceMO i WHERE i.id = :invoiceId")
+  @Query("SELECT i.verifactuId FROM InvoiceEntity i WHERE i.id = :invoiceId")
   Optional<UUID> getVerifactuId(String invoiceId);
 
 }

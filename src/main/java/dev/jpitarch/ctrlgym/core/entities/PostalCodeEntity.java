@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -14,10 +14,10 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
-@IdClass(PostalCodeMO.ID.class)
+@IdClass(PostalCodeEntity.ID.class)
 @Table(name = "postal_codes")
 @SQLRestriction("is_active IS TRUE")
-public class PostalCodeMO {
+public class PostalCodeEntity {
 
   @Id
   @Column(name = "postal_code", nullable = false, length = 5)
@@ -41,7 +41,7 @@ public class PostalCodeMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    PostalCodeMO that = (PostalCodeMO) o;
+    PostalCodeEntity that = (PostalCodeEntity) o;
     return getPostalCode() != null && Objects.equals(getPostalCode(), that.getPostalCode())
       && getCity() != null && Objects.equals(getCity(), that.getCity());
   }

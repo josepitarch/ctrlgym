@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidTokenException;
-import dev.jpitarch.ctrlgym.authentication.models.RefreshTokenMO;
+import dev.jpitarch.ctrlgym.authentication.entities.RefreshTokenEntity;
 import dev.jpitarch.ctrlgym.authentication.repositories.RefreshTokenRepository;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import jakarta.transaction.Transactional;
@@ -35,7 +35,7 @@ public class RefreshTokenService {
   public String generateRawRefreshToken(UUID userId, Integer gymId) {
     var rawToken = generateRawToken();
 
-    var refreshEntity = new RefreshTokenMO();
+    var refreshEntity = new RefreshTokenEntity();
     refreshEntity.setUserId(userId);
     refreshEntity.setGymId(gymId);
     refreshEntity.setTokenHash(hashRefreshToken(rawToken));
@@ -49,7 +49,7 @@ public class RefreshTokenService {
   public AuthResponse refresh(String rawRefreshToken) {
     String tokenHash = hashRefreshToken(rawRefreshToken);
 
-    RefreshTokenMO stored = refreshTokenRepository.findByTokenHash(tokenHash)
+    RefreshTokenEntity stored = refreshTokenRepository.findByTokenHash(tokenHash)
       .orElseThrow(() -> new InvalidTokenException("Refresh token no encontrado"));
 
     if (stored.isRevoked()) {
@@ -64,7 +64,7 @@ public class RefreshTokenService {
     stored.setRevoked(true);
 
     String newRawToken = generateRawToken();
-    var newEntity = new RefreshTokenMO();
+    var newEntity = new RefreshTokenEntity();
     newEntity.setUserId(stored.getUserId());
     newEntity.setGymId(stored.getGymId());
     newEntity.setTokenHash(hashRefreshToken(newRawToken));
@@ -94,7 +94,7 @@ public class RefreshTokenService {
   public void logout(String rawRefreshToken) {
     String tokenHash = hashRefreshToken(rawRefreshToken);
 
-    RefreshTokenMO stored = refreshTokenRepository.findByTokenHash(tokenHash)
+    RefreshTokenEntity stored = refreshTokenRepository.findByTokenHash(tokenHash)
       .orElseThrow(() -> new InvalidTokenException("Refresh token no encontrado"));
 
     stored.setRevoked(true);

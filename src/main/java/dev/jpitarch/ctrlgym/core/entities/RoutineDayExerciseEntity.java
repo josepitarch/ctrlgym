@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -19,8 +19,8 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "routine_day_exercises")
-@IdClass(RoutineDayExerciseMO.ID.class)
-public class RoutineDayExerciseMO {
+@IdClass(RoutineDayExerciseEntity.ID.class)
+public class RoutineDayExerciseEntity {
 
   @Id
   @Column(name = "exercise_id", nullable = false)
@@ -30,18 +30,18 @@ public class RoutineDayExerciseMO {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "routine_id", referencedColumnName = "routine_id", nullable = false)
   @JoinColumn(name = "day_number", referencedColumnName = "day_number", nullable = false)
-  private RoutineDayMO day;
+  private RoutineDayEntity day;
 
   @Column(name = "position", nullable = false)
   private Short position;
 
   @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<RoutineDayExerciseSetMO> sets = new ArrayList<>();
+  private List<RoutineDayExerciseSetEntity> sets = new ArrayList<>();
 
   @Column(name = "rest_seconds", precision = 5, scale = 1)
   private BigDecimal restSeconds;
 
-  public void addSet(RoutineDayExerciseSetMO set) {
+  public void addSet(RoutineDayExerciseSetEntity set) {
     sets.add(set);
     set.setExercise(this);
   }
@@ -56,7 +56,7 @@ public class RoutineDayExerciseMO {
     @Serial
     private static final long serialVersionUID = 942714046996821003L;
 
-    private RoutineDayMO day;
+    private RoutineDayEntity day;
 
     private Integer exerciseId;
 
@@ -69,7 +69,7 @@ public class RoutineDayExerciseMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    RoutineDayExerciseMO that = (RoutineDayExerciseMO) o;
+    RoutineDayExerciseEntity that = (RoutineDayExerciseEntity) o;
     return getDay() != null && Objects.equals(getDay(), that.getDay())
       && getExerciseId() != null && Objects.equals(getExerciseId(), that.getExerciseId());
   }

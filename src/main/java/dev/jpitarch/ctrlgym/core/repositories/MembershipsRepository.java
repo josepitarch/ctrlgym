@@ -1,8 +1,8 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
-import dev.jpitarch.ctrlgym.core.models.MembershipCancellationReasonTranslationMO;
-import dev.jpitarch.ctrlgym.core.models.MembershipMO;
+import dev.jpitarch.ctrlgym.core.entities.MembershipCancellationReasonTranslationEntity;
+import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipCancellationReasonJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class MembershipsRepository {
   private final NamedParameterJdbcTemplate jdbc;
 
   public Membership save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
-    var membership = new MembershipMO();
+    var membership = new MembershipEntity();
     membership.setMemberId(memberId.memberId());
     membership.setGymId(memberId.gymId());
     membership.setMembershipPlanId(membershipPlanId);
@@ -112,7 +112,7 @@ public class MembershipsRepository {
   }
 
 
-  private MembershipCancellationReason toDomain(MembershipCancellationReasonTranslationMO translation) {
+  private MembershipCancellationReason toDomain(MembershipCancellationReasonTranslationEntity translation) {
     return MembershipCancellationReason.builder()
       .id(translation.getCancellationReason().getId())
       .name(translation.getName())
@@ -121,7 +121,7 @@ public class MembershipsRepository {
   }
 
 
-  private Membership map(MembershipMO m) {
+  private Membership map(MembershipEntity m) {
     return Membership.builder()
       .id(m.getId())
       .recurring(MembershipPlan.Recurring.from("MONTHLY")) //TODO

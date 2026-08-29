@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.core.services;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.models.ExpenseCategoryMO;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
 import dev.jpitarch.ctrlgym.core.repositories.ExpensesRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -22,7 +22,7 @@ public class ExpensesService {
 
   private final ExpensesRepository expensesRepository;
 
-  public List<ExpenseCategoryMO> getAllCategories() {
+  public List<ExpenseCategoryEntity> getAllCategories() {
     return expensesRepository.getAllCategories();
   }
 
@@ -35,7 +35,7 @@ public class ExpensesService {
   }
 
   public byte[] generateExpensesExcel() throws IOException {
-    List<ExpenseCategoryMO> categories = getAllCategories();
+    List<ExpenseCategoryEntity> categories = getAllCategories();
 
     try (Workbook workbook = new XSSFWorkbook()) {
       Sheet sheet = workbook.createSheet("Gastos");
@@ -87,7 +87,7 @@ public class ExpensesService {
 
       // Llenar datos
       int rowNum = 3;
-      for (ExpenseCategoryMO category : categories) {
+      for (ExpenseCategoryEntity category : categories) {
         Row row = sheet.createRow(rowNum++);
         Cell cell = row.createCell(0);
         cell.setCellValue(category.getCode());

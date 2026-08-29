@@ -27,7 +27,7 @@ public class InvoicesController {
 
   @PutMapping("/members/{memberId}/payment-method")
   public ResponseEntity<Void> updateSetupIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
-    //TODO: revisar como implementar esto
+    //TODO: revisar coEntity implementar esto
     return ResponseEntity.ok().build();
   }
 

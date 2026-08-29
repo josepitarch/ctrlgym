@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -11,9 +11,9 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Entity
-@IdClass(MembershipCancellationReasonTranslationMO.ID.class)
+@IdClass(MembershipCancellationReasonTranslationEntity.ID.class)
 @Table(name = "membership_cancellation_reason_translations")
-public class MembershipCancellationReasonTranslationMO {
+public class MembershipCancellationReasonTranslationEntity {
 
   @Id
   @Column(name = "cancellation_reason_id", nullable = false)
@@ -25,7 +25,7 @@ public class MembershipCancellationReasonTranslationMO {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "cancellation_reason_id", nullable = false)
-  private MembershipCancellationReasonMO cancellationReason;
+  private MembershipCancellationReasonEntity cancellationReason;
 
   @Column(name = "name", nullable = false, length = 100)
   private String name;

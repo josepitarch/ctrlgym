@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "gyms")
-public class GymMO {
+public class GymEntity {
   @Id
   @Column(name = "id", nullable = false)
   private Integer id;
@@ -25,7 +25,7 @@ public class GymMO {
   private String stripeAccountId;
 
   @OneToMany(mappedBy = "gym", fetch = FetchType.LAZY)
-  List<GymBranchMO> branches;
+  List<GymBranchEntity> branches;
 
   @Column(name = "cif", nullable = false, length = 10)
   private String cif;

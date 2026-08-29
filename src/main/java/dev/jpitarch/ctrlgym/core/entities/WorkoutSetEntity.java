@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -14,13 +14,13 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "workout_sets")
-@IdClass(WorkoutSetMO.ID.class)
-public class WorkoutSetMO {
+@IdClass(WorkoutSetEntity.ID.class)
+public class WorkoutSetEntity {
 
   @Id
   @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "workout_id", nullable = false)
-  private WorkoutMO workout;
+  private WorkoutEntity workout;
 
   @Id
   @Column(name = "exercise_id", nullable = false)
@@ -56,7 +56,7 @@ public class WorkoutSetMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    WorkoutSetMO that = (WorkoutSetMO) o;
+    WorkoutSetEntity that = (WorkoutSetEntity) o;
     return getWorkout() != null && Objects.equals(getWorkout(), that.getWorkout())
       && getExerciseId() != null && Objects.equals(getExerciseId(), that.getExerciseId())
       && getSet() != null && Objects.equals(getSet(), that.getSet());

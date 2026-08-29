@@ -6,7 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.mappers.InvoiceMapper;
-import dev.jpitarch.ctrlgym.core.models.InvoiceMO;
+import dev.jpitarch.ctrlgym.core.entities.InvoiceEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.InvoiceJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,83 +46,83 @@ public class InvoiceRepository {
 
 
   public void create(Invoice invoice, Member.Id memberId, Long membershipId) {
-    var invoiceMO = createInvoiceMO(invoice, memberId, membershipId);
-    invoiceJpaRepository.save(invoiceMO);
+    var InvoiceEntity = createInvoiceEntity(invoice, memberId, membershipId);
+    invoiceJpaRepository.save(InvoiceEntity);
   }
 
   public void markAsProcessing(String invoiceId) {
-    var invoiceMO = invoiceJpaRepository
+    var InvoiceEntity = invoiceJpaRepository
       .findById(invoiceId)
       .orElseThrow(() -> new InvoiceNotFoundException(invoiceId));
 
-    invoiceMO.setDueAt(null);
-    invoiceMO.setUpdatedAt(OffsetDateTime.now());
-    invoiceMO.setStatus(InvoiceStatus.PROCESSING);
+    InvoiceEntity.setDueAt(null);
+    InvoiceEntity.setUpdatedAt(OffsetDateTime.now());
+    InvoiceEntity.setStatus(InvoiceStatus.PROCESSING);
 
-    invoiceJpaRepository.save(invoiceMO);
+    invoiceJpaRepository.save(InvoiceEntity);
   }
 
   public void markAsPaid(String invoiceId) {
-    var invoiceMO = invoiceJpaRepository
+    var InvoiceEntity = invoiceJpaRepository
       .findById(invoiceId)
       .orElseThrow(() -> new InvoiceNotFoundException(invoiceId));
 
-    invoiceMO.setDueAt(null);
-    invoiceMO.setUpdatedAt(OffsetDateTime.now());
-    invoiceMO.setStatus(InvoiceStatus.PAID);
+    InvoiceEntity.setDueAt(null);
+    InvoiceEntity.setUpdatedAt(OffsetDateTime.now());
+    InvoiceEntity.setStatus(InvoiceStatus.PAID);
 
-    invoiceJpaRepository.save(invoiceMO);
+    invoiceJpaRepository.save(InvoiceEntity);
   }
 
   public void markAsFailed(String invoiceId, ZonedDateTime nextAttempt) {
-    var invoiceMO = invoiceJpaRepository
+    var InvoiceEntity = invoiceJpaRepository
       .findById(invoiceId)
       .orElseThrow(() -> new InvoiceNotFoundException(invoiceId));
 
-    invoiceMO.setDueAt(LocalDate.now());
-    invoiceMO.setUpdatedAt(OffsetDateTime.now());
-    invoiceMO.setStatus(InvoiceStatus.FAILED);
-    invoiceMO.setNextAttempt(nextAttempt);
+    InvoiceEntity.setDueAt(LocalDate.now());
+    InvoiceEntity.setUpdatedAt(OffsetDateTime.now());
+    InvoiceEntity.setStatus(InvoiceStatus.FAILED);
+    InvoiceEntity.setNextAttempt(nextAttempt);
 
-    invoiceJpaRepository.save(invoiceMO);
+    invoiceJpaRepository.save(InvoiceEntity);
   }
 
   public void saveVerifactuId(String id, UUID verifactuId) {
-    var invoiceMO = invoiceJpaRepository
+    var InvoiceEntity = invoiceJpaRepository
       .findById(id)
       .orElseThrow(() -> new InvoiceNotFoundException(id));
 
     log.info("Saving memberId of Verifactu to invoice with member with id {}: {}...", id, verifactuId);
 
-    invoiceMO.setUpdatedAt(OffsetDateTime.now());
-    invoiceMO.setVerifactuId(verifactuId);
-    invoiceJpaRepository.save(invoiceMO);
+    InvoiceEntity.setUpdatedAt(OffsetDateTime.now());
+    InvoiceEntity.setVerifactuId(verifactuId);
+    invoiceJpaRepository.save(InvoiceEntity);
   }
 
   public Optional<UUID> getVerifactuId(String invoiceId) {
     return invoiceJpaRepository.getVerifactuId(invoiceId);
   }
 
-  private InvoiceMO createInvoiceMO(Invoice invoice, Member.Id memberId, Long membershipId) {
+  private InvoiceEntity createInvoiceEntity(Invoice invoice, Member.Id memberId, Long membershipId) {
     var series = memberId.gymId() + "-" + Year.now();
 
-    var invoiceMO = new InvoiceMO();
-    invoiceMO.setId(invoice.getId());
-    invoiceMO.setGymId(memberId.gymId());
-    invoiceMO.setMemberId(memberId.memberId());
-    invoiceMO.setSeries(series);
-    invoiceMO.setNumber(this.nextNumber(memberId.gymId(), series).toString());
-    invoiceMO.setTotal(invoice.getTotal());
-    invoiceMO.setSubtotal(invoice.getSubtotal());
-    invoiceMO.setCurrency(invoice.getCurrency());
-    invoiceMO.setIssueAt(LocalDate.now());
-    invoiceMO.setStatus(InvoiceStatus.OPEN);
-    invoiceMO.setTax(BigDecimal.valueOf(Invoice.TAX));
-    invoiceMO.setCreatedAt(OffsetDateTime.now());
-    invoiceMO.setUpdatedAt(OffsetDateTime.now());
-    invoiceMO.setMembershipId(membershipId);
+    var InvoiceEntity = new InvoiceEntity();
+    InvoiceEntity.setId(invoice.getId());
+    InvoiceEntity.setGymId(memberId.gymId());
+    InvoiceEntity.setMemberId(memberId.memberId());
+    InvoiceEntity.setSeries(series);
+    InvoiceEntity.setNumber(this.nextNumber(memberId.gymId(), series).toString());
+    InvoiceEntity.setTotal(invoice.getTotal());
+    InvoiceEntity.setSubtotal(invoice.getSubtotal());
+    InvoiceEntity.setCurrency(invoice.getCurrency());
+    InvoiceEntity.setIssueAt(LocalDate.now());
+    InvoiceEntity.setStatus(InvoiceStatus.OPEN);
+    InvoiceEntity.setTax(BigDecimal.valueOf(Invoice.TAX));
+    InvoiceEntity.setCreatedAt(OffsetDateTime.now());
+    InvoiceEntity.setUpdatedAt(OffsetDateTime.now());
+    InvoiceEntity.setMembershipId(membershipId);
 
-    return invoiceMO;
+    return InvoiceEntity;
   }
 
   private Integer nextNumber(Integer gymId, String series) {

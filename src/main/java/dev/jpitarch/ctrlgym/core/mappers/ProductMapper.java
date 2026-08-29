@@ -1,17 +1,17 @@
 package dev.jpitarch.ctrlgym.core.mappers;
 
 import dev.jpitarch.ctrlgym.core.domain.Product;
-import dev.jpitarch.ctrlgym.core.models.ProductMO;
+import dev.jpitarch.ctrlgym.core.entities.ProductEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(config = BaseMapper.class)
 public interface ProductMapper {
 
-  Product map(ProductMO mo);
+  Product map(ProductEntity mo);
 
   @Mapping(target = "gymId", ignore = true)
   @Mapping(target = "gymBranch", ignore = true)
-  ProductMO map(Product product);
+  ProductEntity map(Product product);
 
 }

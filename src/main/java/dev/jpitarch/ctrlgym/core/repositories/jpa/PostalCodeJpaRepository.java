@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
-import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,18 +11,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
-public interface PostalCodeJpaRepository extends JpaRepository<PostalCodeMO, PostalCodeMO.ID> {
+public interface PostalCodeJpaRepository extends JpaRepository<PostalCodeEntity, PostalCodeEntity.ID> {
 
-  List<PostalCodeMO> findAllByPostalCode(Integer postalCode);
+  List<PostalCodeEntity> findAllByPostalCode(Integer postalCode);
 
-  Optional<PostalCodeMO> findByPostalCode(Integer postalCode);
+  Optional<PostalCodeEntity> findByPostalCode(Integer postalCode);
 
-  List<PostalCodeMO> findAllByPostalCodeIn(List<Integer> postalCodes);
+  List<PostalCodeEntity> findAllByPostalCodeIn(List<Integer> postalCodes);
 
-  default Map<Integer, PostalCodeMO> findMapByPostalCodeIn(List<Integer> postalCodes) {
+  default Map<Integer, PostalCodeEntity> findMapByPostalCodeIn(List<Integer> postalCodes) {
     return findAllByPostalCodeIn(postalCodes).stream()
       .collect(Collectors.toMap(
-        PostalCodeMO::getPostalCode,
+        PostalCodeEntity::getPostalCode,
         Function.identity(),
         (a, b) -> a)
       );

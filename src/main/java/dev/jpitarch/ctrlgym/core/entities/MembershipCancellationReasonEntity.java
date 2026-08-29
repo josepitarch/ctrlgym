@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "membership_cancellation_reasons")
-public class MembershipCancellationReasonMO {
+public class MembershipCancellationReasonEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

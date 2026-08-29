@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,8 +17,8 @@ import java.util.UUID;
 @Table(name = "employee_workplace", indexes = {
   @Index(name = "employee_workplace_branch_fk", columnList = "gym_branch_id")
 })
-@IdClass(EmployeeWorkplaceMO.ID.class)
-public class EmployeeWorkplaceMO {
+@IdClass(EmployeeWorkplaceEntity.ID.class)
+public class EmployeeWorkplaceEntity {
 
   @Id
   @Column(name = "employee_id")
@@ -30,7 +30,7 @@ public class EmployeeWorkplaceMO {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "gym_branch_id")
-  private GymBranchMO gymBranch;
+  private GymBranchEntity gymBranch;
 
   @Column(name = "all_branches", nullable = false)
   private Boolean allBranches;
@@ -46,7 +46,7 @@ public class EmployeeWorkplaceMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    EmployeeWorkplaceMO that = (EmployeeWorkplaceMO) o;
+    EmployeeWorkplaceEntity that = (EmployeeWorkplaceEntity) o;
     return getEmployeeId() != null && Objects.equals(getEmployeeId(), that.getEmployeeId())
       && getGymId() != null && Objects.equals(getGymId(), that.getGymId());
   }

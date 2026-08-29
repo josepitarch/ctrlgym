@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
-import dev.jpitarch.ctrlgym.core.models.RoutineDayMO;
-import dev.jpitarch.ctrlgym.core.models.RoutineMO;
+import dev.jpitarch.ctrlgym.core.entities.RoutineDayEntity;
+import dev.jpitarch.ctrlgym.core.entities.RoutineEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface RoutineJpaRepository extends JpaRepository<RoutineMO, Integer> {
+public interface RoutineJpaRepository extends JpaRepository<RoutineEntity, Integer> {
 
-  List<RoutineMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
+  List<RoutineEntity> findByMemberIdAndGymId(UUID memberId, Integer gymId);
 
-  List<RoutineMO> findByGymIdAndMemberIdIsNull(Integer gymId);
+  List<RoutineEntity> findByGymIdAndMemberIdIsNull(Integer gymId);
 
-  @Query("SELECT r FROM RoutineDayMO r WHERE r.routine.id = :routineId AND r.dayNumber = :dayNumber")
-  RoutineDayMO findDay(Integer routineId, Short dayNumber);
+  @Query("SELECT r FROM RoutineDayEntity r WHERE r.routine.id = :routineId AND r.dayNumber = :dayNumber")
+  RoutineDayEntity findDay(Integer routineId, Short dayNumber);
 
 }

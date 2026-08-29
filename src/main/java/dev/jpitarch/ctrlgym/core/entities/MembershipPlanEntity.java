@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "membership_plans")
 @SQLRestriction("deleted_at IS NULL")
-public class MembershipPlanMO {
+public class MembershipPlanEntity {
   @Id
   @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private String id;

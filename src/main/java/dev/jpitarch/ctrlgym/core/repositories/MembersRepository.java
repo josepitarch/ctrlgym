@@ -5,7 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class MembersRepository {
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
   public boolean exists(Member.Id memberId) {
-    return jpaRepository.existsById(new UserMO.ID(memberId.memberId(), memberId.gymId()));
+    return jpaRepository.existsById(new UserEntity.ID(memberId.memberId(), memberId.gymId()));
   }
 
   public boolean exists(Integer gymId, String email) {
@@ -39,26 +39,26 @@ public class MembersRepository {
   }
 
   public Member getById(Member.Id memberId) {
-    var memberMOId = new UserMO.ID(memberId.memberId(), memberId.gymId());
+    var memberMOId = new UserEntity.ID(memberId.memberId(), memberId.gymId());
 
-    UserMO userMO = jpaRepository
+    UserEntity UserEntity = jpaRepository
       .findById(memberMOId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
 
     return Member.builder()
       .id(memberId)
-      .nif(userMO.getNif())
-      .email(userMO.getEmail())
-      .name(userMO.getName())
-      .firstSurname(userMO.getFirstSurname())
-      .secondSurname(userMO.getSecondSurname())
-      .gender(mapGender(userMO.getGender()))
-      .birthDate(userMO.getBirthDate())
+      .nif(UserEntity.getNif())
+      .email(UserEntity.getEmail())
+      .name(UserEntity.getName())
+      .firstSurname(UserEntity.getFirstSurname())
+      .secondSurname(UserEntity.getSecondSurname())
+      .gender(mapGender(UserEntity.getGender()))
+      .birthDate(UserEntity.getBirthDate())
       .address(Member.Address.builder()
-        .postalCode(userMO.getPostalCode())
+        .postalCode(UserEntity.getPostalCode())
         .build()
       )
-      .status(userMO.getStatus())
+      .status(UserEntity.getStatus())
       .build();
   }
 
@@ -69,24 +69,24 @@ public class MembersRepository {
   }
 
   public void save(Member member, String customerId) {
-    var memberMO = new UserMO();
-    memberMO.setId(member.getId().memberId());
-    memberMO.setGymId(member.getId().gymId());
-    memberMO.setName(member.getName());
-    memberMO.setFirstSurname(member.getFirstSurname());
-    memberMO.setSecondSurname(member.getSecondSurname());
-    memberMO.setEmail(member.getEmail());
-    memberMO.setGender(mapGender(member.getGender()));
-    memberMO.setBirthDate(member.getBirthDate());
-    memberMO.setStatus(MemberStatus.MEMBER);
-    memberMO.setStripeCustomerId(customerId);
+    var memberEntity = new UserEntity();
+    memberEntity.setId(member.getId().memberId());
+    memberEntity.setGymId(member.getId().gymId());
+    memberEntity.setName(member.getName());
+    memberEntity.setFirstSurname(member.getFirstSurname());
+    memberEntity.setSecondSurname(member.getSecondSurname());
+    memberEntity.setEmail(member.getEmail());
+    memberEntity.setGender(mapGender(member.getGender()));
+    memberEntity.setBirthDate(member.getBirthDate());
+    memberEntity.setStatus(MemberStatus.MEMBER);
+    memberEntity.setStripeCustomerId(customerId);
 
     if (member.getAddress() != null) {
       var address = member.getAddress();
-      memberMO.setPostalCode(address.getPostalCode());
+      memberEntity.setPostalCode(address.getPostalCode());
     }
 
-    jpaRepository.save(memberMO);
+    jpaRepository.save(memberEntity);
   }
 
   public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {

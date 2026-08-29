@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,14 +11,14 @@ import java.time.LocalTime;
 @Setter
 @Entity
 @Table(name = "gym_branches")
-public class GymBranchMO {
+public class GymBranchEntity {
   @Id
   @Column(name = "id", nullable = false)
   private Integer id;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "gym_id", nullable = false)
-  private GymMO gym;
+  private GymEntity gym;
 
   @Column(name = "name", nullable = false, length = 50)
   private String name;

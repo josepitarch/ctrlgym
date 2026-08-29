@@ -4,7 +4,7 @@ import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class SignupService {
 
   public AuthResponse signup(SignupRequest request) {
     String hashedPassword = passwordEncoder.encode(request.password());
-    UserMO created = userRepository.create(
+    UserEntity created = userRepository.create(
       request.email(),
       hashedPassword,
       request.gymId(),

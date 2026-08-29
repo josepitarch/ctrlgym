@@ -6,7 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.*;
-import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
@@ -109,7 +109,7 @@ public class DashboardUseCase {
 
   private String resolvePostalCode(String postalCode) {
     return postalCodeJpaRepository.findByPostalCode(Integer.valueOf(postalCode))
-      .map(PostalCodeMO::getCity)
+      .map(PostalCodeEntity::getCity)
       .orElse(postalCode);
   }
 

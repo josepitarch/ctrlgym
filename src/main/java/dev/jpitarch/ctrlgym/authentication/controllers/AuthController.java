@@ -26,15 +26,17 @@ public class AuthController {
 
   private final RefreshTokenService refreshTokenService;
 
+  private final AuthService authService;
+
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
-    AuthResponse response = signupService.signup(request);
+    AuthResponse response = authService.signup(request);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@RequestBody SigninRequest request) {
-    AuthResponse response = loginService.login(request);
+    AuthResponse response = authService.login(request);
     return ResponseEntity.ok(response);
   }
 

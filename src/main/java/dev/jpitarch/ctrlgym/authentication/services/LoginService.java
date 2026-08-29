@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.authentication.services;
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class LoginService {
   private final RefreshTokenService refreshTokenService;
 
   public AuthResponse login(SigninRequest request) {
-    UserMO user = userRepository.findByEmail(request.email());
+    UserEntity user = userRepository.findByEmail(request.email());
 
     if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
       throw new IllegalArgumentException("Invalid credentials");

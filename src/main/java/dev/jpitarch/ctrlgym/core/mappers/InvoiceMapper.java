@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.mappers;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
-import dev.jpitarch.ctrlgym.core.models.InvoiceMO;
+import dev.jpitarch.ctrlgym.core.entities.InvoiceEntity;
 import org.aspectj.apache.bcel.generic.INVOKEINTERFACE;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,7 +13,7 @@ public interface InvoiceMapper {
   @Mapping(target = "firstSurname", ignore = true)
   @Mapping(target = "secondSurname", ignore = true)
   @Mapping(target = "nif", ignore = true)
-  Invoice map(InvoiceMO mo);
+  Invoice map(InvoiceEntity mo);
 
   @Mapping(target = "memberId", source = "memberId.memberId")
   @Mapping(target = "gymId", source = "memberId.gymId")
@@ -22,6 +22,6 @@ public interface InvoiceMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "membershipId", ignore = true)
-  InvoiceMO map(Invoice inv);
+  InvoiceEntity map(Invoice inv);
 
 }

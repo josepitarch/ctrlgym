@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -16,15 +16,15 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "routine_day_exercise_sets")
-@IdClass(RoutineDayExerciseSetMO.ID.class)
-public class RoutineDayExerciseSetMO {
+@IdClass(RoutineDayExerciseSetEntity.ID.class)
+public class RoutineDayExerciseSetEntity {
 
   @OnDelete(action = OnDeleteAction.CASCADE)
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "routine_id", referencedColumnName = "routine_id", nullable = false)
   @JoinColumn(name = "day_number", referencedColumnName = "day_number", nullable = false)
   @JoinColumn(name = "exercise_id", referencedColumnName = "exercise_id", nullable = false)
-  private RoutineDayExerciseMO exercise;
+  private RoutineDayExerciseEntity exercise;
 
   @Id
   @Column(name = "set", nullable = false)
@@ -40,7 +40,7 @@ public class RoutineDayExerciseSetMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    RoutineDayExerciseSetMO that = (RoutineDayExerciseSetMO) o;
+    RoutineDayExerciseSetEntity that = (RoutineDayExerciseSetEntity) o;
     return getExercise() != null && Objects.equals(getExercise(), that.getExercise())
       && getSet() != null && Objects.equals(getSet(), that.getSet());
   }
@@ -60,7 +60,7 @@ public class RoutineDayExerciseSetMO {
     @Serial
     private static final long serialVersionUID = -6827135681764457880L;
 
-    private RoutineDayExerciseMO exercise;
+    private RoutineDayExerciseEntity exercise;
 
     private Short set;
 

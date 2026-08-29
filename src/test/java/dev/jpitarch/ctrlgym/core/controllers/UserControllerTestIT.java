@@ -5,9 +5,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
-import dev.jpitarch.ctrlgym.core.models.MembershipMO;
-import dev.jpitarch.ctrlgym.core.models.RoutineMO;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
+import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
+import dev.jpitarch.ctrlgym.core.entities.RoutineEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
@@ -91,7 +91,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
       .andExpect(status().isCreated());
 
     userJpaRepository
-      .findById(new UserMO.ID(memberId.memberId(), memberId.gymId()))
+      .findById(new UserEntity.ID(memberId.memberId(), memberId.gymId()))
       .ifPresentOrElse(m -> assertThat(m.getStripeCustomerId()).isEqualTo("cus_test123"), () -> fail("Member not found"));
   }
 
@@ -180,7 +180,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
         .content(body))
       .andExpect(status().isNoContent());
 
-    MembershipMO membership = membershipJpaRepository.findById(1L).orElseThrow();
+    MembershipEntity membership = membershipJpaRepository.findById(1L).orElseThrow();
     assertThat(membership.getEndDate()).isNotNull();
     assertThat(membership.getCancellationReasonId()).isEqualTo(1);
   }
@@ -220,7 +220,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @Order(10)
   @DisplayName("Deletes a routine successfully")
   void deleteRoutine_returns204() throws Exception {
-    RoutineMO routine = routineJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId()).getFirst();
+    RoutineEntity routine = routineJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId()).getFirst();
 
     mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId.memberId(), routine.getId())
         .param("gymId", memberId.gymId().toString())

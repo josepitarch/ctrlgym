@@ -1,8 +1,8 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import dev.jpitarch.ctrlgym.core.dto.Heartbeat;
-import dev.jpitarch.ctrlgym.core.models.GymBranchHeartbeatMO;
-import dev.jpitarch.ctrlgym.core.models.MemberAccessMO;
+import dev.jpitarch.ctrlgym.core.entities.GymBranchHeartbeatEntity;
+import dev.jpitarch.ctrlgym.core.entities.MemberAccessEntity;
 import dev.jpitarch.ctrlgym.core.usecases.ControllerUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ public class ControllerController {
   private final ControllerUseCase controllerUseCase;
 
   @PostMapping("/{gymBranchId}/heartbeat")
-  public ResponseEntity<Void> saveHeartbeat(@PathVariable Integer gymBranchId, @RequestBody GymBranchHeartbeatMO heartbeat) {
+  public ResponseEntity<Void> saveHeartbeat(@PathVariable Integer gymBranchId, @RequestBody GymBranchHeartbeatEntity heartbeat) {
     controllerUseCase.saveHeartbeat(gymBranchId, heartbeat);
     return ResponseEntity.noContent().build();
   }
@@ -34,7 +34,7 @@ public class ControllerController {
     return ResponseEntity.ok(controllerUseCase.getHealth(gymBranchId));
   }
 
-  public record AccessesRequest(List<MemberAccessMO> accesses) {
+  public record AccessesRequest(List<MemberAccessEntity> accesses) {
   }
 
 }

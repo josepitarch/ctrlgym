@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Setter
 @Entity
 @Table(name = "products")
-public class ProductMO {
+public class ProductEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
@@ -21,7 +21,7 @@ public class ProductMO {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "gym_branch_id", nullable = false)
-  private GymBranchMO gymBranch;
+  private GymBranchEntity gymBranch;
 
   @Column(name = "name", nullable = false)
   private String name;

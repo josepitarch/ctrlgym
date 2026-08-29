@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.authentication.models;
+package dev.jpitarch.ctrlgym.authentication.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "refresh_tokens")
-public class RefreshTokenMO {
+public class RefreshTokenEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

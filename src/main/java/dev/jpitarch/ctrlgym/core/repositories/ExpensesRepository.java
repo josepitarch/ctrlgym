@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
-import dev.jpitarch.ctrlgym.core.models.ExpenseCategoryMO;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseCategoryJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -24,7 +24,7 @@ public class ExpensesRepository {
 
   private final ExpenseCategoryJpaRepository expenseCategoryJpaRepository;
 
-  public List<ExpenseCategoryMO> getAllCategories() {
+  public List<ExpenseCategoryEntity> getAllCategories() {
     return expenseCategoryJpaRepository.findAll();
   }
 

@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import dev.jpitarch.ctrlgym.core.domain.enums.WorkoutStatus;
 import jakarta.persistence.*;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "workouts")
-public class WorkoutMO {
+public class WorkoutEntity {
 
   @Id
   @Column(name = "id", nullable = false)
@@ -28,7 +28,7 @@ public class WorkoutMO {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "routine_id", referencedColumnName = "routine_id", nullable = false)
   @JoinColumn(name = "day_number", referencedColumnName = "day_number", nullable = false)
-  private RoutineDayMO routine;
+  private RoutineDayEntity routine;
 
   @Column(name = "started_at", nullable = false)
   private OffsetDateTime startedAt;
@@ -45,11 +45,11 @@ public class WorkoutMO {
   private UUID memberId;
 
   @OneToMany(mappedBy = "workout", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<WorkoutSetMO> sets = new ArrayList<>();
+  private List<WorkoutSetEntity> sets = new ArrayList<>();
 
-  public void addSet(WorkoutSetMO workoutSetMO) {
-    sets.add(workoutSetMO);
-    workoutSetMO.setWorkout(this);
+  public void addSet(WorkoutSetEntity WorkoutSetEntity) {
+    sets.add(WorkoutSetEntity);
+    WorkoutSetEntity.setWorkout(this);
   }
 
   @Override
@@ -59,8 +59,8 @@ public class WorkoutMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    WorkoutMO workoutMO = (WorkoutMO) o;
-    return getId() != null && Objects.equals(getId(), workoutMO.getId());
+    WorkoutEntity WorkoutEntity = (WorkoutEntity) o;
+    return getId() != null && Objects.equals(getId(), WorkoutEntity.getId());
   }
 
   @Override

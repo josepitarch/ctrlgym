@@ -8,7 +8,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
-import dev.jpitarch.ctrlgym.core.models.PostalCodeMO;
+import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
@@ -80,10 +80,10 @@ public class GymUseCase {
       .distinct()
       .toList();
     if (!postalCodes.isEmpty()) {
-      Map<Integer, PostalCodeMO> postalCodeMap = postalCodeJpaRepository.findMapByPostalCodeIn(postalCodes);
+      Map<Integer, PostalCodeEntity> postalCodeMap = postalCodeJpaRepository.findMapByPostalCodeIn(postalCodes);
       users.forEach(m -> {
         if (m.getAddress() != null && m.getAddress().getPostalCode() != null) {
-          PostalCodeMO pc = postalCodeMap.get(m.getAddress().getPostalCode());
+          PostalCodeEntity pc = postalCodeMap.get(m.getAddress().getPostalCode());
           if (pc != null) {
             m.getAddress().setCity(pc.getCity());
           }

@@ -1,14 +1,14 @@
 package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
-import dev.jpitarch.ctrlgym.core.models.ExerciseMO;
+import dev.jpitarch.ctrlgym.core.entities.ExerciseEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ExerciseJpaRepository extends JpaRepository<ExerciseMO, Integer> {
+public interface ExerciseJpaRepository extends JpaRepository<ExerciseEntity, Integer> {
 
-  List<ExerciseMO> findByGymId(Integer gymId);
+  List<ExerciseEntity> findByGymId(Integer gymId);
 
 }

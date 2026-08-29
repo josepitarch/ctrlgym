@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
@@ -20,8 +20,8 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "users")
-@IdClass(UserMO.ID.class)
-public class UserMO {
+@IdClass(UserEntity.ID.class)
+public class UserEntity {
 
   @Id
   @Column(name = "id")
@@ -89,9 +89,9 @@ public class UserMO {
     Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
-    UserMO userMO = (UserMO) o;
-    return getId() != null && Objects.equals(getId(), userMO.getId())
-      && getGymId() != null && Objects.equals(getGymId(), userMO.getGymId());
+    UserEntity UserEntity = (UserEntity) o;
+    return getId() != null && Objects.equals(getId(), UserEntity.getId())
+      && getGymId() != null && Objects.equals(getGymId(), UserEntity.getGymId());
   }
 
   @Override

@@ -37,7 +37,7 @@ public class AuthService {
   }
 
   public AuthResponse signup(SignupRequest request) {
-    if (membersRepository.exists(request.gymId(), request.email()) && false) {
+    if (membersRepository.exists(request.gymId(), request.email())) {
       if (membersRepository.isInMigration(request.gymId(), request.email())) {
         log.info("User with email {} of gym with id {} is in migration yet. Sending a new invitation...", request.email(), request.gymId());
         restClient.post()

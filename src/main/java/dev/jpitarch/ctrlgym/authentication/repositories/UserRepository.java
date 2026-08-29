@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
-import dev.jpitarch.ctrlgym.core.models.UserMO;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -15,25 +15,25 @@ public class UserRepository {
 
   private final UserJpaRepository jpaRepository;
 
-  public UserMO findByEmail(String email) {
+  public UserEntity findByEmail(String email) {
     return jpaRepository.findByEmail(email).orElse(null);
   }
 
-  public void save(UserMO user) {
+  public void save(UserEntity user) {
     jpaRepository.save(user);
   }
 
-  public UserMO create(String email, String hashedPassword, Integer gymId, String name, String firstSurname, String secondSurname) {
-    var userMO = new UserMO();
-    userMO.setId(UUID.randomUUID());
-    userMO.setGymId(gymId);
-    userMO.setEmail(email);
-    userMO.setPassword(hashedPassword);
-    userMO.setName(name);
-    userMO.setStatus(MemberStatus.AUTH);
-    userMO.setFirstSurname(firstSurname);
-    userMO.setSecondSurname(secondSurname);
-    userMO.setRole(Role.MEMBER);
-    return jpaRepository.save(userMO);
+  public UserEntity create(String email, String hashedPassword, Integer gymId, String name, String firstSurname, String secondSurname) {
+    var UserEntity = new UserEntity();
+    UserEntity.setId(UUID.randomUUID());
+    UserEntity.setGymId(gymId);
+    UserEntity.setEmail(email);
+    UserEntity.setPassword(hashedPassword);
+    UserEntity.setName(name);
+    UserEntity.setStatus(MemberStatus.AUTH);
+    UserEntity.setFirstSurname(firstSurname);
+    UserEntity.setSecondSurname(secondSurname);
+    UserEntity.setRole(Role.MEMBER);
+    return jpaRepository.save(UserEntity);
   }
 }

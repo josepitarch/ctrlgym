@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "expense_categories")
 @SQLRestriction("is_active = true")
-public class ExpenseCategoryMO {
+public class ExpenseCategoryEntity {
 
   @Id
   @Column(name = "id", nullable = false)

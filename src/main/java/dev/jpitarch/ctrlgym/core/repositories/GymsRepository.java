@@ -4,7 +4,7 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.dto.OccupancyGranularity;
-import dev.jpitarch.ctrlgym.core.models.GymMO;
+import dev.jpitarch.ctrlgym.core.entities.GymEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -25,7 +25,7 @@ public class GymsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public GymMO getById(Integer gymId) {
+  public GymEntity getById(Integer gymId) {
     return jpaRepository.findById(gymId).orElseThrow();
   }
 
@@ -42,27 +42,27 @@ public class GymsRepository {
   }
 
   public List<GymBranch> getBranches(Integer gymId) {
-    GymMO gymMO = jpaRepository.findById(gymId).orElseThrow();
+    GymEntity GymEntity = jpaRepository.findById(gymId).orElseThrow();
 
-    return gymMO.getBranches().stream().map(branchMO -> GymBranch.builder()
-        .id(branchMO.getId())
-        .name(branchMO.getName())
-        .capacity(branchMO.getCapacity())
-        .peakHour(new GymBranch.PeakHour(branchMO.getPeakHourStart(), branchMO.getPeakHourEnd()))
-        .coordinates(new GymBranch.Coordinates(branchMO.getLatitude(), branchMO.getLongitude()))
+    return GymEntity.getBranches().stream().map(branchEntity -> GymBranch.builder()
+        .id(branchEntity.getId())
+        .name(branchEntity.getName())
+        .capacity(branchEntity.getCapacity())
+        .peakHour(new GymBranch.PeakHour(branchEntity.getPeakHourStart(), branchEntity.getPeakHourEnd()))
+        .coordinates(new GymBranch.Coordinates(branchEntity.getLatitude(), branchEntity.getLongitude()))
         .build())
       .toList();
   }
 
   public GymBranch getGymBranch(GymBranchId gymBranchId) {
-    var branchMO = jpaRepository.findBranchByGymIdAndBranchId(gymBranchId.gymId(), gymBranchId.branchId());
+    var branchEntity = jpaRepository.findBranchByGymIdAndBranchId(gymBranchId.gymId(), gymBranchId.branchId());
 
     return GymBranch.builder()
-      .id(branchMO.getId())
-      .name(branchMO.getName())
-      .capacity(branchMO.getCapacity())
-      .peakHour(new GymBranch.PeakHour(branchMO.getPeakHourStart(), branchMO.getPeakHourEnd()))
-      .coordinates(new GymBranch.Coordinates(branchMO.getLatitude(), branchMO.getLongitude()))
+      .id(branchEntity.getId())
+      .name(branchEntity.getName())
+      .capacity(branchEntity.getCapacity())
+      .peakHour(new GymBranch.PeakHour(branchEntity.getPeakHourStart(), branchEntity.getPeakHourEnd()))
+      .coordinates(new GymBranch.Coordinates(branchEntity.getLatitude(), branchEntity.getLongitude()))
       .build();
   }
 

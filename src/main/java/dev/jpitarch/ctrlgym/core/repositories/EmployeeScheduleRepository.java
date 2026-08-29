@@ -3,8 +3,8 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.Shift;
 import dev.jpitarch.ctrlgym.core.domain.ShiftSeries;
 import dev.jpitarch.ctrlgym.core.mappers.ShiftMapper;
-import dev.jpitarch.ctrlgym.core.models.ShiftMO;
-import dev.jpitarch.ctrlgym.core.models.ShiftSeriesMO;
+import dev.jpitarch.ctrlgym.core.entities.ShiftEntity;
+import dev.jpitarch.ctrlgym.core.entities.ShiftSeriesEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ShiftJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ShiftSeriesJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,23 +28,23 @@ public class EmployeeScheduleRepository {
   private final ShiftMapper shiftMapper;
 
   public ShiftSeries saveSeries(ShiftSeries series) {
-    ShiftSeriesMO mo = shiftMapper.map(series);
+    ShiftSeriesEntity mo = shiftMapper.map(series);
     mo.setCreatedAt(OffsetDateTime.now());
-    ShiftSeriesMO saved = seriesJpaRepository.save(mo);
+    ShiftSeriesEntity saved = seriesJpaRepository.save(mo);
     return shiftMapper.map(saved);
   }
 
   public Shift saveShift(Shift shift) {
-    ShiftMO mo = shiftMapper.map(shift);
+    ShiftEntity mo = shiftMapper.map(shift);
     mo.setCreatedAt(OffsetDateTime.now());
-    ShiftMO saved = shiftJpaRepository.save(mo);
+    ShiftEntity saved = shiftJpaRepository.save(mo);
     return shiftMapper.map(saved);
   }
 
   public List<Shift> saveAllShifts(List<Shift> shifts) {
-    List<ShiftMO> mos = shifts.stream()
+    List<ShiftEntity> mos = shifts.stream()
       .map(s -> {
-        ShiftMO mo = shiftMapper.map(s);
+        ShiftEntity mo = shiftMapper.map(s);
         mo.setCreatedAt(OffsetDateTime.now());
         return mo;
       })

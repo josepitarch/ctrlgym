@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories.jpa;
 
-import dev.jpitarch.ctrlgym.core.models.MembershipMO;
+import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -8,26 +8,26 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface MembershipJpaRepository extends JpaRepository<MembershipMO, Long> {
+public interface MembershipJpaRepository extends JpaRepository<MembershipEntity, Long> {
 
   @Query("""
         SELECT m
-        FROM MembershipMO m
+        FROM MembershipEntity m
         WHERE m.memberId = :memberId AND m.gymId = :gymId
     """)
-  List<MembershipMO> findByMemberIdAndGymId(UUID memberId, Integer gymId);
+  List<MembershipEntity> findByMemberIdAndGymId(UUID memberId, Integer gymId);
 
-  Optional<MembershipMO> findByIdAndEndDateIsNull(Long id);
+  Optional<MembershipEntity> findByIdAndEndDateIsNull(Long id);
 
-  @Query("SELECT m.id FROM MembershipMO m WHERE m.stripeSubscriptionId = :stripeSubscriptionId")
+  @Query("SELECT m.id FROM MembershipEntity m WHERE m.stripeSubscriptionId = :stripeSubscriptionId")
   Long getIdByStripeSubscriptionId(String stripeSubscriptionId);
 
-  @Query("SELECT m.stripeSubscriptionId FROM MembershipMO m WHERE m.memberId = :memberId AND m.gymId = :gymId")
+  @Query("SELECT m.stripeSubscriptionId FROM MembershipEntity m WHERE m.memberId = :memberId AND m.gymId = :gymId")
   public String getStripeSubscriptionId(UUID memberId, Integer gymId);
 
   @Query("""
     SELECT COUNT(m) > 0
-    FROM MembershipMO m
+    FROM MembershipEntity m
     WHERE m.memberId = :memberId AND m.gymId = :gymId AND m.membershipPlanId = :membershipId
     AND m.startDate <= CURRENT_DATE AND (m.endDate IS NULL OR m.endDate >= CURRENT_DATE)
     """)

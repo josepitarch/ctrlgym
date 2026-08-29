@@ -2,8 +2,8 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Product;
 import dev.jpitarch.ctrlgym.core.mappers.ProductMapper;
-import dev.jpitarch.ctrlgym.core.models.GymBranchMO;
-import dev.jpitarch.ctrlgym.core.models.ProductMO;
+import dev.jpitarch.ctrlgym.core.entities.GymBranchEntity;
+import dev.jpitarch.ctrlgym.core.entities.ProductEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -27,12 +27,12 @@ public class ProductRepository {
   }
 
   public Product create(Product product, Integer gymId, Integer branchId) {
-    ProductMO mo = mapper.map(product);
+    ProductEntity mo = mapper.map(product);
     mo.setGymId(gymId);
-    GymBranchMO branch = new GymBranchMO();
+    GymBranchEntity branch = new GymBranchEntity();
     branch.setId(branchId);
     mo.setGymBranch(branch);
-    ProductMO saved = jpaRepository.save(mo);
+    ProductEntity saved = jpaRepository.save(mo);
     return mapper.map(saved);
   }
 

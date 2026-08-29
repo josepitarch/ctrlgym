@@ -29,12 +29,12 @@ public class PostalCodeController {
       throw new ManyPostalCodesException(postalCode);
     }
 
-    var postalCodeMO = results.getFirst();
+    var PostalCodeEntity = results.getFirst();
     return ResponseEntity.ok(new PostalCode(
-      postalCodeMO.getPostalCode(),
-      postalCodeMO.getCity(),
-      postalCodeMO.getProvince(),
-      postalCodeMO.getState()
+      PostalCodeEntity.getPostalCode(),
+      PostalCodeEntity.getCity(),
+      PostalCodeEntity.getProvince(),
+      PostalCodeEntity.getState()
     ));
   }
 

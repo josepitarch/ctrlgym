@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.models;
+package dev.jpitarch.ctrlgym.core.entities;
 
 import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
 import jakarta.persistence.*;
@@ -11,7 +11,7 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @Entity
 @Table(name = "exercises")
-public class ExerciseMO {
+public class ExerciseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)

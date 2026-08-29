@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
-import dev.jpitarch.ctrlgym.core.models.ExerciseMO;
+import dev.jpitarch.ctrlgym.core.entities.ExerciseEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -23,13 +23,13 @@ public class ExercisesRepository {
   }
 
   public Exercise create(Exercise exercise, Integer gymId) {
-    var exerciseMO = new ExerciseMO();
-    exerciseMO.setName(exercise.getName());
-    exerciseMO.setDescription(exercise.getDescription());
-    exerciseMO.setMuscleGroup(exercise.getMuscleGroup());
-    exerciseMO.setImage(exercise.getImage());
-    exerciseMO.setGymId(gymId);
-    ExerciseMO saved = jpaRepository.save(exerciseMO);
+    var ExerciseEntity = new ExerciseEntity();
+    ExerciseEntity.setName(exercise.getName());
+    ExerciseEntity.setDescription(exercise.getDescription());
+    ExerciseEntity.setMuscleGroup(exercise.getMuscleGroup());
+    ExerciseEntity.setImage(exercise.getImage());
+    ExerciseEntity.setGymId(gymId);
+    ExerciseEntity saved = jpaRepository.save(ExerciseEntity);
     return toDomain(saved);
   }
 
@@ -42,13 +42,13 @@ public class ExercisesRepository {
     jpaRepository.deleteById(exerciseId);
   }
 
-  private Exercise toDomain(ExerciseMO exerciseMO) {
+  private Exercise toDomain(ExerciseEntity ExerciseEntity) {
     return Exercise.builder()
-      .id(exerciseMO.getId())
-      .name(exerciseMO.getName())
-      .description(exerciseMO.getDescription())
-      .muscleGroup(exerciseMO.getMuscleGroup())
-      .image(exerciseMO.getImage())
+      .id(ExerciseEntity.getId())
+      .name(ExerciseEntity.getName())
+      .description(ExerciseEntity.getDescription())
+      .muscleGroup(ExerciseEntity.getMuscleGroup())
+      .image(ExerciseEntity.getImage())
       .build();
   }
 

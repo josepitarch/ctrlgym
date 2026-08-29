@@ -3,7 +3,7 @@ package dev.jpitarch.ctrlgym.verifactu.service;
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
-import dev.jpitarch.ctrlgym.notifications.TelegramNotificationService;
+import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;

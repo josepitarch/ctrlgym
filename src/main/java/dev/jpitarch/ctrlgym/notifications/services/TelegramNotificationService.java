@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.notifications;
+package dev.jpitarch.ctrlgym.notifications.services;
 
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import lombok.extern.slf4j.Slf4j;

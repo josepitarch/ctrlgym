@@ -32,6 +32,10 @@ server:
 
 jwt.secret: ${JWT_SECRET}
 
+resend:
+  api-key: ${RESEND_API_KEY}
+  from-email: "noreply@ctrlgym.es"
+
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   whsec-account: ${STRIPE_WEBHOOK_SECRET}

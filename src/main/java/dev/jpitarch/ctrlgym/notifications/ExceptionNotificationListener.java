@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.notifications;
 
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
+import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

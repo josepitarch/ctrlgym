@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.crons;
 
 import dev.jpitarch.ctrlgym.core.dto.Heartbeat;
 import dev.jpitarch.ctrlgym.core.usecases.ControllerUseCase;
-import dev.jpitarch.ctrlgym.notifications.TelegramNotificationService;
+import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;

@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.verifactu.service;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
-import dev.jpitarch.ctrlgym.notifications.TelegramNotificationService;
+import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;
@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.UUID;
 
 @Slf4j
 @Service

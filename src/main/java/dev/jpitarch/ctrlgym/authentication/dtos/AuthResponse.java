@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.dto;
+package dev.jpitarch.ctrlgym.authentication.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

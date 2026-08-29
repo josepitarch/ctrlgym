@@ -28,8 +28,7 @@ public class ControllerController {
     controllerUseCase.uploadAccessEvent(gymBranchId, accessesRequest.accesses());
     return ResponseEntity.noContent().build();
   }
-
-
+  
   @GetMapping("/{gymBranchId}/health")
   public ResponseEntity<Heartbeat> getHealth(@PathVariable Integer gymBranchId) {
     return ResponseEntity.ok(controllerUseCase.getHealth(gymBranchId));

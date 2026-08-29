@@ -17,6 +17,10 @@ public interface UserJpaRepository extends JpaRepository<UserMO, UserMO.ID> {
 
   boolean existsByGymIdNotAndEmail(Integer gymId, String email);
 
+  boolean existsByEmail(String email);
+
+  Optional<UserMO> findByEmail(String email);
+
   @Query(value = "SELECT EXISTS (SELECT 1 FROM users_migration WHERE email = :email AND gym_id = :gymId)", nativeQuery = true)
   boolean isInMigration(Integer gymId, String email);
 

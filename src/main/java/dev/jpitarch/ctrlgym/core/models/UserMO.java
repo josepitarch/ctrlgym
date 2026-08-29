@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.models;
 
 import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
+import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -73,7 +74,12 @@ public class UserMO {
   private String stripeSetupIntentId;
 
   @Column(name = "role")
-  private String role;
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  private Role role;
+
+  @Column(name = "password", length = Integer.MAX_VALUE)
+  private String password;
 
 
   @Override

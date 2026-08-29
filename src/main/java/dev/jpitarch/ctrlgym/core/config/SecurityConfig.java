@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.config;
 
 import dev.jpitarch.ctrlgym.core.controllers.filters.ControllerApiKeyFilter;
 import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,12 +13,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -65,6 +71,13 @@ public class SecurityConfig {
       ));
 
     return http.build();
+  }
+
+  @Bean
+  public JwtDecoder jwtDecoder(@Value("${jwt.secret}") String secret) {
+    byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+    var secretKeySpec = new SecretKeySpec(keyBytes, "HmacSHA256");
+    return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS256).build();
   }
 
   @Bean

@@ -1,11 +1,11 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
-import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
-import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
-import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
+import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
-import dev.jpitarch.ctrlgym.core.services.AuthService;
+import dev.jpitarch.ctrlgym.authentication.services.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

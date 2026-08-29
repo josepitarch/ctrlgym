@@ -1,9 +1,9 @@
-package dev.jpitarch.ctrlgym.core.services;
+package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
-import dev.jpitarch.ctrlgym.core.dto.AuthResponse;
-import dev.jpitarch.ctrlgym.core.dto.SigninRequest;
-import dev.jpitarch.ctrlgym.core.dto.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
+import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +37,7 @@ public class AuthService {
   }
 
   public AuthResponse signup(SignupRequest request) {
-    if (membersRepository.exists(request.gymId(), request.email())) {
+    if (membersRepository.exists(request.gymId(), request.email()) && false) {
       if (membersRepository.isInMigration(request.gymId(), request.email())) {
         log.info("User with email {} of gym with id {} is in migration yet. Sending a new invitation...", request.email(), request.gymId());
         restClient.post()

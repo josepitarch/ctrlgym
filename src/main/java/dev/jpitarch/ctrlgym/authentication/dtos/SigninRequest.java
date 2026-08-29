@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.core.dto;
+package dev.jpitarch.ctrlgym.authentication.dtos;
 
 public record SigninRequest(String email, String password) {
 }

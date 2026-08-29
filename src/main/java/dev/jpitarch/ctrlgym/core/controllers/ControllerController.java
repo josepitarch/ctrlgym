@@ -24,8 +24,8 @@ public class ControllerController {
   }
 
   @PostMapping("/{gymBranchId}/accesses")
-  public ResponseEntity<Void> uploadAccessEvent(@PathVariable Integer gymBranchId, @RequestBody List<MemberAccessMO> memberAccessMO) {
-    controllerUseCase.uploadAccessEvent(gymBranchId, memberAccessMO);
+  public ResponseEntity<Void> uploadAccessEvent(@PathVariable Integer gymBranchId, @RequestBody AccessesRequest accessesRequest) {
+    controllerUseCase.uploadAccessEvent(gymBranchId, accessesRequest.accesses());
     return ResponseEntity.noContent().build();
   }
 
@@ -33,6 +33,9 @@ public class ControllerController {
   @GetMapping("/{gymBranchId}/health")
   public ResponseEntity<Heartbeat> getHealth(@PathVariable Integer gymBranchId) {
     return ResponseEntity.ok(controllerUseCase.getHealth(gymBranchId));
+  }
+
+  public record AccessesRequest(List<MemberAccessMO> accesses) {
   }
 
 }

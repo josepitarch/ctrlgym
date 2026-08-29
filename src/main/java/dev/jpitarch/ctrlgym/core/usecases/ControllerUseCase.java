@@ -6,7 +6,9 @@ import dev.jpitarch.ctrlgym.core.models.MemberAccessMO;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.GymHeartbeatJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -14,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ControllerUseCase {
@@ -33,10 +36,15 @@ public class ControllerUseCase {
   }
 
   public void uploadAccessEvent(Integer gymBranchId, List<MemberAccessMO> memberAccessMO) {
+    if(CollectionUtils.isEmpty(memberAccessMO)) return;
+
+    log.info("Uploading {} access events for branch with id {}", memberAccessMO.size(), gymBranchId);
+
     memberAccessMO.forEach(ma -> {
       ma.setGymBranchId(gymBranchId);
       ma.setReceivedAt(OffsetDateTime.now());
     });
+
     memberAccessJpaRepository.saveAll(memberAccessMO);
   }
 

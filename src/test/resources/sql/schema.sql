@@ -359,12 +359,29 @@ CREATE TABLE users
   stripe_setup_intent_id text NULL,
   nif                      varchar(20) NULL,
   status public.member_status NOT NULL,
-  "role" public.app_role NOT NULL
+  "role" public.app_role NOT NULL,
+  password                 text NULL,
   CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),
   CONSTRAINT members_pkey PRIMARY KEY (id, gym_id),
   CONSTRAINT members_stripe_customer_id_uk UNIQUE (stripe_customer_id),
   CONSTRAINT members_stripe_setup_intent_id_uk UNIQUE (stripe_setup_intent_id),
   CONSTRAINT members_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
+);
+
+
+-- public.refresh_tokens definition
+
+CREATE TABLE refresh_tokens
+(
+  id           uuid        NOT NULL DEFAULT gen_random_uuid(),
+  user_id      uuid        NOT NULL,
+  gym_id       int4        NOT NULL,
+  token_hash   varchar(64) NOT NULL UNIQUE,
+  revoked      bool        NOT NULL DEFAULT false,
+  replaced_by  uuid NULL,
+  expires_at   timestamptz NOT NULL,
+  CONSTRAINT refresh_tokens_pkey PRIMARY KEY (id),
+  CONSTRAINT refresh_tokens_user_fk FOREIGN KEY (user_id, gym_id) REFERENCES users(id, gym_id)
 );
 
 

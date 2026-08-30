@@ -34,6 +34,26 @@ Integración con el servicio [verifacti.com](https://www.verifacti.com/) para el
 
 Cuando se recibe un `InvoicePaidEvent` (pago completado en Stripe), el servicio construye la factura y la envía a la API de verifacti.com (`POST /create`). También permite consultar el estado de una factura ya enviada (`GET /status`) y reenviar facturas manualmente desde el panel de administración.
 
+### Authentication
+
+Gestión de autenticación y autorización de usuarios (socios, managers y empleados). Implementa un flujo completo de registro, login, refresco de sesión e invitaciones.
+
+**Endpoints** (`/v1/auth/**`):
+
+| Endpoint | Descripción |
+|---|---|
+| `POST /v1/auth/signup` | Registro de usuario. Hashea la contraseña con BCrypt, crea el usuario en base de datos y devuelve access token + refresh token. |
+| `POST /v1/auth/login` | Login con email y contraseña. Verifica credenciales y devuelve access token + refresh token. |
+| `POST /v1/auth/refresh` | Refresca la sesión usando un refresh token. Rota el token (one-time use): invalida el anterior y emite uno nuevo. |
+| `POST /v1/auth/logout` | Invalida el refresh token indicado, cerrando la sesión. |
+
+**Componentes principales**:
+
+- **JwtService** — Genera access tokens JWT (HS256, expiración 15 min) con claims: `sub` (user id), `email`, `name`, `gym_id`, `role`.
+- **RefreshTokenService** — Gestiona refresh tokens opacos almacenados como hash SHA-256 en base de datos. Expiración de 30 días. Implementa rotación en cada refresh y detecta reutilización de tokens (revoca todas las sesiones del usuario si se detecta un token ya usado).
+- **InvitationService** — Genera y valida tokens JWT de invitación (expiración 7 días) para invitar empleados a un gimnasio con un rol específico (`MANAGER` o `EMPLOYEE`).
+- **SignupService / LoginService** — Orquestan el registro y login respectivamente: validación, hashing de contraseña, generación de tokens.
+
 ## Seguridad
 
 La configuración de seguridad se encuentra en `SecurityConfig.java` y define dos cadenas de filtros:

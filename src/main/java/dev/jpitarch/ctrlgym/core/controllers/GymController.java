@@ -176,6 +176,12 @@ public class GymController {
     return ResponseEntity.noContent().build();
   }
 
+  @PostMapping("/{gymId}/branches/{branchId}/employees")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<ShiftSeries> createEmployee(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody CreateShiftSeriesRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createShiftSeries(gymId, branchId, request));
+  }
+
   @PostMapping("/{gymId}/branches/{branchId}/schedule/series")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   public ResponseEntity<ShiftSeries> createShiftSeries(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody CreateShiftSeriesRequest request) {

@@ -1,6 +1,12 @@
 server:
   port: 0
 
+jwt:
+  secret: test-secret-key-for-jwt-that-is-at-least-256-bits-long-for-hmac-sha
+
+resend:
+  api-key: test-resend-api-key
+
 spring:
   jpa:
     hibernate:

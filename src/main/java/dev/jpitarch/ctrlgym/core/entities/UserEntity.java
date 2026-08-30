@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.entities;
 
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -65,7 +65,7 @@ public class UserEntity {
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "status", nullable = false)
-  private MemberStatus status;
+  private UserStatus status;
 
   @Column(name = "stripe_customer_id", length = Integer.MAX_VALUE)
   private String stripeCustomerId;

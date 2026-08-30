@@ -1,13 +1,7 @@
 package dev.jpitarch.ctrlgym.authentication.controllers;
 
-import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
-import dev.jpitarch.ctrlgym.authentication.dtos.RefreshRequest;
-import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
-import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
-import dev.jpitarch.ctrlgym.authentication.services.AuthService;
-import dev.jpitarch.ctrlgym.authentication.services.LoginService;
-import dev.jpitarch.ctrlgym.authentication.services.RefreshTokenService;
-import dev.jpitarch.ctrlgym.authentication.services.SignupService;
+import dev.jpitarch.ctrlgym.authentication.dtos.*;
+import dev.jpitarch.ctrlgym.authentication.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +20,7 @@ public class AuthController {
 
   private final RefreshTokenService refreshTokenService;
 
-  private final AuthService authService;
+  private final InvitationService invitationService;
 
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
@@ -35,7 +29,7 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<AuthResponse> login(@RequestBody SigninRequest request) {
+  public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
     AuthResponse response = loginService.login(request);
     return ResponseEntity.ok(response);
   }
@@ -44,6 +38,12 @@ public class AuthController {
   public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
     AuthResponse response = refreshTokenService.refresh(request.refreshToken());
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/invitations/accept")
+  public ResponseEntity<AuthResponse> acceptInvitation(
+    @RequestBody AcceptInvitationRequest request) {
+    return ResponseEntity.ok(invitationService.acceptInvitation(request.token(), request.password()));
   }
 
   @PostMapping("/logout")

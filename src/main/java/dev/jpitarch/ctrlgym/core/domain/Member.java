@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,7 +33,7 @@ public class Member extends User {
 
   private Address address;
 
-  private MemberStatus status;
+  private UserStatus status;
 
   @Data
   @Builder

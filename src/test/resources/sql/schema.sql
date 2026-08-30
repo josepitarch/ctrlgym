@@ -24,12 +24,13 @@ CREATE TYPE public.invoice_status AS ENUM (
     'PAID',
     'FAILED');
 
--- DROP TYPE public.member_status;
+-- DROP TYPE public.user_status;
 
-CREATE TYPE public.member_status AS ENUM (
-    'AUTH',
-    'MEMBER',
-    'CUSTOMER');
+CREATE TYPE public.user_status AS ENUM (
+  'AUTH',
+  'MEMBER',
+  'PENDING_ACTIVATION',
+  'ACTIVE');
 
 CREATE TYPE public.app_role AS ENUM (
   'MEMBER',
@@ -358,7 +359,7 @@ CREATE TABLE users
   stripe_customer_id       text NULL,
   stripe_setup_intent_id text NULL,
   nif                      varchar(20) NULL,
-  status public.member_status NOT NULL,
+  status public.user_status NOT NULL,
   "role" public.app_role NOT NULL,
   password                 text NULL,
   CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),

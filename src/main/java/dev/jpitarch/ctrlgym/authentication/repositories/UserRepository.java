@@ -1,12 +1,13 @@
 package dev.jpitarch.ctrlgym.authentication.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -15,8 +16,12 @@ public class UserRepository {
 
   private final UserJpaRepository jpaRepository;
 
-  public UserEntity findByEmail(String email) {
-    return jpaRepository.findByEmail(email).orElse(null);
+  public Optional<UserEntity> findByEmail(String email) {
+    return jpaRepository.findByEmail(email);
+  }
+
+  public Optional<UserEntity> findByEmailAndGymId(String email, Integer gymId) {
+    return jpaRepository.findByEmailAndGymId(email, gymId);
   }
 
   public UserEntity findById(UUID id, Integer gymId) {
@@ -35,7 +40,7 @@ public class UserRepository {
     UserEntity.setEmail(email);
     UserEntity.setPassword(hashedPassword);
     UserEntity.setName(name);
-    UserEntity.setStatus(MemberStatus.AUTH);
+    UserEntity.setStatus(UserStatus.AUTH);
     UserEntity.setFirstSurname(firstSurname);
     UserEntity.setSecondSurname(secondSurname);
     UserEntity.setRole(Role.MEMBER);

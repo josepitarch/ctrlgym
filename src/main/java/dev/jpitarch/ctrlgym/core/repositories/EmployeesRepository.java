@@ -4,6 +4,8 @@ import dev.jpitarch.ctrlgym.core.domain.Employee;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
+import dev.jpitarch.ctrlgym.core.domain.enums.Role;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.EmployeeWorkplaceEntity;
 import dev.jpitarch.ctrlgym.core.entities.GymBranchEntity;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -24,6 +27,21 @@ public class EmployeesRepository {
   private final UserJpaRepository userJpaRepository;
 
   private final GymJpaRepository gymJpaRepository;
+
+  public UserEntity createEmployee(String email, Integer gymId, String name, String firstSurname, String secondSurname, String gender) {
+    var user = new UserEntity();
+    user.setId(UUID.randomUUID());
+    user.setGymId(gymId);
+    user.setEmail(email);
+    user.setPassword(null);
+    user.setName(name);
+    user.setFirstSurname(firstSurname);
+    user.setSecondSurname(secondSurname);
+    user.setGender(gender);
+    user.setStatus(UserStatus.PENDING_ACTIVATION);
+    user.setRole(Role.EMPLOYEE);
+    return userJpaRepository.save(user);
+  }
 
   public void assignToBranch(Member.Id employeeId, Integer gymBranchId) {
     var assignment = new EmployeeWorkplaceEntity();

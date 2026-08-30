@@ -2,13 +2,16 @@ package dev.jpitarch.ctrlgym.core.usecases;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import java.time.LocalDate;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
+import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
+import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
@@ -27,6 +30,7 @@ import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,6 +71,8 @@ public class GymUseCase {
   private final ProductRepository productRepository;
 
   private final EmployeeScheduleService employeeScheduleService;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -170,6 +176,37 @@ public class GymUseCase {
 
   public List<Employee> getEmployees(GymBranchId gymBranchId) {
     return employeesRepository.getEmployees(gymBranchId);
+  }
+
+  public void createEmployee(Integer gymId, CreateEmployeeRequest request) {
+    if ((request.gymBranchId() == null && !request.allBranches()) ||
+        (request.gymBranchId() != null && request.allBranches())) {
+      throw new CoreBusinessException(Employee.class, "gymBranchId is informed and allBranches is true or vice versa");
+    }
+
+    String genderCode = request.gender() != null ? switch (request.gender()) {
+      case MALE -> "M";
+      case FEMALE -> "F";
+    } : null;
+
+    var user = employeesRepository.createEmployee(
+      request.email(),
+      gymId,
+      request.name(),
+      request.firstSurname(),
+      request.secondSurname(),
+      genderCode
+    );
+
+    var employeeId = Member.Id.of(user.getId(), gymId);
+
+    if (request.allBranches()) {
+      employeesRepository.assignToAllBranches(employeeId);
+    } else {
+      employeesRepository.assignToBranch(employeeId, request.gymBranchId());
+    }
+
+    eventPublisher.publishEvent(new EmployeeCreatedEvent(this, user.getId(), gymId, request.email()));
   }
 
   public Product createProduct(Integer gymId, Integer branchId, Product product, MultipartFile image) {

@@ -1,8 +1,11 @@
 package dev.jpitarch.ctrlgym.core.domain.enums;
 
-public enum MemberStatus {
+public enum UserStatus {
+
+  PENDING_ACTIVATION,
 
   AUTH,
 
-  MEMBER,
+  ACTIVE
+
 }

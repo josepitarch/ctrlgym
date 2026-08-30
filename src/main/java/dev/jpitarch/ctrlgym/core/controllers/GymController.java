@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
+import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
@@ -176,10 +177,11 @@ public class GymController {
     return ResponseEntity.noContent().build();
   }
 
-  @PostMapping("/{gymId}/branches/{branchId}/employees")
+  @PostMapping("/{gymId}/employees")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public ResponseEntity<ShiftSeries> createEmployee(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody CreateShiftSeriesRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createShiftSeries(gymId, branchId, request));
+  public ResponseEntity<Void> createEmployee(@PathVariable Integer gymId, @RequestBody CreateEmployeeRequest request) {
+    useCase.createEmployee(gymId, request);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   @PostMapping("/{gymId}/branches/{branchId}/schedule/series")

@@ -1,8 +1,10 @@
 package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
-import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.LoginRequest;
+import dev.jpitarch.ctrlgym.authentication.exceptions.AccountNotActivatedException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +22,18 @@ public class LoginService {
 
   private final RefreshTokenService refreshTokenService;
 
-  public AuthResponse login(SigninRequest request) {
-    UserEntity user = userRepository.findByEmail(request.email());
+  public AuthResponse login(LoginRequest request) {
+    UserEntity user = request.gymId() != null
+      ? userRepository.findByEmailAndGymId(request.email(), request.gymId())
+        .orElseThrow(() -> new IllegalArgumentException("User not found"))
+      : userRepository.findByEmail(request.email())
+        .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-    if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
+    if (user.getStatus().equals(UserStatus.PENDING_ACTIVATION)) {
+      throw new AccountNotActivatedException("Account not activated");
+    }
+
+    if (!passwordEncoder.matches(request.password(), user.getPassword())) {
       throw new IllegalArgumentException("Invalid credentials");
     }
 

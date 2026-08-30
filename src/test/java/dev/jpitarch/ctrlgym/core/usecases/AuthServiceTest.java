@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.core.usecases;
 
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
-import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.LoginRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.authentication.services.AuthService;
@@ -67,7 +67,7 @@ class AuthServiceTest {
   void signin_returnsAuthResponse_whenValidRequest() {
     when(responseSpec.body(AuthResponse.class)).thenReturn(authResponse);
 
-    var request = new SigninRequest("test@example.com", "password123");
+    var request = new LoginRequest("test@example.com", "password123", null);
     var result = authService.login(request);
 
     assertThat(result).isEqualTo(authResponse);

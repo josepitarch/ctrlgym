@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.controllers;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.jpitarch.ctrlgym.authentication.dtos.RefreshRequest;
-import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.LoginRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.core.controllers.BaseIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @Order(2)
   @DisplayName("Login with valid credentials returns tokens")
   void login_returns200_withTokens() throws Exception {
-    var request = new SigninRequest("newuser@test.com", "Password1!");
+    var request = new LoginRequest("newuser@test.com", "Password1!", null);
 
     MvcResult result = mockMvc.perform(post("/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +75,7 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @Order(3)
   @DisplayName("Login with invalid credentials returns 400")
   void login_invalidCredentials_returns400() throws Exception {
-    var request = new SigninRequest("newuser@test.com", "WrongPassword!");
+    var request = new LoginRequest("newuser@test.com", "WrongPassword!", null);
 
     mockMvc.perform(post("/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)

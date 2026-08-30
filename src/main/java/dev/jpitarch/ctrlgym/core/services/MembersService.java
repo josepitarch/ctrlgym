@@ -4,7 +4,7 @@ import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
-import dev.jpitarch.ctrlgym.core.domain.enums.MemberStatus;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
@@ -45,7 +45,7 @@ public class MembersService {
 
     String customerId = customerService.create(member);
 
-    log.info("Setting member with id {} from {} to {}...", member.getId(), MemberStatus.AUTH, MemberStatus.MEMBER);
+    log.info("Setting member with id {} from {} to {}...", member.getId(), UserStatus.AUTH, UserStatus.ACTIVE);
     membersRepository.save(member, customerId);
   }
 

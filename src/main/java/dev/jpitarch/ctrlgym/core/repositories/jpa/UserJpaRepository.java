@@ -21,6 +21,8 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, UserEntity.
 
   Optional<UserEntity> findByEmail(String email);
 
+  Optional<UserEntity> findByEmailAndGymId(String email, Integer gymId);
+
   @Query(value = "SELECT EXISTS (SELECT 1 FROM users_migration WHERE email = :email AND gym_id = :gymId)", nativeQuery = true)
   boolean isInMigration(Integer gymId, String email);
 

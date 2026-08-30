@@ -2,7 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthException;
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
-import dev.jpitarch.ctrlgym.authentication.dtos.SigninRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.LoginRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class AuthService {
   }
 
 
-  public AuthResponse login(SigninRequest request) {
+  public AuthResponse login(LoginRequest request) {
     return restClient.post()
       .uri("/token?grant_type=password")
       .body(Map.of(

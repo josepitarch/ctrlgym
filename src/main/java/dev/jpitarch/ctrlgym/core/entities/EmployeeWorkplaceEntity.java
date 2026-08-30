@@ -35,10 +35,6 @@ public class EmployeeWorkplaceEntity {
   @Column(name = "all_branches", nullable = false)
   private Boolean allBranches;
 
-  @ColumnDefault("now()")
-  @Column(name = "created_at")
-  private OffsetDateTime createdAt;
-
   @Override
   public final boolean equals(Object o) {
     if (this == o) return true;

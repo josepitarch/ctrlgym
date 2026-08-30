@@ -10,5 +10,5 @@ public record CreateEmployeeRequest(
   String email,
   Gender gender,
   @JsonProperty("gym_branch_id") Integer gymBranchId,
-  @JsonProperty("all_branches") Boolean allBranches
+  @JsonProperty("all_branches") boolean allBranches
 ) {}

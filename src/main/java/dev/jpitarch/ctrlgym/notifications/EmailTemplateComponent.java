@@ -9,7 +9,17 @@ import java.util.Map;
 @Component
 public class EmailTemplateComponent {
 
-  public String retrieve(String templateName) {
+  public String build(String templateName, Map<String, Object> variables) {
+    String template = this.read(templateName);
+    for (Map.Entry<String, Object> entry : variables.entrySet()) {
+      String placeholder = "{{ " + "." + entry.getKey() + " }}";
+      template = template.replace(placeholder, entry.getValue().toString());
+    }
+
+    return template;
+  }
+
+  private String read(String templateName) {
     try {
       return new String(
         new ClassPathResource("templates/emails/" + templateName)
@@ -20,11 +30,5 @@ public class EmailTemplateComponent {
     }
   }
 
-  public void setVariables(String template, Map<String, Object> variables) {
-    for (Map.Entry<String, Object> entry : variables.entrySet()) {
-      String placeholder = "{{ " + "." + entry.getKey() + " }}";
-      template = template.replace(placeholder, entry.getValue().toString());
-    }
-  }
 
 }

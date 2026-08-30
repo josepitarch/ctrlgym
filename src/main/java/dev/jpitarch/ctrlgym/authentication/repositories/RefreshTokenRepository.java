@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.authentication.repositories.jpa.RefreshTokenJpaRepos
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,5 +33,9 @@ public class RefreshTokenRepository {
 
   public void setReplacedBy(UUID id, UUID replacedBy) {
     jpaRepository.setReplacedBy(id, replacedBy);
+  }
+
+  public int deleteExpiredOrRevoked() {
+    return jpaRepository.deleteExpiredOrRevoked(Instant.now());
   }
 }

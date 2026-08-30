@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,4 +30,9 @@ public interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenEnt
   @Transactional
   @Query("UPDATE RefreshTokenEntity r SET r.replacedBy = :replacedBy WHERE r.id = :id")
   void setReplacedBy(UUID id, UUID replacedBy);
+
+  @Modifying
+  @Transactional
+  @Query("DELETE FROM RefreshTokenEntity r WHERE r.expiresAt < :now OR r.revoked IS TRUE")
+  int deleteExpiredOrRevoked(Instant now);
 }

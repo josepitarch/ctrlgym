@@ -4,7 +4,7 @@ import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidTokenException;
 import dev.jpitarch.ctrlgym.authentication.entities.RefreshTokenEntity;
 import dev.jpitarch.ctrlgym.authentication.repositories.RefreshTokenRepository;
-import dev.jpitarch.ctrlgym.core.domain.enums.Role;
+import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,8 @@ public class RefreshTokenService {
   private final JwtService jwtService;
 
   private final RefreshTokenRepository refreshTokenRepository;
+
+  private final UserRepository userRepository;
 
   private final SecureRandom secureRandom = new SecureRandom();
 
@@ -75,10 +77,14 @@ public class RefreshTokenService {
     stored.setReplacedBy(newEntity.getId());
     refreshTokenRepository.save(stored);
 
-    String newAccessToken = jwtService.generateAccessToken(stored.getUserId(), stored.getGymId(), Role.MEMBER);
+    var user = userRepository.findById(stored.getUserId(), stored.getGymId());
+    if (user == null) {
+      throw new InvalidTokenException("Usuario no encontrado");
+    }
 
-    return new AuthResponse(newAccessToken, newRawToken,
-      (int) ACCESS_TOKEN_EXPIRATION_SECONDS, "Bearer");
+    String newAccessToken = jwtService.generateAccessToken(user);
+
+    return new AuthResponse(newAccessToken, newRawToken, (int) ACCESS_TOKEN_EXPIRATION_SECONDS, "Bearer");
   }
 
   private String hashRefreshToken(String rawToken) {

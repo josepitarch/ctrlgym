@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
+import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +25,16 @@ public class JwtService {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
   }
 
-  public String generateAccessToken(UUID userId, Integer gymId, Role role) {
+  public String generateAccessToken(UserEntity user) {
     var now = Instant.now();
     return Jwts.builder()
-      .subject(userId.toString())
       .claim("iss", "https://api.ctrlgym.es")
-      .claim("gymId", gymId.toString())
-      .claim("role", role)
+      .subject(user.getId().toString())
+      .claim("email", user.getEmail())
+      .claim("name", user.getName())
+      .claim("first_surname", user.getFirstSurname())
+      .claim("gym_id", user.getGymId())
+      .claim("role", user.getRole())
       .issuedAt(Date.from(now))
       .expiration(Date.from(now.plus(ACCESS_TOKEN_EXPIRATION_MINUTES, ChronoUnit.MINUTES)))
       .signWith(secretKey)

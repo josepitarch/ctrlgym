@@ -27,7 +27,7 @@ public class LoginService {
       throw new IllegalArgumentException("Invalid credentials");
     }
 
-    String accessToken = jwtService.generateAccessToken(user.getId(), user.getGymId(), user.getRole());
+    String accessToken = jwtService.generateAccessToken(user);
     String rawRefreshToken = refreshTokenService.generateRawRefreshToken(user.getId(), user.getGymId());
 
     return new AuthResponse(accessToken, rawRefreshToken, 900, "Bearer");

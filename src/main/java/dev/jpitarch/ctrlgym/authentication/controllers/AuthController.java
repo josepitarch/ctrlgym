@@ -30,13 +30,13 @@ public class AuthController {
 
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
-    AuthResponse response = authService.signup(request);
+    AuthResponse response = signupService.signup(request);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@RequestBody SigninRequest request) {
-    AuthResponse response = authService.login(request);
+    AuthResponse response = loginService.login(request);
     return ResponseEntity.ok(response);
   }
 

@@ -32,7 +32,7 @@ public class SignupService {
       request.secondSurname()
     );
 
-    String accessToken = jwtService.generateAccessToken(created.getId(), request.gymId(), Role.MEMBER);
+    String accessToken = jwtService.generateAccessToken(created);
     String rawRefreshToken = refreshTokenService.generateRawRefreshToken(created.getId(), request.gymId());
 
     return new AuthResponse(accessToken, rawRefreshToken, 900, "Bearer");

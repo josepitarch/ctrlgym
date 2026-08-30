@@ -19,6 +19,11 @@ public class UserRepository {
     return jpaRepository.findByEmail(email).orElse(null);
   }
 
+  public UserEntity findById(UUID id, Integer gymId) {
+    var compositeId = new UserEntity.ID(id, gymId);
+    return jpaRepository.findById(compositeId).orElse(null);
+  }
+
   public void save(UserEntity user) {
     jpaRepository.save(user);
   }

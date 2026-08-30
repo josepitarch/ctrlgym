@@ -1,3 +1,6 @@
+server:
+  port: 80
+
 spring:
   application:
     name: ctrlgym
@@ -18,17 +21,11 @@ spring:
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${SUPABASE_URL}/auth/v1
   messages:
     basename: messages
     fallback-to-system-locale: false
     encoding: UTF-8
-server:
-  port: 80
+
 
 jwt.secret: ${JWT_SECRET}
 

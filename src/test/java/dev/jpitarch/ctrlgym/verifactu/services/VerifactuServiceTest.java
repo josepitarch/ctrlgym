@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.verifactu.service;
+package dev.jpitarch.ctrlgym.verifactu.services;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
 import dev.jpitarch.ctrlgym.core.domain.Member;
@@ -7,8 +7,8 @@ import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;
-import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceRequest;
-import dev.jpitarch.ctrlgym.verifactu.dto.CreateInvoiceResponse;
+import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceRequest;
+import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,7 @@
-package dev.jpitarch.ctrlgym.storage;
+package dev.jpitarch.ctrlgym.storage.services;
 
 import dev.jpitarch.ctrlgym.storage.config.R2Properties;
+import dev.jpitarch.ctrlgym.storage.exceptions.StorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

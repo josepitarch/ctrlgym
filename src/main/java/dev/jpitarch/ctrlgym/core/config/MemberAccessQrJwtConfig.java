@@ -10,7 +10,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
 @Configuration
-public class JwtSigningConfig {
+public class MemberAccessQrJwtConfig {
 
   @Bean
   public PrivateKey jwtSigningKey(@Value("${member-access-qr.private-key}") String privateKeyPem) throws Exception {

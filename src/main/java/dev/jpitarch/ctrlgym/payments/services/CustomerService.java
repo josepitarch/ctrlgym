@@ -12,7 +12,7 @@ import com.stripe.param.SetupIntentRetrieveParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
-import dev.jpitarch.ctrlgym.payments.dto.SetupIntentResponse;
+import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;

@@ -24,7 +24,7 @@ import dev.jpitarch.ctrlgym.core.services.ExpensesService;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
-import dev.jpitarch.ctrlgym.storage.StorageService;
+import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

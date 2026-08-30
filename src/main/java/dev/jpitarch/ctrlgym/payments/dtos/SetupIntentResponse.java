@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.payments.dto;
+package dev.jpitarch.ctrlgym.payments.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

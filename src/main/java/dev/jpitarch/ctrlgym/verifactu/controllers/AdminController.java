@@ -1,10 +1,9 @@
-package dev.jpitarch.ctrlgym.verifactu.controller;
+package dev.jpitarch.ctrlgym.verifactu.controllers;
 
-import dev.jpitarch.ctrlgym.verifactu.dto.VerifactuReplayRequest;
-import dev.jpitarch.ctrlgym.verifactu.dto.VerifactuReplayResponse;
-import dev.jpitarch.ctrlgym.verifactu.service.VerifactuService;
+import dev.jpitarch.ctrlgym.verifactu.dtos.VerifactuReplayRequest;
+import dev.jpitarch.ctrlgym.verifactu.dtos.VerifactuReplayResponse;
+import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

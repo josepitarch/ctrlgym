@@ -32,9 +32,6 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  @Value("${jwt.secret}")
-  private String jwtSecret;
-
   @Bean
   public FilterRegistrationBean<ControllerApiKeyFilter> apiKeyFilterRegistration(ControllerApiKeyFilter filter) {
     var registration = new FilterRegistrationBean<>(filter);
@@ -88,7 +85,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public JwtDecoder jwtDecoder() {
+  public JwtDecoder jwtDecoder(@Value("${jwt.secret}") String jwtSecret) {
     var secretKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
 
     return NimbusJwtDecoder.withSecretKey(secretKey)

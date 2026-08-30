@@ -1,4 +1,4 @@
-package dev.jpitarch.ctrlgym.verifactu.dto;
+package dev.jpitarch.ctrlgym.verifactu.dtos;
 
 import java.util.List;
 import java.util.Map;

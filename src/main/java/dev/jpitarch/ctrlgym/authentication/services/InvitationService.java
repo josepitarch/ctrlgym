@@ -112,8 +112,7 @@ public class InvitationService {
       throw new InvalidTokenException("Token no es una invitación");
     }
 
-    return new InvitationPayload(claims.getSubject(), Integer.valueOf(claims.get("gym_id", String.class)));
-
+    return new InvitationPayload(claims.getSubject(), claims.get("gym_id", Integer.class));
   }
 
   public record InvitationPayload(String email, Integer gymId) {

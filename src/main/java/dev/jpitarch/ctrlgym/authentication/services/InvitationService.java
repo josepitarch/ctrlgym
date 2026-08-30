@@ -7,7 +7,6 @@ import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +83,7 @@ public class InvitationService {
     var user = userRepository.findByEmail(payload.email())
       .orElseThrow(() -> new InvalidTokenException("Usuario no encontrado"));
 
-    if(!user.getStatus().equals(UserStatus.PENDING_ACTIVATION)) {
+    if (!user.getStatus().equals(UserStatus.PENDING_ACTIVATION)) {
       throw new InvalidTokenException("Usuario ya activado o no válido para activación");
     }
 
@@ -101,22 +100,20 @@ public class InvitationService {
   }
 
   public InvitationPayload validateAndParse(String token) {
-    try {
-      var claims = Jwts.parser()
-        .verifyWith(secretKey)
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
 
-      String type = claims.get("type", String.class);
-      if (!"invitation".equals(type)) {
-        throw new InvalidTokenException("Token no es una invitación");
-      }
+    var claims = Jwts.parser()
+      .verifyWith(secretKey)
+      .build()
+      .parseSignedClaims(token)
+      .getPayload();
 
-      return new InvitationPayload(claims.getSubject(), Integer.valueOf(claims.get("gym_id", String.class)));
-    } catch (JwtException e) {
-      throw new InvalidTokenException("Token de invitación inválido o expirado");
+    String type = claims.get("type", String.class);
+    if (!"invitation".equals(type)) {
+      throw new InvalidTokenException("Token no es una invitación");
     }
+
+    return new InvitationPayload(claims.getSubject(), Integer.valueOf(claims.get("gym_id", String.class)));
+
   }
 
   public record InvitationPayload(String email, Integer gymId) {

@@ -109,8 +109,7 @@ public class GymsRepository {
     }
 
     return jdbc.query(sql, params, (rs, rowNum) -> Member.builder()
-        .id(User.Id.of(UUID.fromString(rs.getString("id"))))
-        .gymId(rs.getInt("gym_id"))
+        .id(UUID.fromString(rs.getString("id")))
         .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
         .name(rs.getString("name"))
         .nif(rs.getString("nif"))

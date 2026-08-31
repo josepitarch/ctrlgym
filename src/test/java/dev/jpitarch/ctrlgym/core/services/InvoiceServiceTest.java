@@ -45,7 +45,7 @@ class InvoiceServiceTest {
     .build();
 
   private final Member member = Member.builder()
-    .id(Member.Id.of(memberId))
+    .id(memberId)
     .name("Juan")
     .firstSurname("García")
     .secondSurname("López")

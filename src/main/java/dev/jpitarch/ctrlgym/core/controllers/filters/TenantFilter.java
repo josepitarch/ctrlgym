@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,6 +55,6 @@ public class TenantFilter extends OncePerRequestFilter {
     problem.setType(URI.create("about:blank"));
     problem.setProperty("timestamp", Instant.now());
 
-    new ObjectMapper().writeValue(response.getOutputStream(), problem);
+    new ObjectMapper().registerModule(new JavaTimeModule()).writeValue(response.getOutputStream(), problem);
   }
 }

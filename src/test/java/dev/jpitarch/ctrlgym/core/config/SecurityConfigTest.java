@@ -18,7 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -44,9 +43,10 @@ class SecurityConfigTest {
 
   private CustomJwtAuthenticationToken createJwtToken(Integer gymId, String subject, String role) {
     Jwt jwt = Jwt.withTokenValue("token")
-      .header("alg", "none")
-      .claim("user_metadata", Map.of("gym_id", gymId))
-      .claim("user_roles", List.of(role))
+      .header("alg", "HS256")
+      .claim("iss", "https://api.ctrlgym.es")
+      .claim("gym_id", gymId)
+      .claim("role", role)
       .subject(subject)
       .issuedAt(Instant.now())
       .build();
@@ -98,6 +98,7 @@ class SecurityConfigTest {
   @DisplayName("Members without authentication returns 401")
   void members_withoutAuth_returns401() throws Exception {
     mockMvc.perform(get("/v1/members/00000000-0000-0000-0000-000000000001")
+        .header("X-Tenant-Id", "1")
         .param("gymId", "1"))
       .andExpect(status().isUnauthorized());
   }
@@ -106,6 +107,7 @@ class SecurityConfigTest {
   @DisplayName("Members with MANAGER role returns 403")
   void members_withManagerRole_returns403() throws Exception {
     mockMvc.perform(get("/v1/members/00000000-0000-0000-0000-000000000001")
+        .header("X-Tenant-Id", "1")
         .param("gymId", "1")
         .with(authentication(createJwtToken(1, UUID.randomUUID().toString(), "MANAGER"))))
       .andExpect(status().isForbidden());
@@ -116,6 +118,7 @@ class SecurityConfigTest {
   void members_withMemberRole_passesSecurity() throws Exception {
     String memberId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
     mockMvc.perform(get("/v1/members/" + memberId)
+        .header("X-Tenant-Id", "1")
         .param("gymId", "1")
         .with(authentication(createJwtToken(1, memberId, "MEMBER"))))
       .andExpect(status().is2xxSuccessful());
@@ -125,6 +128,7 @@ class SecurityConfigTest {
   @DisplayName("Members with mismatched memberId returns 403")
   void members_withMismatchedMemberId_returns403() throws Exception {
     mockMvc.perform(get("/v1/members/a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+        .header("X-Tenant-Id", "1")
         .param("gymId", "1")
         .with(authentication(createJwtToken(1, "00000000-0000-0000-0000-000000000099", "MEMBER"))))
       .andExpect(status().isForbidden());

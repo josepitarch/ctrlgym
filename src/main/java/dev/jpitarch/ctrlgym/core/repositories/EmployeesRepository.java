@@ -75,17 +75,16 @@ public class EmployeesRepository {
 
     return assignments.stream()
       .map(assignment -> {
-        UserEntity UserEntity = userJpaRepository.findById(assignment.getEmployeeId())
+        UserEntity userEntity = userJpaRepository.findById(assignment.getEmployeeId())
           .orElseThrow(() -> new MemberNotFoundException(assignment.getEmployeeId()));
 
         Employee employee = Employee.builder()
-          .id(Member.Id.of(UserEntity.getId()))
-          .gymId(UserEntity.getGymId())
-          .name(UserEntity.getName())
-          .firstSurname(UserEntity.getFirstSurname())
-          .secondSurname(UserEntity.getSecondSurname())
-          .email(UserEntity.getEmail())
-          .gender(mapGender(UserEntity.getGender()))
+          .id(userEntity.getId())
+          .name(userEntity.getName())
+          .firstSurname(userEntity.getFirstSurname())
+          .secondSurname(userEntity.getSecondSurname())
+          .email(userEntity.getEmail())
+          .gender(mapGender(userEntity.getGender()))
           .build();
         return employee;
       })

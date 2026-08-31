@@ -106,7 +106,7 @@ class VerifactuServiceTest {
 
     when(gymsRepository.getVerifactuApiKey(1)).thenReturn("test-api-key");
     when(invoiceService.getInvoiceWithMemberData("inv-001")).thenReturn(invoice);
-    when(membersRepository.getById(memberId)).thenReturn(Member.builder().id(Member.Id.of(memberId)).gymId(1).build());
+    when(membersRepository.getGymIdByMemberId(memberId)).thenReturn(1);
     when(responseSpec.body(CreateInvoiceResponse.class)).thenReturn(createInvoiceResponse);
 
     verifactuService.createInvoice(event);

@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.verifactu.dtos.StatusResponse;
 import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import jakarta.annotation.PostConstruct;
@@ -149,8 +150,8 @@ public class GenerateInvoiceReportService {
   public byte[] generate(UUID memberId, String invoiceId) throws IOException {
     Member member = membersRepository.getById(memberId);
     Invoice invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
-    StatusResponse qrUrl = verifactuService.getStatus(member.getGymId(), invoiceId);
-    GymEntity gym = gymsRepository.getById(member.getGymId());
+    StatusResponse qrUrl = verifactuService.getStatus(TenantContextHolder.getTenantId(), invoiceId);
+    GymEntity gym = gymsRepository.getById(TenantContextHolder.getTenantId());
 
     var decimalFormat = new DecimalFormat("#,##0.00");
     var dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");

@@ -5,7 +5,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +33,7 @@ class SubscriptionServiceTest {
   @InjectMocks
   SubscriptionService subscriptionService;
 
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID());
+  private final UUID memberId = UUID.randomUUID();
   private final Integer gymId = 1;
 
   @Test
@@ -69,7 +68,7 @@ class SubscriptionServiceTest {
         .thenReturn(mockSubscription);
       when(mockSubscription.getId()).thenReturn("sub_test123");
 
-      String result = subscriptionService.create(memberId.memberId(), gymId, props);
+      String result = subscriptionService.create(memberId, gymId, props);
 
       assertThat(result).isEqualTo("sub_test123");
 
@@ -121,7 +120,7 @@ class SubscriptionServiceTest {
         .thenReturn(mockSubscription);
       when(mockSubscription.getId()).thenReturn("sub_test");
 
-      subscriptionService.create(memberId.memberId(), gymId, props);
+      subscriptionService.create(memberId, gymId, props);
 
       ArgumentCaptor<SubscriptionCreateParams> paramsCaptor = ArgumentCaptor.forClass(SubscriptionCreateParams.class);
       subscriptionMock.verify(() -> Subscription.create(paramsCaptor.capture(), any(RequestOptions.class)));
@@ -150,7 +149,7 @@ class SubscriptionServiceTest {
       setupIntentMock.when(() -> SetupIntent.retrieve(anyString(), any(RequestOptions.class)))
         .thenThrow(cardException);
 
-      assertThatThrownBy(() -> subscriptionService.create(memberId.memberId(), gymId, props))
+      assertThatThrownBy(() -> subscriptionService.create(memberId, gymId, props))
         .isInstanceOf(StripeException.class);
     }
   }

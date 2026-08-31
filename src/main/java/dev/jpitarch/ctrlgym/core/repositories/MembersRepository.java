@@ -8,6 +8,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -45,7 +46,7 @@ public class MembersRepository {
       .orElseThrow(() -> new MemberNotFoundException(memberId));
 
     return Member.builder()
-      .id(Member.Id.of(memberId))
+      .id(memberId)
       .nif(UserEntity.getNif())
       .email(UserEntity.getEmail())
       .name(UserEntity.getName())
@@ -61,6 +62,12 @@ public class MembersRepository {
       .build();
   }
 
+  public Integer getGymIdByMemberId(UUID memberId) {
+    return jpaRepository.findById(memberId)
+      .map(UserEntity::getGymId)
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+  }
+
   public String getRoleById(UUID memberId) {
     return jpaRepository
       .findRoleById(memberId)
@@ -69,8 +76,8 @@ public class MembersRepository {
 
   public void save(Member member, String customerId) {
     var memberEntity = new UserEntity();
-    memberEntity.setId(member.getId().memberId());
-    memberEntity.setGymId(member.getGymId());
+    memberEntity.setId(member.getId());
+    memberEntity.setGymId(TenantContextHolder.getTenantId());
     memberEntity.setName(member.getName());
     memberEntity.setFirstSurname(member.getFirstSurname());
     memberEntity.setSecondSurname(member.getSecondSurname());

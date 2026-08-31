@@ -55,11 +55,11 @@ class UserControllerTestIT extends BaseIntegrationTest {
     .addModule(new JavaTimeModule())
     .build();
 
-  Member.Id memberId = Member.Id.of(UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890"));
+  UUID memberId = UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
   Integer gymId = 1;
 
   private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtAuth() {
-    return jwt().jwt(j -> j.subject(memberId.memberId().toString()))
+    return jwt().jwt(j -> j.subject(memberId.toString()))
       .authorities(new SimpleGrantedAuthority("ROLE_MEMBER"));
   }
 
@@ -83,7 +83,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
 
     when(customerService.create(any())).thenReturn("cus_test123");
 
-    mockMvc.perform(post("/v1/members/{memberId}", memberId.memberId())
+    mockMvc.perform(post("/v1/members/{memberId}", memberId)
         .param("gymId", gymId.toString())
         .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +91,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
       .andExpect(status().isCreated());
 
     userJpaRepository
-      .findById(memberId.memberId())
+      .findById(memberId)
       .ifPresentOrElse(m -> assertThat(m.getStripeCustomerId()).isEqualTo("cus_test123"), () -> fail("Member not found"));
   }
 
@@ -99,13 +99,13 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @Order(2)
   @DisplayName("Returns an existing member")
   void getMember_returnsMember() throws Exception {
-    mockMvc.perform(get("/v1/members/{memberId}", memberId.memberId())
+    mockMvc.perform(get("/v1/members/{memberId}", memberId)
         .param("gymId", gymId.toString())
         .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id.member_id").value(memberId.memberId().toString()))
+      .andExpect(jsonPath("$.id").value(memberId.toString()))
       .andExpect(jsonPath("$.gym_id").value(gymId.toString()))
       .andExpect(jsonPath("$.name").value("John"))
       .andExpect(jsonPath("$.first_surname").value("Doe"))
@@ -132,7 +132,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @Order(4)
   @DisplayName("Returns 409 when generating QR without active membership")
   void generateQr_returns409_whenMemberHasNoActiveMembership() throws Exception {
-    mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId.memberId())
+    mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId)
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isConflict());
@@ -144,7 +144,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   void initializeMembership_returns204_whenSuccessful() throws Exception {
     when(subscriptionService.create(any(), any(), any())).thenReturn("sub_test123");
 
-    mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipId}", memberId.memberId(), "plan_basic")
+    mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipId}", memberId, "plan_basic")
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isNoContent());
@@ -154,7 +154,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @Order(6)
   @DisplayName("Returns all memberships for a member")
   void getMemberships_returnsAllMemberships() throws Exception {
-    mockMvc.perform(get("/v1/members/{memberId}/memberships", memberId.memberId())
+    mockMvc.perform(get("/v1/members/{memberId}/memberships", memberId)
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isOk())
@@ -172,7 +172,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
     var body = """
       {}
       """;
-    mockMvc.perform(patch("/v1/members/{memberId}/memberships/{membershipId}", memberId.memberId(), "plan_basic")
+    mockMvc.perform(patch("/v1/members/{memberId}/memberships/{membershipId}", memberId, "plan_basic")
         .param("gymId", gymId.toString())
         .param("cancellationReasonId", "1")
         .with(jwtAuth())
@@ -191,7 +191,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   void createRoutine_returns201() throws Exception {
     var routineJson = jsonMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
 
-    mockMvc.perform(post("/v1/members/{memberId}/routines", memberId.memberId())
+    mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
         .param("gymId", gymId.toString())
         .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
@@ -203,7 +203,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @Order(9)
   @DisplayName("Returns member routines")
   void getRoutines_returnsRoutines() throws Exception {
-    mockMvc.perform(get("/v1/members/{memberId}/routines", memberId.memberId())
+    mockMvc.perform(get("/v1/members/{memberId}/routines", memberId)
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isOk())
@@ -220,14 +220,14 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @Order(10)
   @DisplayName("Deletes a routine successfully")
   void deleteRoutine_returns204() throws Exception {
-    RoutineEntity routine = routineJpaRepository.findByMemberId(memberId.memberId()).getFirst();
+    RoutineEntity routine = routineJpaRepository.findByMemberId(memberId).getFirst();
 
-    mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId.memberId(), routine.getId())
+    mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId, routine.getId())
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isNoContent());
 
-    assertThat(routineJpaRepository.findByMemberId(memberId.memberId())).isEmpty();
+    assertThat(routineJpaRepository.findByMemberId(memberId)).isEmpty();
   }
 
 }

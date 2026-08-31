@@ -2,6 +2,8 @@ package dev.jpitarch.ctrlgym.core.controllers.filters;
 
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.io.ByteArrayOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -68,6 +72,17 @@ class TenantFilterTest {
   void doFilterInternal_returns400WhenTenantIdMissing() throws Exception {
     when(request.getRequestURI()).thenReturn("/v1/gyms/1/branches");
     when(request.getHeader("X-Tenant-Id")).thenReturn(null);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ServletOutputStream servletOutputStream = new ServletOutputStream() {
+      @Override
+      public boolean isReady() { return true; }
+      @Override
+      public void setWriteListener(WriteListener writeListener) {}
+      @Override
+      public void write(int b) { baos.write(b); }
+    };
+    when(response.getOutputStream()).thenReturn(servletOutputStream);
 
     filter.doFilter(request, response, filterChain);
 

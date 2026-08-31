@@ -73,8 +73,8 @@ public class VerifactuService {
 
   public void processInvoice(String invoiceId) {
     var invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
-    var member = membersRepository.getById(invoice.getMemberId());
-    var apiKey = gymsRepository.getVerifactuApiKey(member.getGymId());
+    var gymId = membersRepository.getGymIdByMemberId(invoice.getMemberId());
+    var apiKey = gymsRepository.getVerifactuApiKey(gymId);
 
     var body = CreateInvoiceRequest.builder()
       .serie(invoice.getSeries())

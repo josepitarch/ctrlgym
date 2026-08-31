@@ -40,8 +40,8 @@ public class MembersService {
 
   @Transactional
   public void create(Member member) throws StripeException {
-    if (!membersRepository.exists(member.getId().memberId())) {
-      throw new MemberNotFoundException(member.getId().memberId());
+    if (!membersRepository.exists(member.getId())) {
+      throw new MemberNotFoundException(member.getId());
     }
 
     String customerId = customerService.create(member);

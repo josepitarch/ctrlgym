@@ -43,7 +43,7 @@ class CustomerServiceTest {
   @Mock
   StripeBridge stripeBridge;
 
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID());
+  private final UUID memberId = UUID.randomUUID();
   private final Integer gymId = 1;
 
   @BeforeEach
@@ -59,9 +59,8 @@ class CustomerServiceTest {
       String stripeAccountId = "acct_test123";
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn(stripeAccountId);
 
-      Member member = Member.builder()
+      var member = Member.builder()
         .id(memberId)
-        .gymId(gymId)
         .name("John")
         .firstSurname("Doe")
         .secondSurname("Smith")
@@ -101,9 +100,8 @@ class CustomerServiceTest {
 
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
 
-      Member member = Member.builder()
+      var member = Member.builder()
         .id(memberId)
-        .gymId(gymId)
         .name("John")
         .firstSurname("Doe")
         .email("john@example.com")
@@ -132,7 +130,7 @@ class CustomerServiceTest {
       String customerId = "cus_test123";
 
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn(accountId);
-      when(stripeBridge.getStripeCustomerId(memberId.memberId())).thenReturn(Optional.of(customerId));
+      when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.of(customerId));
 
       SetupIntent mockSetupIntent = mock(SetupIntent.class);
       when(mockSetupIntent.getId()).thenReturn("seti_test123");
@@ -141,7 +139,7 @@ class CustomerServiceTest {
       setupIntentMock.when(() -> SetupIntent.create(any(SetupIntentCreateParams.class), any(RequestOptions.class)))
         .thenReturn(mockSetupIntent);
 
-      SetupIntentResponse result = customerService.createSetupIntent(memberId.memberId(), gymId);
+      SetupIntentResponse result = customerService.createSetupIntent(memberId, gymId);
 
       assertThat(result.id()).isEqualTo("seti_test123");
       assertThat(result.clientSecret()).isEqualTo("seti_test123_secret_abc");
@@ -154,7 +152,7 @@ class CustomerServiceTest {
       assertThat(capturedParams.getPaymentMethodTypes()).containsExactly("sepa_debit");
       assertThat(capturedParams.getUsage()).isEqualTo(SetupIntentCreateParams.Usage.OFF_SESSION);
 
-      verify(stripeBridge).saveStripeSetupIntentId(memberId.memberId(),"seti_test123");
+      verify(stripeBridge).saveStripeSetupIntentId(memberId,"seti_test123");
     }
   }
 
@@ -162,9 +160,9 @@ class CustomerServiceTest {
   @DisplayName("createSetupIntent - throws NoSuchElementException when customer not found")
   void createSetupIntent_throwsExceptionWhenCustomerNotFound() {
     when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
-    when(stripeBridge.getStripeCustomerId(memberId.memberId())).thenReturn(Optional.empty());
+    when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> customerService.createSetupIntent(memberId.memberId(), gymId))
+    assertThatThrownBy(() -> customerService.createSetupIntent(memberId, gymId))
       .isInstanceOf(NoSuchElementException.class);
   }
 
@@ -177,13 +175,13 @@ class CustomerServiceTest {
       String customerId = "cus_test";
 
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn(accountId);
-      when(stripeBridge.getStripeCustomerId(memberId.memberId())).thenReturn(Optional.of(customerId));
+      when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.of(customerId));
 
       CardException cardException = mock(CardException.class);
       setupIntentMock.when(() -> SetupIntent.create(any(SetupIntentCreateParams.class), any(RequestOptions.class)))
         .thenThrow(cardException);
 
-      assertThatThrownBy(() -> customerService.createSetupIntent(memberId.memberId(), gymId))
+      assertThatThrownBy(() -> customerService.createSetupIntent(memberId, gymId))
         .isInstanceOf(StripeException.class);
     }
   }

@@ -88,7 +88,7 @@ public class WebhookService {
   private void handleInvoiceCreated(Invoice invoice) {
     log.info("Creating invoice of member with id {}...", invoice.getId());
     UUID memberId = stripeBridge.getId(invoice.getCustomer());
-    var member = membersRepository.getById(memberId);
+    Integer gymId = membersRepository.getGymIdByMemberId(memberId);
 
     var inv = dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
       .id(invoice.getId())
@@ -99,7 +99,7 @@ public class WebhookService {
 
     Long membershipId = stripeBridge.getMembershipId(this.extractSubscriptionFromInvoice(invoice));
 
-    invoiceRepository.create(inv, memberId, member.getGymId(), membershipId);
+    invoiceRepository.create(inv, memberId, gymId, membershipId);
   }
 
   private Long calculateSubtotal(Long totalInCents) {

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,6 +21,8 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
   boolean existsByEmail(String email);
 
   Optional<UserEntity> findByEmail(String email);
+
+  List<UserEntity> findAllByEmail(String email);
 
   Optional<UserEntity> findByEmailAndGymId(String email, Integer gymId);
 

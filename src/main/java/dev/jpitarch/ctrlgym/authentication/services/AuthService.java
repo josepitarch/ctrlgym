@@ -36,35 +36,35 @@ public class AuthService {
     this.membersRepository = membersRepository;
   }
 
-  public AuthResponse signup(SignupRequest request) {
-    if (membersRepository.exists(request.gymId(), request.email())) {
-      if (membersRepository.isInMigration(request.gymId(), request.email())) {
-        log.info("User with email {} of gym with id {} is in migration yet. Sending a new invitation...", request.email(), request.gymId());
+  public AuthResponse signup(SignupRequest request, Integer gymId) {
+    if (membersRepository.exists(gymId, request.email())) {
+      if (membersRepository.isInMigration(gymId, request.email())) {
+        log.info("User with email {} of gym with id {} is in migration yet. Sending a new invitation...", request.email(), gymId);
         restClient.post()
           .uri("/invite")
           .body(Map.of("email", request.email()))
           .retrieve()
           .toBodilessEntity();
 
-        throw new AuthException(AuthException.Signup.IS_IN_MIGRATION, request.gymId(), request.email());
+        throw new AuthException(AuthException.Signup.IS_IN_MIGRATION, gymId, request.email());
       }
 
-      throw new AuthException(AuthException.Signup.ALREADY_EXISTS, request.gymId(), request.email());
+      throw new AuthException(AuthException.Signup.ALREADY_EXISTS, gymId, request.email());
     }
 
-    if (membersRepository.existsAnotherGym(request.gymId(), request.email())) {
+    if (membersRepository.existsAnotherGym(gymId, request.email())) {
       //TODO: crear para este nuevo gimnasio solicitado solo si es miembro
-      throw new AuthException(AuthException.Signup.ANOTHER_GYM, request.gymId(), request.email());
+      throw new AuthException(AuthException.Signup.ANOTHER_GYM, gymId, request.email());
     }
 
-    log.info("Registering a new user with email {} associated to gym with id {}...", request.email(), request.gymId());
+    log.info("Registering a new user with email {} associated to gym with id {}...", request.email(), gymId);
     return restClient.post()
       .uri("/signup")
       .body(Map.of(
         "email", request.email(),
         "password", request.password(),
         "data", new HashMap<String, Object>() {{
-          put("gym_id", request.gymId());
+          put("gym_id", gymId);
           put("name", request.name());
           put("first_surname", request.firstSurname());
           put("second_surname", request.secondSurname());

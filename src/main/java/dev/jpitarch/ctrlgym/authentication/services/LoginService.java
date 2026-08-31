@@ -22,12 +22,21 @@ public class LoginService {
 
   private final RefreshTokenService refreshTokenService;
 
-  public AuthResponse login(LoginRequest request) {
-    UserEntity user = request.gymId() != null
-      ? userRepository.findByEmailAndGymId(request.email(), request.gymId())
-        .orElseThrow(() -> new IllegalArgumentException("User not found"))
-      : userRepository.findByEmail(request.email())
+  public AuthResponse login(LoginRequest request, Integer gymId) {
+    UserEntity user;
+    if (gymId != null) {
+      user = userRepository.findByEmailAndGymId(request.email(), gymId)
         .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    } else {
+      var users = userRepository.findAllByEmail(request.email());
+      if (users.isEmpty()) {
+        throw new IllegalArgumentException("User not found");
+      }
+      if (users.size() > 1) {
+        throw new IllegalArgumentException("Multiple accounts found. Please specify gym.");
+      }
+      user = users.getFirst();
+    }
 
     if (user.getStatus().equals(UserStatus.PENDING_ACTIVATION)) {
       throw new AccountNotActivatedException("Account not activated");

@@ -7,6 +7,7 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,10 @@ public class UserRepository {
 
   public Optional<UserEntity> findByEmail(String email) {
     return jpaRepository.findByEmail(email);
+  }
+
+  public List<UserEntity> findAllByEmail(String email) {
+    return jpaRepository.findAllByEmail(email);
   }
 
   public Optional<UserEntity> findByEmailAndGymId(String email, Integer gymId) {

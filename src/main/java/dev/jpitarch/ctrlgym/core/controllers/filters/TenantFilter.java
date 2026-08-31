@@ -24,7 +24,7 @@ public class TenantFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
     String path = request.getRequestURI();
-    return !path.startsWith("/v1/gyms") && !path.startsWith("/v1/members");
+    return !path.startsWith("/v1/members");
   }
 
   @Override

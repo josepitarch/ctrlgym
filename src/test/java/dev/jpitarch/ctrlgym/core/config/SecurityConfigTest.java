@@ -15,6 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.List;
@@ -40,7 +41,7 @@ class SecurityConfigTest {
   ControllerApiKeyFilter controllerApiKeyFilter;
 
   @Autowired
-  private org.springframework.test.web.servlet.MockMvc mockMvc;
+  private MockMvc mockMvc;
 
   private CustomJwtAuthenticationToken createJwtToken(Integer gymId, String subject, String role) {
     Jwt jwt = Jwt.withTokenValue("token")

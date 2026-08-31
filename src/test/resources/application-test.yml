@@ -47,3 +47,12 @@ storage:
     secret-access-key: test-secret-key
     bucket: test-bucket
     public-url: https://test.r2.cloudflarestorage.com
+
+management:
+  otlp:
+    logging:
+      export:
+        otlp:
+          headers:
+            Authorization: "Bearer ${AXIOM_API_TOKEN}"
+

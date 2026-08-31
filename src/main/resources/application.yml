@@ -57,3 +57,13 @@ storage:
     secret-access-key: ${R2_SECRET_ACCESS_KEY}
     bucket: ${R2_BUCKET}
     public-url: ${R2_PUBLIC_URL}
+
+management:
+  otlp:
+    logging:
+      export:
+        otlp:
+          endpoint: https://api.axiom.co/v1/logs
+          headers:
+            Authorization: "Bearer xaat-9c12b794-4159-431c-9579-d28a3ef6f3t8"
+            X-Axiom-Dataset: ctrlgym-logging

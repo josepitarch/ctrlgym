@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.config;
 
 import dev.jpitarch.ctrlgym.core.controllers.filters.ControllerApiKeyFilter;
+import dev.jpitarch.ctrlgym.core.controllers.filters.TenantFilter;
 import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -40,6 +41,13 @@ public class SecurityConfig {
   }
 
   @Bean
+  public FilterRegistrationBean<TenantFilter> tenantFilterRegistration(TenantFilter filter) {
+    var registration = new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+  }
+
+  @Bean
   @Order(1)
   public SecurityFilterChain apiKeySecurityFilterChain(HttpSecurity http, ControllerApiKeyFilter filter) {
     http
@@ -54,7 +62,7 @@ public class SecurityConfig {
 
   @Bean
   @Order(2)
-  SecurityFilterChain securityFilterChain(HttpSecurity http) {
+  SecurityFilterChain securityFilterChain(HttpSecurity http, TenantFilter tenantFilter) {
     http
       .cors(Customizer.withDefaults())
       .csrf(AbstractHttpConfigurer::disable)
@@ -67,7 +75,8 @@ public class SecurityConfig {
       )
       .oauth2ResourceServer(oauth -> oauth.jwt(
         jwt -> jwt.jwtAuthenticationConverter(new CustomJwtAuthenticationConverter())
-      ));
+      ))
+      .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }

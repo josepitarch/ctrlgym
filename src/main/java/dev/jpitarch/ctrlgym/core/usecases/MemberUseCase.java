@@ -40,44 +40,44 @@ public class MemberUseCase {
     membersService.create(member);
   }
 
-  public Member getMember(Member.Id memberId) {
+  public Member getMember(UUID memberId) {
     return membersService.getMember(memberId);
   }
 
-  public Membership initializeMembership(Member.Id memberId, String membershipPlanId) throws StripeException {
-    return membershipService.initialize(memberId, membershipPlanId);
+  public Membership initializeMembership(UUID memberId, Integer gymId, String membershipPlanId) throws StripeException {
+    return membershipService.initialize(memberId, gymId, membershipPlanId);
   }
 
   @SneakyThrows
-  public void changeMembership(Member.Id memberId, String newMembershipPlanId) {
-    membershipService.change(memberId, newMembershipPlanId);
+  public void changeMembership(UUID memberId, Integer gymId, String newMembershipPlanId) {
+    membershipService.change(memberId, gymId, newMembershipPlanId);
   }
 
-  public void cancelMembership(Member.Id memberId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
-    membershipService.cancel(memberId, membershipId, cancellationReasonId, comment);
+  public void cancelMembership(UUID memberId, Integer gymId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
+    membershipService.cancel(memberId, gymId, membershipId, cancellationReasonId, comment);
   }
 
-  public Optional<Membership> getMembership(Member.Id memberId) {
+  public Optional<Membership> getMembership(UUID memberId) {
     return membershipService.retrieve(memberId);
   }
 
-  public List<MemberAccess> getAccesses(Member.Id memberId) {
+  public List<MemberAccess> getAccesses(UUID memberId) {
     return membersService.getAccesses(memberId);
   }
 
-  public Map<LocalDate, Boolean> getAttendanceSummary(Member.Id memberId, LocalDate from, LocalDate to) {
+  public Map<LocalDate, Boolean> getAttendanceSummary(UUID memberId, LocalDate from, LocalDate to) {
     return membersService.getAttendanceSummary(memberId, from, to);
   }
 
-  public void createRoutine(Routine routine, Member.Id memberId) {
-    routinesService.create(routine, memberId);
+  public void createRoutine(Routine routine, UUID memberId, Integer gymId) {
+    routinesService.create(routine, memberId, gymId);
   }
 
-  public List<Routine> getRoutines(Member.Id memberId) {
+  public List<Routine> getRoutines(UUID memberId) {
     return routinesService.getRoutines(memberId);
   }
 
-  public void deleteRoutine(Integer routineId, Member.Id memberId) {
+  public void deleteRoutine(Integer routineId, UUID memberId) {
     routinesService.delete(routineId, memberId);
   }
 
@@ -89,16 +89,16 @@ public class MemberUseCase {
     return workoutsService.getWorkouts(memberId, pageable);
   }
 
-  public Page<Invoice> getInvoices(Member.Id memberId, Pageable pageable) {
+  public Page<Invoice> getInvoices(UUID memberId, Pageable pageable) {
     return invoiceRepository.findByMemberId(memberId, pageable);
   }
 
 
-  public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
-    return membersService.generateQrCode(memberId);
+  public byte[] generateQrCode(UUID memberId, Integer gymId) throws WriterException, IOException {
+    return membersService.generateQrCode(memberId, gymId);
   }
 
-  public byte[] getInvoiceReport(Member.Id memberId, String invoiceId) throws IOException {
+  public byte[] getInvoiceReport(UUID memberId, String invoiceId) throws IOException {
     log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
     return generateInvoiceReportService.generate(memberId, invoiceId);
   }

@@ -39,14 +39,14 @@ public class InvoiceRepository {
     return invoiceJpaRepository.findById(id).map(mapper::map);
   }
 
-  public Page<Invoice> findByMemberId(Member.Id memberId, Pageable pageable) {
-    return invoiceJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId(), pageable)
+  public Page<Invoice> findByMemberId(UUID memberId, Pageable pageable) {
+    return invoiceJpaRepository.findByMemberId(memberId, pageable)
       .map(mapper::map);
   }
 
 
-  public void create(Invoice invoice, Member.Id memberId, Long membershipId) {
-    var InvoiceEntity = createInvoiceEntity(invoice, memberId, membershipId);
+  public void create(Invoice invoice, UUID memberId, Integer gymId, Long membershipId) {
+    var InvoiceEntity = createInvoiceEntity(invoice, memberId, gymId, membershipId);
     invoiceJpaRepository.save(InvoiceEntity);
   }
 
@@ -103,15 +103,15 @@ public class InvoiceRepository {
     return invoiceJpaRepository.getVerifactuId(invoiceId);
   }
 
-  private InvoiceEntity createInvoiceEntity(Invoice invoice, Member.Id memberId, Long membershipId) {
-    var series = memberId.gymId() + "-" + Year.now();
+  private InvoiceEntity createInvoiceEntity(Invoice invoice, UUID memberId, Integer gymId, Long membershipId) {
+    var series = gymId + "-" + Year.now();
 
     var InvoiceEntity = new InvoiceEntity();
     InvoiceEntity.setId(invoice.getId());
-    InvoiceEntity.setGymId(memberId.gymId());
-    InvoiceEntity.setMemberId(memberId.memberId());
+    InvoiceEntity.setGymId(gymId);
+    InvoiceEntity.setMemberId(memberId);
     InvoiceEntity.setSeries(series);
-    InvoiceEntity.setNumber(this.nextNumber(memberId.gymId(), series).toString());
+    InvoiceEntity.setNumber(this.nextNumber(gymId, series).toString());
     InvoiceEntity.setTotal(invoice.getTotal());
     InvoiceEntity.setSubtotal(invoice.getSubtotal());
     InvoiceEntity.setCurrency(invoice.getCurrency());

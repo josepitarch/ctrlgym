@@ -53,7 +53,7 @@ public class AnalyticsRepository {
       "to", datePeriod.to().toString()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var month = row.getDate("month").toLocalDate();
       var activeMemberships = row.getInt("active_memberships");
       return Map.entry(YearMonth.from(month), activeMemberships);
@@ -87,7 +87,7 @@ public class AnalyticsRepository {
       "to", datePeriod.to().toString()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var month = row.getDate("month").toLocalDate();
       var newMemberships = row.getInt("new_memberships");
       return Map.entry(YearMonth.from(month), newMemberships);
@@ -121,7 +121,7 @@ public class AnalyticsRepository {
       "to", datePeriod.to().toString()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var month = row.getDate("month").toLocalDate();
       var cancellations = row.getInt("cancellations");
       return Map.entry(YearMonth.from(month), cancellations);
@@ -160,7 +160,7 @@ public class AnalyticsRepository {
 
     var params = Map.of("gymBranchId", gymBranchId.branchId());
 
-    var result = jdbc.query(sql, params, (row, _) -> new Object[]{ row.getString("rango_antiguedad"), row.getInt("cantidad_membresias") });
+    var result = jdbc.query(sql, params, (row, rowNum) -> new Object[]{ row.getString("rango_antiguedad"), row.getInt("cantidad_membresias") });
     return result;
   }
 
@@ -203,7 +203,7 @@ public class AnalyticsRepository {
       "to", datePeriod.to()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var month = YearMonth.parse(row.getString("month"));
       var averageTenure = (int) Math.round(row.getDouble("average_tenure_months"));
       return Map.entry(month, averageTenure);
@@ -264,7 +264,7 @@ public class AnalyticsRepository {
       "gymId", gymBranchId.gymId(),
       "currentMonth", LocalDate.now().getMonthValue()
     );
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var cohortMonth = row.getDate("cohort_month").toLocalDate();
       var monthOffset = row.getInt("month_offset");
       var activeMembers = row.getInt("active_members");
@@ -333,7 +333,7 @@ public class AnalyticsRepository {
       "to", datePeriod.to()
     );
 
-    var results = jdbc.query(sql, params, (row, _) -> {
+    var results = jdbc.query(sql, params, (row, rowNum) -> {
       var month = YearMonth.parse(row.getString("month"));
       double churnPercentage = row.getDouble("churn_percentage");
       double retentionPercentage = row.getDouble("retention_percentage");
@@ -359,7 +359,7 @@ public class AnalyticsRepository {
       "gymId", gymBranchId.gymId()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var reasonId = row.getInt("cancellation_reason_id");
       var count = row.getInt("count");
       return Map.of(
@@ -385,7 +385,7 @@ public class AnalyticsRepository {
       "gymBranchId", gymBranchId.branchId()
     );
 
-    return jdbc.query(sql, params, (rs, _) -> new CancellationComment(
+    return jdbc.query(sql, params, (rs, rowNum) -> new CancellationComment(
       rs.getInt("cancellation_reason_id"),
       new CancellationComment.Member(
         rs.getString("name"),
@@ -430,7 +430,7 @@ public class AnalyticsRepository {
       "gymBranchId", gymBranchId.branchId()
     );
 
-    return jdbc.query(sql, params, (rs, _) -> new String[]{
+    return jdbc.query(sql, params, (rs, rowNum) -> new String[]{
       rs.getString("gender"),
       rs.getString("postal_code"),
       rs.getString("age_range"),
@@ -464,7 +464,7 @@ public class AnalyticsRepository {
 
     var params = Map.of("gymBranchId", gymBranchId.branchId());
 
-    return jdbc.query(sql, params, (rs, _) ->
+    return jdbc.query(sql, params, (rs, rowNum) ->
       new MembershipPlanDistribution(rs.getString("id"), rs.getString("name"), rs.getInt("count"))
     );
   }
@@ -503,7 +503,7 @@ public class AnalyticsRepository {
       "to", to.atDay(1).toString()
     );
 
-    return jdbc.query(sql, params, (rs, _) -> new BranchMetrics(
+    return jdbc.query(sql, params, (rs, rowNum) -> new BranchMetrics(
       rs.getInt("branch_id"),
       rs.getString("branch_name"),
       YearMonth.parse(rs.getString("year_month")),
@@ -552,7 +552,7 @@ public class AnalyticsRepository {
       "to", datePeriod.to()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var month = row.getDate("month").toLocalDate();
       var totalPayments = row.getDouble("total_payments");
       return Map.entry(YearMonth.from(month), totalPayments);

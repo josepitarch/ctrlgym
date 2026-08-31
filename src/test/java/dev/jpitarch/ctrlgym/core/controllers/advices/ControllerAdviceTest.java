@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.controllers.advices;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,12 +23,12 @@ class ControllerAdviceTest {
   static class TestController {
     @GetMapping("/member-not-found")
     public void throwMemberNotFoundException() {
-      throw new MemberNotFoundException(Member.Id.of(java.util.UUID.randomUUID(), 1));
+      throw new MemberNotFoundException(java.util.UUID.randomUUID());
     }
 
     @GetMapping("/member-without-access")
     public void throwMemberWithoutAccessException() {
-      throw new MemberWithoutAccessException(Member.Id.of(java.util.UUID.randomUUID(), 1));
+      throw new MemberWithoutAccessException(java.util.UUID.randomUUID());
     }
 
     @GetMapping("/core-business")

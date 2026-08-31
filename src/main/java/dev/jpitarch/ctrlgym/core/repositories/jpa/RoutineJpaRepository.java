@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface RoutineJpaRepository extends JpaRepository<RoutineEntity, Integer> {
 
-  List<RoutineEntity> findByMemberIdAndGymId(UUID memberId, Integer gymId);
+  List<RoutineEntity> findByMemberId(UUID memberId);
 
   List<RoutineEntity> findByGymIdAndMemberIdIsNull(Integer gymId);
 

@@ -1,10 +1,10 @@
 package dev.jpitarch.ctrlgym.core.domain.exceptions;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
+import java.util.UUID;
 
 public class MemberNotFoundException extends RuntimeException {
 
-  public MemberNotFoundException(Member.Id memberId) {
+  public MemberNotFoundException(UUID memberId) {
     super("Member with id %s does not exists".formatted(memberId));
   }
 

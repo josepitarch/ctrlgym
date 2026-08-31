@@ -29,7 +29,6 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
     var request = new SignupRequest(
       "newuser@test.com",
       "Password1!",
-      1,
       "New",
       "User",
       null
@@ -54,7 +53,7 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @Order(2)
   @DisplayName("Login with valid credentials returns tokens")
   void login_returns200_withTokens() throws Exception {
-    var request = new LoginRequest("newuser@test.com", "Password1!", null);
+    var request = new LoginRequest("newuser@test.com", "Password1!");
 
     MvcResult result = mockMvc.perform(post("/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +74,7 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @Order(3)
   @DisplayName("Login with invalid credentials returns 400")
   void login_invalidCredentials_returns400() throws Exception {
-    var request = new LoginRequest("newuser@test.com", "WrongPassword!", null);
+    var request = new LoginRequest("newuser@test.com", "WrongPassword!");
 
     mockMvc.perform(post("/v1/auth/login")
         .contentType(MediaType.APPLICATION_JSON)

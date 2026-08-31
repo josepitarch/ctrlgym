@@ -13,7 +13,7 @@ import java.util.UUID;
 @Repository
 public interface InvoiceJpaRepository extends JpaRepository<InvoiceEntity, String> {
 
-  Page<InvoiceEntity> findByMemberIdAndGymId(UUID memberId, Integer gymId, Pageable pageable);
+  Page<InvoiceEntity> findByMemberId(UUID memberId, Pageable pageable);
 
   @Query("SELECT i.verifactuId FROM InvoiceEntity i WHERE i.id = :invoiceId")
   Optional<UUID> getVerifactuId(String invoiceId);

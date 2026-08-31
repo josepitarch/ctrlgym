@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -20,7 +21,7 @@ public class Invoice {
 
   private String id;
 
-  private Member.Id memberId;
+  private UUID memberId;
 
   private String name;
 

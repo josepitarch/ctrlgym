@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -32,6 +34,8 @@ public class WebhookService {
   private final MembershipsRepository membershipsRepository;
 
   private final InvoiceRepository invoiceRepository;
+
+  private final MembersRepository membersRepository;
 
   private final ApplicationEventPublisher eventPublisher;
 
@@ -83,7 +87,8 @@ public class WebhookService {
 
   private void handleInvoiceCreated(Invoice invoice) {
     log.info("Creating invoice of member with id {}...", invoice.getId());
-    Member.Id memberId = stripeBridge.getId(invoice.getCustomer());
+    UUID memberId = stripeBridge.getId(invoice.getCustomer());
+    Integer gymId = membersRepository.getGymIdByMemberId(memberId);
 
     var inv = dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
       .id(invoice.getId())
@@ -94,7 +99,7 @@ public class WebhookService {
 
     Long membershipId = stripeBridge.getMembershipId(this.extractSubscriptionFromInvoice(invoice));
 
-    invoiceRepository.create(inv, memberId, membershipId);
+    invoiceRepository.create(inv, memberId, gymId, membershipId);
   }
 
   private Long calculateSubtotal(Long totalInCents) {

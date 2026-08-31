@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.repositories.GymJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,31 +20,28 @@ public class StripeBridge {
 
   private final UserJpaRepository userJpaRepository;
 
-  public Optional<String> getStripeCustomerId(Member.Id memberId) {
-    return userJpaRepository.getStripeCustomerId(memberId.memberId(), memberId.gymId());
+  public Optional<String> getStripeCustomerId(UUID memberId) {
+    return userJpaRepository.getStripeCustomerId(memberId);
   }
 
-  public Optional<String> getStripeSetupIntentId(Member.Id id) {
-    return userJpaRepository.getStripeSetupIntentId(id.memberId(), id.gymId());
+  public Optional<String> getStripeSetupIntentId(UUID memberId) {
+    return userJpaRepository.getStripeSetupIntentId(memberId);
   }
 
-  public void saveStripeSetupIntentId(Member.Id memberId, String id) {
-    userJpaRepository.saveStripeSetupIntentId(memberId.memberId(), memberId.gymId(), id);
+  public void saveStripeSetupIntentId(UUID memberId, String id) {
+    userJpaRepository.saveStripeSetupIntentId(memberId, id);
   }
 
-  public Member.Id getId(String stripeCustomerId) {
+  public UUID getId(String stripeCustomerId) {
     var sql = """
-        SELECT id, gym_id
+        SELECT id
         FROM users
         WHERE stripe_customer_id = :stripeCustomerId
       """;
 
     var params = Map.of("stripeCustomerId", stripeCustomerId);
 
-    return this.jdbc.queryForObject(sql, params, (rs, _) -> Member.Id.of(
-      UUID.fromString(rs.getString("id")),
-      rs.getInt("gym_id"))
-    );
+    return this.jdbc.queryForObject(sql, params, (rs, rowNum) -> UUID.fromString(rs.getString("id")));
 
   }
 

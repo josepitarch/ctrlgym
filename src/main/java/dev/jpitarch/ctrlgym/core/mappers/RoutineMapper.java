@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.mappers;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.entities.ExerciseEntity;
 import dev.jpitarch.ctrlgym.core.entities.RoutineDayExerciseEntity;
@@ -15,6 +14,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper(config = BaseMapper.class)
 public interface RoutineMapper {
@@ -23,9 +23,9 @@ public interface RoutineMapper {
   @Mapping(target = "description", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "deletedAt", ignore = true)
-  @Mapping(target = "memberId", source = "memberId.memberId")
-  @Mapping(target = "gymId", source = "memberId.gymId")
-  RoutineEntity map(Routine routine, Member.Id memberId);
+  @Mapping(target = "memberId", source = "memberId")
+  @Mapping(target = "gymId", source = "gymId")
+  RoutineEntity map(Routine routine, UUID memberId, Integer gymId);
 
   @Mapping(target = "routine", ignore = true)
   @Mapping(target = "dayNumber", source = "dayNumber")

@@ -12,14 +12,17 @@ import com.stripe.param.SetupIntentRetrieveParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -29,7 +32,7 @@ public class CustomerService {
   private final StripeBridge stripeBridge;
 
   public String create(Member member) throws StripeException {
-    Integer gymId = member.getId().gymId();
+    Integer gymId = TenantContextHolder.getTenantId();
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
@@ -62,8 +65,8 @@ public class CustomerService {
     return customer.getId();
   }
 
-  public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
-    String accountId = stripeBridge.getStripeAccountId(memberId.gymId());
+  public SetupIntentResponse createSetupIntent(UUID memberId, Integer gymId) throws StripeException {
+    String accountId = stripeBridge.getStripeAccountId(gymId);
     String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow();
 
     var options = RequestOptions.builder()
@@ -104,9 +107,9 @@ public class CustomerService {
     PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
   }
 
-  public Optional<String> getIbanLast4(Member.Id memberId) {
+  public Optional<String> getIbanLast4(UUID memberId) {
     var options = RequestOptions.builder()
-      .setStripeAccount(stripeBridge.getStripeAccountId(memberId.gymId()))
+      .setStripeAccount(stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId()))
       .build();
     var params = SetupIntentRetrieveParams.builder()
       .addExpand("payment_method")

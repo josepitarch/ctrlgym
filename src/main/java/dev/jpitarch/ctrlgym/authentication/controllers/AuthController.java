@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,14 +24,18 @@ public class AuthController {
   private final InvitationService invitationService;
 
   @PostMapping("/signup")
-  public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request) {
-    AuthResponse response = signupService.signup(request);
+  public ResponseEntity<AuthResponse> signup(
+    @RequestBody SignupRequest request,
+    @RequestHeader(value = "X-Tenant-Id") Integer gymId) {
+    AuthResponse response = signupService.signup(request, gymId);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-    AuthResponse response = loginService.login(request);
+  public ResponseEntity<AuthResponse> login(
+    @RequestBody LoginRequest request,
+    @RequestHeader(value = "X-Tenant-Id", required = false) Integer gymId) {
+    AuthResponse response = loginService.login(request, gymId);
     return ResponseEntity.ok(response);
   }
 

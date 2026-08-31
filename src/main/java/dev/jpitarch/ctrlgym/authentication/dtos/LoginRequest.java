@@ -5,6 +5,5 @@ import org.jspecify.annotations.Nullable;
 
 public record LoginRequest(
   String email,
-  String password,
-  @Nullable @JsonProperty("gym_id") Integer gymId
+  String password
 ) {}

@@ -8,11 +8,13 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,8 +24,8 @@ public class MembersRepository {
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
 
-  public boolean exists(Member.Id memberId) {
-    return jpaRepository.existsById(new UserEntity.ID(memberId.memberId(), memberId.gymId()));
+  public boolean exists(UUID memberId) {
+    return jpaRepository.existsById(memberId);
   }
 
   public boolean exists(Integer gymId, String email) {
@@ -38,11 +40,9 @@ public class MembersRepository {
     return jpaRepository.isInMigration(gymId, email);
   }
 
-  public Member getById(Member.Id memberId) {
-    var memberMOId = new UserEntity.ID(memberId.memberId(), memberId.gymId());
-
+  public Member getById(UUID memberId) {
     UserEntity UserEntity = jpaRepository
-      .findById(memberMOId)
+      .findById(memberId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
 
     return Member.builder()
@@ -62,16 +62,22 @@ public class MembersRepository {
       .build();
   }
 
-  public String getRoleById(Member.Id memberId) {
+  public Integer getGymIdByMemberId(UUID memberId) {
+    return jpaRepository.findById(memberId)
+      .map(UserEntity::getGymId)
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+  }
+
+  public String getRoleById(UUID memberId) {
     return jpaRepository
-      .findRoleById(memberId.memberId(), memberId.gymId())
+      .findRoleById(memberId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
   }
 
   public void save(Member member, String customerId) {
     var memberEntity = new UserEntity();
-    memberEntity.setId(member.getId().memberId());
-    memberEntity.setGymId(member.getId().gymId());
+    memberEntity.setId(member.getId());
+    memberEntity.setGymId(TenantContextHolder.getTenantId());
     memberEntity.setName(member.getName());
     memberEntity.setFirstSurname(member.getFirstSurname());
     memberEntity.setSecondSurname(member.getSecondSurname());
@@ -89,8 +95,8 @@ public class MembersRepository {
     jpaRepository.save(memberEntity);
   }
 
-  public List<MemberAccess> getMemberAccessesByMemberId(Member.Id memberId) {
-    return memberAccessJpaRepository.findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
+  public List<MemberAccess> getMemberAccessesByMemberId(UUID memberId) {
+    return memberAccessJpaRepository.findByMemberId(memberId)
       .stream()
       .map(memberAccess -> MemberAccess.builder()
         .branchId(memberAccess.getGymBranchId())
@@ -101,8 +107,8 @@ public class MembersRepository {
       .toList();
   }
 
-  public List<MemberAccess> getMemberAccessesByMemberIdAndDateRange(Member.Id memberId, OffsetDateTime from, OffsetDateTime to) {
-    return memberAccessJpaRepository.findByMemberIdAndGymIdAndDateRange(memberId.memberId(), memberId.gymId(), from, to)
+  public List<MemberAccess> getMemberAccessesByMemberIdAndDateRange(UUID memberId, OffsetDateTime from, OffsetDateTime to) {
+    return memberAccessJpaRepository.findByMemberIdAndDateRange(memberId, from, to)
       .stream()
       .map(memberAccess -> MemberAccess.builder()
         .branchId(memberAccess.getGymBranchId())

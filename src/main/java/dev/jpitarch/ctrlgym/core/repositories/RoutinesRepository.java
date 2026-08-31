@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.mappers.RoutineMapper;
 import dev.jpitarch.ctrlgym.core.entities.*;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,11 +22,11 @@ public class RoutinesRepository {
 
   private final RoutineMapper mapper;
 
-  public Routine save(Routine routine, Member.Id memberId) {
+  public Routine save(Routine routine, UUID memberId, Integer gymId) {
     RoutineEntity RoutineEntity = new RoutineEntity();
     RoutineEntity.setName(routine.getName());
-    RoutineEntity.setMemberId(memberId.memberId());
-    RoutineEntity.setGymId(memberId.gymId());
+    RoutineEntity.setMemberId(memberId);
+    RoutineEntity.setGymId(gymId);
     RoutineEntity.setCreatedAt(Instant.now());
 
     if (routine.getDays() != null) {
@@ -62,10 +62,10 @@ public class RoutinesRepository {
     routineJpaRepository.deleteById(id);
   }
 
-  public List<Routine> findByMemberId(Member.Id memberId) {
+  public List<Routine> findByMemberId(UUID memberId) {
     List<ExerciseEntity> exercises = exerciseJpaRepository.findAll();
     return routineJpaRepository
-      .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
+      .findByMemberId(memberId)
       .stream()
       .map(r -> mapper.mapWithContext(r, exercises))
       .toList();

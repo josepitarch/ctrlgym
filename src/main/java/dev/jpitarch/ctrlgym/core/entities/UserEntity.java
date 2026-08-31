@@ -9,8 +9,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.SqlTypes;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -20,14 +18,12 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "users")
-@IdClass(UserEntity.ID.class)
 public class UserEntity {
 
   @Id
   @Column(name = "id")
   private UUID id;
 
-  @Id
   @Column(name = "gym_id")
   private Integer gymId;
 
@@ -90,29 +86,12 @@ public class UserEntity {
     Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
     if (thisEffectiveClass != oEffectiveClass) return false;
     UserEntity UserEntity = (UserEntity) o;
-    return getId() != null && Objects.equals(getId(), UserEntity.getId())
-      && getGymId() != null && Objects.equals(getGymId(), UserEntity.getGymId());
+    return getId() != null && Objects.equals(getId(), UserEntity.getId());
   }
 
   @Override
   public final int hashCode() {
-    return Objects.hash(id, gymId);
-  }
-
-  @Getter
-  @Setter
-  @EqualsAndHashCode
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class ID implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = -1302489486342450890L;
-
-    private UUID id;
-
-    private Integer gymId;
-
+    return Objects.hash(id);
   }
 
 }

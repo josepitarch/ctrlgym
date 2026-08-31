@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;
 import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceResponse;
@@ -39,6 +40,8 @@ public class VerifactuService {
 
   private final InvoiceService invoiceService;
 
+  private final MembersRepository membersRepository;
+
   private final TelegramNotificationService telegramNotificationService;
 
   private final RetryTemplate retryTemplate = new RetryTemplate(
@@ -50,10 +53,11 @@ public class VerifactuService {
       .build()
   );
 
-  public VerifactuService(RestClient.Builder builder, GymsRepository gymsRepository, InvoiceRepository invoiceRepository, InvoiceService invoiceService, TelegramNotificationService telegramNotificationService) {
+  public VerifactuService(RestClient.Builder builder, GymsRepository gymsRepository, InvoiceRepository invoiceRepository, InvoiceService invoiceService, MembersRepository membersRepository, TelegramNotificationService telegramNotificationService) {
     this.gymsRepository = gymsRepository;
     this.invoiceRepository = invoiceRepository;
     this.invoiceService = invoiceService;
+    this.membersRepository = membersRepository;
     this.telegramNotificationService = telegramNotificationService;
     this.restClient = builder
       .baseUrl("https://api.verifacti.com/verifactu")
@@ -69,7 +73,8 @@ public class VerifactuService {
 
   public void processInvoice(String invoiceId) {
     var invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
-    var apiKey = gymsRepository.getVerifactuApiKey(invoice.getMemberId().gymId());
+    var gymId = membersRepository.getGymIdByMemberId(invoice.getMemberId());
+    var apiKey = gymsRepository.getVerifactuApiKey(gymId);
 
     var body = CreateInvoiceRequest.builder()
       .serie(invoice.getSeries())

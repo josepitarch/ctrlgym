@@ -1,10 +1,10 @@
 package dev.jpitarch.ctrlgym.core.domain.exceptions;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
+import java.util.UUID;
 
 public class MemberWithoutAccessException extends RuntimeException {
 
-  public MemberWithoutAccessException(Member.Id memberId) {
+  public MemberWithoutAccessException(UUID memberId) {
     super("Member with id %s have no any active membership".formatted(memberId));
   }
 

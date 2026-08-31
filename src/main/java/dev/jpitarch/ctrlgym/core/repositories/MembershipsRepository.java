@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,10 +24,10 @@ public class MembershipsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public Membership save(Member.Id memberId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
+  public Membership save(UUID memberId, Integer gymId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
     var membership = new MembershipEntity();
-    membership.setMemberId(memberId.memberId());
-    membership.setGymId(memberId.gymId());
+    membership.setMemberId(memberId);
+    membership.setGymId(gymId);
     membership.setMembershipPlanId(membershipPlanId);
     membership.setStartDate(LocalDate.now());
     membership.setStripeSubscriptionId(subscriptionId);
@@ -40,9 +41,9 @@ public class MembershipsRepository {
     return this.membershipJpaRepository.getIdByStripeSubscriptionId(subscriptionId);
   }
 
-  public List<Membership> getMemberships(Member.Id memberId) {
+  public List<Membership> getMemberships(UUID memberId) {
     return membershipJpaRepository
-      .findByMemberIdAndGymId(memberId.memberId(), memberId.gymId())
+      .findByMemberId(memberId)
       .stream()
       .map(this::map)
       .toList();
@@ -71,11 +72,11 @@ public class MembershipsRepository {
       });
   }
 
-  public boolean hasActiveMembership(Member.Id memberId, String membershipId) {
-    return membershipJpaRepository.hasActiveMembership(memberId.memberId(), memberId.gymId(), membershipId);
+  public boolean hasActiveMembership(UUID memberId, String membershipId) {
+    return membershipJpaRepository.hasActiveMembership(memberId, membershipId);
   }
 
-  public List<Integer> getAccessibleBranches(Member.Id memberId) {
+  public List<Integer> getAccessibleBranches(UUID memberId, Integer gymId) {
     var sql = """
       SELECT gb.id AS gym_branch_id
       FROM memberships m
@@ -97,8 +98,8 @@ public class MembershipsRepository {
       """;
 
     var params = Map.of(
-      "memberId", memberId.memberId(),
-      "gymId", memberId.gymId()
+      "memberId", memberId,
+      "gymId", gymId
     );
 
     return jdbc.queryForList(sql, params, Integer.class);

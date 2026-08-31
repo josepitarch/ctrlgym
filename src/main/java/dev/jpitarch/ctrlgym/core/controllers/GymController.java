@@ -50,13 +50,13 @@ public class GymController {
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/retention")
   public ResponseEntity<MemberRetention> getMemberRetention(@PathVariable int gymId, @PathVariable int branchId, @PathVariable UUID memberId) {
-    return ResponseEntity.ok(useCase.getMemberRetention(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId)));
+    return ResponseEntity.ok(useCase.getMemberRetention(GymBranchId.of(gymId, branchId), memberId));
   }
 
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/invoices")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, Pageable pageable) {
-    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), pageable)
+    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), memberId, pageable)
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
@@ -116,7 +116,7 @@ public class GymController {
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER') and #gymId == authentication.gymId")
   @GetMapping(value = "/{gymId}/branches/{branchId}/members/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<byte[]> getInvoiceReport(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, @PathVariable String invoiceId) throws IOException {
-    byte[] pdfReport = useCase.getMemberInvoiceReport(GymBranchId.of(gymId, branchId), Member.Id.of(memberId, gymId), invoiceId);
+    byte[] pdfReport = useCase.getMemberInvoiceReport(GymBranchId.of(gymId, branchId), memberId, invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
   }
 

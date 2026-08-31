@@ -31,7 +31,7 @@ class InvoiceServiceTest {
   @Mock
   MembersRepository membersRepository;
 
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID(), 1);
+  private final UUID memberId = UUID.randomUUID();
 
   private final Invoice baseInvoice = Invoice.builder()
     .id("inv-001")

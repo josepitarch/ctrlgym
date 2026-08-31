@@ -1,9 +1,10 @@
 package dev.jpitarch.ctrlgym.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 
-public record MemberRetention(Member.Id id,
+import java.util.UUID;
+
+public record MemberRetention(UUID id,
                               Integer score,
                               @JsonProperty("life_time_value") Integer lifeTimeValue,
                               @JsonProperty("active_months") Integer activeMonths,

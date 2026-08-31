@@ -21,19 +21,19 @@ public class SignupService {
 
   private final RefreshTokenService refreshTokenService;
 
-  public AuthResponse signup(SignupRequest request) {
+  public AuthResponse signup(SignupRequest request, Integer gymId) {
     String hashedPassword = passwordEncoder.encode(request.password());
     UserEntity created = userRepository.create(
       request.email(),
       hashedPassword,
-      request.gymId(),
+      gymId,
       request.name(),
       request.firstSurname(),
       request.secondSurname()
     );
 
     String accessToken = jwtService.generateAccessToken(created);
-    String rawRefreshToken = refreshTokenService.generateRawRefreshToken(created.getId(), request.gymId());
+    String rawRefreshToken = refreshTokenService.generateRawRefreshToken(created.getId(), gymId);
 
     return new AuthResponse(accessToken, rawRefreshToken, 900, "Bearer");
   }

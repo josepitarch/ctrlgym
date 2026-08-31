@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.verifactu.dtos.StatusResponse;
 import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import jakarta.annotation.PostConstruct;
@@ -20,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.logging.Level;
 
 @Slf4j
@@ -145,11 +147,11 @@ public class GenerateInvoiceReportService {
     XRLog.listRegisteredLoggers().forEach(logger -> XRLog.setLevel(logger, Level.OFF));
   }
 
-  public byte[] generate(Member.Id memberId, String invoiceId) throws IOException {
-    GymEntity gym = gymsRepository.getById(memberId.gymId());
+  public byte[] generate(UUID memberId, String invoiceId) throws IOException {
     Member member = membersRepository.getById(memberId);
     Invoice invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
-    StatusResponse qrUrl = verifactuService.getStatus(memberId.gymId(), invoiceId);
+    StatusResponse qrUrl = verifactuService.getStatus(TenantContextHolder.getTenantId(), invoiceId);
+    GymEntity gym = gymsRepository.getById(TenantContextHolder.getTenantId());
 
     var decimalFormat = new DecimalFormat("#,##0.00");
     var dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");

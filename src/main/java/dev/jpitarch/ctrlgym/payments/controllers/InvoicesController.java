@@ -1,7 +1,6 @@
 package dev.jpitarch.ctrlgym.payments.controllers;
 
 import com.stripe.exception.StripeException;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,7 @@ public class InvoicesController {
 
   @PostMapping("/members/{memberId}/payment-method")
   public ResponseEntity<SetupIntentResponse> createSetupIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
-    SetupIntentResponse response = customerService.createSetupIntent(Member.Id.of(memberId, gymId));
+    SetupIntentResponse response = customerService.createSetupIntent(memberId, gymId);
 
     return ResponseEntity.ok(response);
   }

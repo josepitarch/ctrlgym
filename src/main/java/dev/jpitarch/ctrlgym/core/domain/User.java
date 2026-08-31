@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.jspecify.annotations.NonNull;
 
 import java.net.URI;
 import java.util.Optional;
@@ -19,7 +18,7 @@ import java.util.UUID;
 @EqualsAndHashCode(of = "id")
 public class User {
 
-  private Id id;
+  private UUID id;
 
   @JsonProperty("avatar_url")
   private URI avatarUrl;
@@ -39,19 +38,6 @@ public class User {
   @JsonIgnore
   public String getFullName() {
     return name + " " + firstSurname + " " + Optional.ofNullable(secondSurname).orElse("");
-  }
-
-  public record Id(@JsonProperty("member_id") UUID memberId, @JsonProperty("gym_id") Integer gymId) {
-
-    public static Id of(UUID id, Integer gymId) {
-      return new Id(id, gymId);
-    }
-
-    @Override
-    public @NonNull String toString() {
-      return gymId + "-" + memberId;
-    }
-
   }
 
 }

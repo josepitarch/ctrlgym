@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.entities;
 
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -81,8 +80,12 @@ public class InvoiceEntity {
   @Column(name = "membership_id")
   private Long membershipId;
 
-  public Member.Id getMemberId() {
-    return Member.Id.of(memberId, gymId);
+  public UUID getMemberId() {
+    return memberId;
+  }
+
+  public Integer getGymId() {
+    return gymId;
   }
 
   @Override

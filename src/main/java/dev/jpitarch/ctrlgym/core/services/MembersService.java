@@ -22,6 +22,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,14 +50,14 @@ public class MembersService {
     membersRepository.save(member, customerId);
   }
 
-  public Member getMember(Member.Id memberId) {
+  public Member getMember(UUID memberId) {
     var member = membersRepository.getById(memberId);
     member.setIban(customerService.getIbanLast4(memberId).orElse(null));
     return member;
   }
 
-  public byte[] generateQrCode(Member.Id memberId) throws WriterException, IOException {
-    List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId);
+  public byte[] generateQrCode(UUID memberId, Integer gymId) throws WriterException, IOException {
+    List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId, gymId);
     String role = membersRepository.getRoleById(memberId);
 
     if (CollectionUtils.isEmpty(branches)) throw new MemberWithoutAccessException(memberId);
@@ -66,11 +67,11 @@ public class MembersService {
     return generateAccessQr.generateQrCode(memberId, role, branches);
   }
 
-  public List<MemberAccess> getAccesses(Member.Id memberId) {
+  public List<MemberAccess> getAccesses(UUID memberId) {
     return membersRepository.getMemberAccessesByMemberId(memberId);
   }
 
-  public Map<LocalDate, Boolean> getAttendanceSummary(Member.Id memberId, LocalDate from, LocalDate to) {
+  public Map<LocalDate, Boolean> getAttendanceSummary(UUID memberId, LocalDate from, LocalDate to) {
     OffsetDateTime fromDt = from.atStartOfDay().atOffset(ZoneOffset.UTC);
     OffsetDateTime toDt = to.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
 

@@ -1,15 +1,21 @@
 package dev.jpitarch.ctrlgym.core.controllers.filters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.net.URI;
+import java.time.Instant;
 
 @Component
 public class TenantFilter extends OncePerRequestFilter {
@@ -28,7 +34,7 @@ public class TenantFilter extends OncePerRequestFilter {
       String tenantId = request.getHeader("X-Tenant-Id");
 
       if (tenantId == null) {
-        response.setStatus(400);
+        writeProblemDetail(response);
         return;
       }
 
@@ -37,5 +43,17 @@ public class TenantFilter extends OncePerRequestFilter {
     } finally {
       TenantContextHolder.clear();
     }
+  }
+
+  private void writeProblemDetail(HttpServletResponse response) throws IOException {
+    response.setStatus(HttpStatus.BAD_REQUEST.value());
+    response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Missing X-Tenant-Id header");
+    problem.setTitle("Bad Request");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    new ObjectMapper().writeValue(response.getOutputStream(), problem);
   }
 }

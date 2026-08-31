@@ -59,11 +59,11 @@ storage:
     public-url: ${R2_PUBLIC_URL}
 
 management:
-  otlp:
+  opentelemetry:
     logging:
       export:
         otlp:
           endpoint: https://api.axiom.co/v1/logs
           headers:
-            Authorization: "Bearer xaat-9c12b794-4159-431c-9579-d28a3ef6f3t8"
+            Authorization: "Bearer ${AXIOM_API_TOKEN}"
             X-Axiom-Dataset: ctrlgym-logging

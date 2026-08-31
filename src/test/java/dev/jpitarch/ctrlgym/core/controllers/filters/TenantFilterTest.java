@@ -66,6 +66,7 @@ class TenantFilterTest {
   @Test
   @DisplayName("Returns 400 when X-Tenant-Id header is missing")
   void doFilterInternal_returns400WhenTenantIdMissing() throws Exception {
+    when(request.getRequestURI()).thenReturn("/v1/gyms/1/branches");
     when(request.getHeader("X-Tenant-Id")).thenReturn(null);
 
     filter.doFilter(request, response, filterChain);
@@ -77,6 +78,7 @@ class TenantFilterTest {
   @Test
   @DisplayName("Sets tenant id in context and continues chain")
   void doFilterInternal_setsTenantIdAndContinuesChain() throws Exception {
+    when(request.getRequestURI()).thenReturn("/v1/gyms/1/branches");
     when(request.getHeader("X-Tenant-Id")).thenReturn("42");
 
     filter.doFilter(request, response, filterChain);
@@ -88,6 +90,7 @@ class TenantFilterTest {
   @Test
   @DisplayName("Clears tenant context after filter execution")
   void doFilterInternal_clearsTenantContextAfterExecution() throws Exception {
+    when(request.getRequestURI()).thenReturn("/v1/gyms/1/branches");
     when(request.getHeader("X-Tenant-Id")).thenReturn("42");
 
     filter.doFilter(request, response, filterChain);
@@ -98,6 +101,7 @@ class TenantFilterTest {
   @Test
   @DisplayName("Clears tenant context even when chain throws exception")
   void doFilterInternal_clearsTenantContextOnException() throws Exception {
+    when(request.getRequestURI()).thenReturn("/v1/gyms/1/branches");
     when(request.getHeader("X-Tenant-Id")).thenReturn("42");
     doThrow(new RuntimeException("error")).when(filterChain).doFilter(request, response);
 

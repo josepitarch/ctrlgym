@@ -32,9 +32,8 @@ public class MemberController {
 
   @PostMapping("/{memberId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Member member, @RequestParam Integer gymId) throws StripeException {
+  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Member member) throws StripeException {
     member.setId(Member.Id.of(memberId));
-    member.setGymId(gymId);
     memberUseCase.createMember(member);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }

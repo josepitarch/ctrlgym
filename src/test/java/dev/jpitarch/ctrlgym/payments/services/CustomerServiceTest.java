@@ -12,7 +12,9 @@ import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +45,11 @@ class CustomerServiceTest {
 
   private final Member.Id memberId = new Member.Id(UUID.randomUUID());
   private final Integer gymId = 1;
+
+  @BeforeEach
+  void setUp(){
+    TenantContextHolder.setTenantId(gymId);
+  }
 
   @Test
   @DisplayName("create - creates customer with correct parameters")

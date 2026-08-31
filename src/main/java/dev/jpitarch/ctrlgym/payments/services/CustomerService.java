@@ -12,10 +12,12 @@ import com.stripe.param.SetupIntentRetrieveParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -30,7 +32,7 @@ public class CustomerService {
   private final StripeBridge stripeBridge;
 
   public String create(Member member) throws StripeException {
-    Integer gymId = member.getGymId();
+    Integer gymId = TenantContextHolder.getTenantId();
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
@@ -105,9 +107,9 @@ public class CustomerService {
     PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
   }
 
-  public Optional<String> getIbanLast4(UUID memberId, Integer gymId) {
+  public Optional<String> getIbanLast4(UUID memberId) {
     var options = RequestOptions.builder()
-      .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
+      .setStripeAccount(stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId()))
       .build();
     var params = SetupIntentRetrieveParams.builder()
       .addExpand("payment_method")

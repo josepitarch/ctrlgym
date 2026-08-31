@@ -52,7 +52,7 @@ public class MembersService {
 
   public Member getMember(UUID memberId) {
     var member = membersRepository.getById(memberId);
-    member.setIban(customerService.getIbanLast4(memberId, member.getGymId()).orElse(null));
+    member.setIban(customerService.getIbanLast4(memberId).orElse(null));
     return member;
   }
 

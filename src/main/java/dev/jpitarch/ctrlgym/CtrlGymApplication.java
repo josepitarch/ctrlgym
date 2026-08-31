@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,6 +20,7 @@ public class CtrlGymApplication {
     SpringApplication.run(CtrlGymApplication.class, args);
   }
 
+  @Slf4j
   @Component
   @ConditionalOnBean(OpenTelemetry.class)
   static class InstallOpenTelemetryAppender implements InitializingBean {
@@ -31,7 +33,9 @@ public class CtrlGymApplication {
 
     @Override
     public void afterPropertiesSet() {
+      log.info("Installing OpenTelemetryAppender...");
       OpenTelemetryAppender.install(this.openTelemetry);
+      log.info("Installing OpenTelemetryAppender finished");
     }
 
   }

@@ -59,6 +59,10 @@ storage:
     public-url: ${R2_PUBLIC_URL}
 
 management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
   opentelemetry:
     logging:
       export:

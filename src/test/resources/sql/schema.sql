@@ -524,7 +524,7 @@ CREATE TABLE invoices
   series       varchar(20)                              NOT NULL,
   "number"     varchar(20)                              NOT NULL,
   issue_at     date                                     NOT NULL,
-  due_at       date                                     NOT NULL,
+  due_at       date                                     NULL,
   status public.invoice_status                    NOT NULL,
   subtotal     numeric(10, 2)                           NOT NULL,
   tax          numeric(10, 2) DEFAULT 0                 NOT NULL,
@@ -533,6 +533,8 @@ CREATE TABLE invoices
   created_at   timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at   timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
   verifactu_id uuid NULL,
+  next_attempt date NULL,
+  membership_id int8 NOT NULL,
   CONSTRAINT inoices_serie_number_uk UNIQUE (series, number),
   CONSTRAINT invoices_pkey PRIMARY KEY (id),
   CONSTRAINT invoices_verifactu_uk UNIQUE (verifactu_id),
@@ -700,6 +702,7 @@ create table gym_metrics_monthly
   churn_rate         numeric(5, 2) null,
   peak_occupancy_pct numeric(5, 2) null,
   overdue_amount     numeric(5, 2)  not null default 0,
+  expense numeric(12, 2) DEFAULT 0 NOT NULL,
   is_closed          boolean        not null default false,
   calculated_at      timestamp without time zone not null default now(),
   constraint gym_metrics_monthly_pkey primary key (gym_branch_id, year_month),
@@ -710,13 +713,13 @@ create table gym_metrics_monthly
 
 CREATE TABLE employee_workplace
 (
-  user_id       uuid        NOT NULL,
+  employee_id       uuid        NOT NULL,
   gym_id        int4        NOT NULL, --TODO
   gym_branch_id int4 NULL,
   all_branches  bool        NOT NULL,
   created_at    timestamptz DEFAULT now() NOT NULL,
-  CONSTRAINT employee_workplace_pkey PRIMARY KEY (user_id),
-  CONSTRAINT employee_workplace_user_fk FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT employee_workplace_pkey PRIMARY KEY (employee_id),
+  CONSTRAINT employee_workplace_user_fk FOREIGN KEY (employee_id) REFERENCES users(id),
   CONSTRAINT employee_workplace_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches(id),
   CONSTRAINT chk_all_branches_or_gym_branch_id CHECK (
     (all_branches IS TRUE AND gym_branch_id IS NULL) OR

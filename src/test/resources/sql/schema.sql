@@ -367,6 +367,37 @@ CREATE TABLE membership_cancellation_reason_translations
   CONSTRAINT membership_cancellation_reason_tran_cancellation_reason_id_fkey FOREIGN KEY (cancellation_reason_id) REFERENCES membership_cancellation_reasons (id)
 );
 
+-- public.expense_categories definition
+
+-- Drop table
+
+-- DROP TABLE expense_categories;
+
+CREATE TABLE expense_categories
+(
+  id         int4                    NOT NULL,
+  code       varchar(100)            NOT NULL,
+  created_at timestamp DEFAULT now() NOT NULL,
+  is_active  bool      DEFAULT true  NOT NULL,
+  CONSTRAINT expense_categories_pkey PRIMARY KEY (id)
+);
+
+-- public.expense_category_translations definition
+
+-- Drop table
+
+-- DROP TABLE expense_category_translations;
+
+CREATE TABLE expense_category_translations
+(
+  expense_category_id int4         NOT NULL,
+  language_code       varchar(10)  NOT NULL,
+  name                varchar(100) NOT NULL,
+  description         text NULL,
+  CONSTRAINT expense_category_translations_pkey PRIMARY KEY (expense_category_id, language_code),
+  CONSTRAINT expense_category_translations_expense_category_id_fkey FOREIGN KEY (expense_category_id) REFERENCES expense_categories (id)
+);
+
 -- public.expenses definition
 
 -- Drop table
@@ -415,40 +446,6 @@ CREATE TABLE expense_occurrences
   CONSTRAINT chk_occurrence_amount CHECK ((amount >= (0)::numeric)),
   CONSTRAINT expense_occurrences_pkey PRIMARY KEY (id),
   CONSTRAINT expense_occurrences_expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expenses (id)
-);
-
-
--- public.expense_categories definition
-
--- Drop table
-
--- DROP TABLE expense_categories;
-
-CREATE TABLE expense_categories
-(
-  id         int4                    NOT NULL,
-  code       varchar(100)            NOT NULL,
-  created_at timestamp DEFAULT now() NOT NULL,
-  is_active  bool      DEFAULT true  NOT NULL,
-  CONSTRAINT expense_categories_pkey PRIMARY KEY (id)
-);
-
-
-
--- public.expense_category_translations definition
-
--- Drop table
-
--- DROP TABLE expense_category_translations;
-
-CREATE TABLE expense_category_translations
-(
-  expense_category_id int4         NOT NULL,
-  language_code       varchar(10)  NOT NULL,
-  name                varchar(100) NOT NULL,
-  description         text NULL,
-  CONSTRAINT expense_category_translations_pkey PRIMARY KEY (expense_category_id, language_code),
-  CONSTRAINT expense_category_translations_expense_category_id_fkey FOREIGN KEY (expense_category_id) REFERENCES expense_categories (id)
 );
 
 -- public.gym_branch_current_occupancy definition

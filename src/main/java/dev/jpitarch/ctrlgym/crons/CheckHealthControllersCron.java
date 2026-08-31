@@ -32,9 +32,8 @@ public class CheckHealthControllersCron {
 
   @Scheduled(cron = "0 0/30 * * * *", zone = "Europe/Madrid")
   public void checkHealth() {
-    if (true) return;
     List<Map<String, Object>> branches = jdbcTemplate.queryForList(
-      "SELECT id, name FROM gym_branches",
+      "SELECT id, name FROM gym_branches WHERE is_active IS TRUE",
       Collections.emptyMap()
     );
 

@@ -43,13 +43,13 @@ public class EmployeesRepository {
     return userJpaRepository.save(user);
   }
 
-  public void assignToBranch(Member.Id employeeId, Integer gymBranchId) {
+  public void assignToBranch(UUID employeeId, Integer gymId, Integer gymBranchId) {
     var assignment = new EmployeeWorkplaceEntity();
-    assignment.setEmployeeId(employeeId.memberId());
-    assignment.setGymId(employeeId.gymId());
+    assignment.setEmployeeId(employeeId);
+    assignment.setGymId(gymId);
     assignment.setAllBranches(false);
 
-    GymBranchEntity branch = gymJpaRepository.findBranchByGymIdAndBranchId(employeeId.gymId(), gymBranchId);
+    GymBranchEntity branch = gymJpaRepository.findBranchByGymIdAndBranchId(gymId, gymBranchId);
     if (branch == null) {
       throw new IllegalArgumentException("Gym branch not found");
     }
@@ -58,10 +58,10 @@ public class EmployeesRepository {
     jpaRepository.save(assignment);
   }
 
-  public void assignToAllBranches(Member.Id employeeId) {
+  public void assignToAllBranches(UUID employeeId, Integer gymId) {
     var assignment = new EmployeeWorkplaceEntity();
-    assignment.setEmployeeId(employeeId.memberId());
-    assignment.setGymId(employeeId.gymId());
+    assignment.setEmployeeId(employeeId);
+    assignment.setGymId(gymId);
     assignment.setAllBranches(true);
 
     jpaRepository.save(assignment);
@@ -75,12 +75,12 @@ public class EmployeesRepository {
 
     return assignments.stream()
       .map(assignment -> {
-        UserEntity UserEntity = userJpaRepository.findById(
-          new UserEntity.ID(assignment.getEmployeeId(), assignment.getGymId())
-        ).orElseThrow(() -> new MemberNotFoundException(Member.Id.of(assignment.getEmployeeId(), assignment.getGymId())));
+        UserEntity UserEntity = userJpaRepository.findById(assignment.getEmployeeId())
+          .orElseThrow(() -> new MemberNotFoundException(assignment.getEmployeeId()));
 
         Employee employee = Employee.builder()
-          .id(Member.Id.of(UserEntity.getId(), UserEntity.getGymId()))
+          .id(Member.Id.of(UserEntity.getId()))
+          .gymId(UserEntity.getGymId())
           .name(UserEntity.getName())
           .firstSurname(UserEntity.getFirstSurname())
           .secondSurname(UserEntity.getSecondSurname())

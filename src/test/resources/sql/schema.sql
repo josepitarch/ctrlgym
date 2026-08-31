@@ -28,7 +28,6 @@ CREATE TYPE public.invoice_status AS ENUM (
 
 CREATE TYPE public.user_status AS ENUM (
   'AUTH',
-  'MEMBER',
   'PENDING_ACTIVATION',
   'ACTIVE');
 
@@ -192,12 +191,12 @@ CREATE TABLE gyms
 (
   id                int4        NOT NULL,
   name              varchar(50) NOT NULL,
-  verifacti_api_key text        NOT NULL,
-  stripe_account_id text NULL,
   cif               VARCHAR(10) NOT NULL,
   street            VARCHAR(50) NOT NULL,
   postal_code       smallint    NOT NULL,
   locality          VARCHAR(30) NOT NULL,
+  verifacti_api_key text        NOT NULL,
+  stripe_account_id text NULL,
   CONSTRAINT gyms_pkey PRIMARY KEY (id),
   CONSTRAINT gyms_stripe_account_id_uk UNIQUE (stripe_account_id),
   CONSTRAINT gyms_verifacti_api_key_uk UNIQUE (verifacti_api_key)
@@ -303,7 +302,6 @@ CREATE TABLE gym_branches
   id              int4          NOT NULL,
   gym_id          int4          NOT NULL,
   name            varchar(50)   NOT NULL,
-  is_active       bool DEFAULT true NULL,
   capacity        int2 NULL,
   peak_hour_start time NULL,
   peak_hour_end   time NULL,
@@ -311,29 +309,10 @@ CREATE TABLE gym_branches
   longitude       NUMERIC(9, 6) NOT NULL,
   full_address    text NULL,
   api_key         text          NOT NULL,
+  is_active       bool DEFAULT true NULL,
+
   CONSTRAINT gyms_pkey1 PRIMARY KEY (id),
   CONSTRAINT gyms_company_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
-);
-
-
--- public.machines definition
-
--- Drop table
-
--- DROP TABLE machines;
-
-CREATE TABLE machines
-(
-  id           int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
-  gym_id       int4                                                                                                        NOT NULL,
-  gym_branches _int4 NULL,
-  all_branches bool                                                                                                        NOT NULL,
-  name         varchar(100)                                                                                                NOT NULL,
-  description  text NULL,
-  muscle_group public.muscle_group                                                                                         NOT NULL,
-  CONSTRAINT chk_all_branches CHECK (((NOT all_branches) OR (gym_branches IS NULL))),
-  CONSTRAINT machines_pkey PRIMARY KEY (id),
-  CONSTRAINT machines_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
 );
 
 
@@ -355,15 +334,16 @@ CREATE TABLE users
   gender                   bpchar(1)            NULL,
   birth_date               date NULL,
   postal_code              int4 NULL,
-  created_at               timestamptz DEFAULT now() NULL,
-  stripe_customer_id       text NULL,
-  stripe_setup_intent_id text NULL,
   nif                      varchar(20) NULL,
   status public.user_status NOT NULL,
   "role" public.app_role NOT NULL,
   password                 text NULL,
+  created_at               timestamptz DEFAULT now() NULL,
+  stripe_customer_id       text NULL,
+  stripe_setup_intent_id text NULL,
+
   CONSTRAINT members_gender_check CHECK ((gender = ANY (ARRAY['M'::bpchar, 'F'::bpchar, 'P'::bpchar]))),
-  CONSTRAINT members_pkey PRIMARY KEY (id, gym_id),
+  CONSTRAINT members_pkey PRIMARY KEY (id),
   CONSTRAINT members_stripe_customer_id_uk UNIQUE (stripe_customer_id),
   CONSTRAINT members_stripe_setup_intent_id_uk UNIQUE (stripe_setup_intent_id),
   CONSTRAINT members_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
@@ -376,13 +356,13 @@ CREATE TABLE refresh_tokens
 (
   id           uuid        NOT NULL DEFAULT gen_random_uuid(),
   user_id      uuid        NOT NULL,
-  gym_id       int4        NOT NULL,
+  gym_id       int4        NOT NULL, --TODO
   token_hash   varchar(64) NOT NULL UNIQUE,
   revoked      bool        NOT NULL DEFAULT false,
   replaced_by  uuid NULL,
   expires_at   timestamptz NOT NULL,
   CONSTRAINT refresh_tokens_pkey PRIMARY KEY (id),
-  CONSTRAINT refresh_tokens_user_fk FOREIGN KEY (user_id, gym_id) REFERENCES users(id, gym_id)
+  CONSTRAINT refresh_tokens_user_fk FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 
@@ -391,12 +371,12 @@ CREATE TABLE refresh_tokens
 CREATE TABLE employee_workplace
 (
   user_id       uuid        NOT NULL,
-  gym_id        int4        NOT NULL,
+  gym_id        int4        NOT NULL, --TODO
   gym_branch_id int4 NULL,
   all_branches  bool        NOT NULL,
   created_at    timestamptz DEFAULT now() NOT NULL,
-  CONSTRAINT employee_workplace_pkey PRIMARY KEY (user_id, gym_id),
-  CONSTRAINT employee_workplace_user_fk FOREIGN KEY (user_id, gym_id) REFERENCES users(id, gym_id),
+  CONSTRAINT employee_workplace_pkey PRIMARY KEY (user_id),
+  CONSTRAINT employee_workplace_user_fk FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT employee_workplace_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches(id),
   CONSTRAINT chk_all_branches_or_gym_branch_id CHECK (
     (all_branches IS TRUE AND gym_branch_id IS NULL) OR
@@ -435,10 +415,10 @@ CREATE TABLE membership_plans
   price           numeric(10, 2)            NOT NULL,
   billing_period  varchar(20)               NOT NULL,
   active          bool DEFAULT true         NOT NULL,
-  created_at      date DEFAULT CURRENT_DATE NOT NULL,
-  stripe_price_id text                      NOT NULL,
   gym_branch_id   int4 NULL,
   all_branches    bool NULL,
+  stripe_price_id text                      NOT NULL,
+  created_at      date DEFAULT CURRENT_DATE NOT NULL,
   deleted_at      date NULL,
   CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
     ((ARRAY ['MONTHLY':: character varying, 'QUARTERLY':: character varying, 'SEMESTERLY':: character varying, 'YEARLY':: character varying])::text[])
@@ -466,36 +446,14 @@ CREATE TABLE memberships
   start_date             date                                                                                                                     NOT NULL,
   end_date               date NULL,
   next_billing_date      date NULL,
-  auto_renew             bool DEFAULT true                                                                                                        NOT NULL,
+  auto_renew             bool DEFAULT true                                                                                                        NOT NULL, --TODO
   cancellation_reason_id int4 NULL,
   stripe_subscription_id text NULL,
   cancellation_comment   text null,
   CONSTRAINT membership_pkey PRIMARY KEY (id),
   CONSTRAINT memberships_stripe_subscription_id_uk UNIQUE (stripe_subscription_id),
-  CONSTRAINT memberships_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
+  CONSTRAINT memberships_member_fk FOREIGN KEY (member_id) REFERENCES users (id)
 );
-
-
--- public."routines" definition
-
--- Drop table
-
--- DROP TABLE "routines";
-
-CREATE TABLE "routines"
-(
-  id          int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
-  member_id   uuid NULL,
-  gym_id      int4 NULL,
-  name        varchar(100)                                                                                                NOT NULL,
-  description text NULL,
-  created_at  timestamp DEFAULT now()                                                                                     NOT NULL,
-  deleted_at  date NULL,
-  CONSTRAINT routines_pkey PRIMARY KEY (id),
-  CONSTRAINT routines_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id),
-  CONSTRAINT routines_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
-);
-
 
 -- public.expenses definition
 
@@ -526,6 +484,28 @@ CREATE TABLE expenses
   CONSTRAINT expenses_category_id_fkey FOREIGN KEY (category_id) REFERENCES expense_categories (id),
   CONSTRAINT expenses_gym_branch_id_fkey FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id)
 );
+
+
+-- public.expense_occurrences definition
+
+-- Drop table
+
+-- DROP TABLE expense_occurrences;
+
+CREATE TABLE expense_occurrences
+(
+  id                bigserial               NOT NULL,
+  expense_id        int8                    NOT NULL,
+  occurrence_date   date                    NOT NULL,
+  amount            numeric(12, 2)          NOT NULL,
+  notes             text NULL,
+  invoice_reference varchar(100) NULL,
+  created_at        timestamp DEFAULT now() NOT NULL,
+  CONSTRAINT chk_occurrence_amount CHECK ((amount >= (0)::numeric)),
+  CONSTRAINT expense_occurrences_pkey PRIMARY KEY (id),
+  CONSTRAINT expense_occurrences_expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expenses (id)
+);
+
 
 
 -- public.gym_branch_current_occupancy definition
@@ -616,7 +596,7 @@ CREATE TABLE invoices
   CONSTRAINT inoices_serie_number_uk UNIQUE (series, number),
   CONSTRAINT invoices_pkey PRIMARY KEY (id),
   CONSTRAINT invoices_verifactu_uk UNIQUE (verifactu_id),
-  CONSTRAINT invoices_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
+  CONSTRAINT invoices_member_fk FOREIGN KEY (member_id) REFERENCES users (id)
 );
 CREATE INDEX idx_invoice_gym ON public.invoices USING btree (gym_id);
 CREATE INDEX idx_invoice_member ON public.invoices USING btree (member_id);
@@ -640,9 +620,28 @@ CREATE TABLE member_accesses
   CONSTRAINT access_events_pkey PRIMARY KEY (id),
   CONSTRAINT check_direction CHECK ((direction = ANY (ARRAY[0, 1]))),
   CONSTRAINT access_events_gyms_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id),
-  CONSTRAINT member_accesses_member_fk FOREIGN KEY (member_id, gym_id) REFERENCES users (id, gym_id)
+  CONSTRAINT member_accesses_member_fk FOREIGN KEY (member_id) REFERENCES users (id)
 );
 
+-- public."routines" definition
+
+-- Drop table
+
+-- DROP TABLE "routines";
+
+CREATE TABLE "routines"
+(
+  id          int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
+  member_id   uuid NULL,
+  gym_id      int4 NULL,
+  name        varchar(100)                                                                                                NOT NULL,
+  description text NULL,
+  created_at  timestamp DEFAULT now()                                                                                     NOT NULL,
+  deleted_at  date NULL,
+  CONSTRAINT routines_pkey PRIMARY KEY (id),
+  CONSTRAINT routines_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id),
+  CONSTRAINT routines_member_fk FOREIGN KEY (member_id) REFERENCES users (id)
+);
 
 
 -- public.routine_days definition
@@ -660,48 +659,6 @@ CREATE TABLE routine_days
   CONSTRAINT routine_day_pkey PRIMARY KEY (routine_id, day_number),
   CONSTRAINT routine_day_routine_id_fkey FOREIGN KEY (routine_id) REFERENCES "routines" (id) ON DELETE CASCADE
 );
-
-
--- public.workouts definition
-
--- Drop table
-
--- DROP TABLE workouts;
-
-CREATE TABLE workouts
-(
-  id          int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
-  routine_id  int4                                                                                                        NOT NULL,
-  day_number  int2                                                                                                        NOT NULL,
-  started_at  timestamptz DEFAULT now()                                                                                   NOT NULL,
-  finished_at timestamptz NULL,
-  status public.workout_status                                                                                       NOT NULL,
-  member_id   uuid                                                                                                        NOT NULL,
-  CONSTRAINT routine_executions_pkey PRIMARY KEY (id),
-  CONSTRAINT routine_executions_routine_days_fk FOREIGN KEY (routine_id, day_number) REFERENCES routine_days (routine_id, day_number)
-);
-
-
--- public.expense_occurrences definition
-
--- Drop table
-
--- DROP TABLE expense_occurrences;
-
-CREATE TABLE expense_occurrences
-(
-  id                bigserial               NOT NULL,
-  expense_id        int8                    NOT NULL,
-  occurrence_date   date                    NOT NULL,
-  amount            numeric(12, 2)          NOT NULL,
-  notes             text NULL,
-  invoice_reference varchar(100) NULL,
-  created_at        timestamp DEFAULT now() NOT NULL,
-  CONSTRAINT chk_occurrence_amount CHECK ((amount >= (0)::numeric)),
-  CONSTRAINT expense_occurrences_pkey PRIMARY KEY (id),
-  CONSTRAINT expense_occurrences_expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expenses (id)
-);
-
 
 -- public.routine_day_exercises definition
 
@@ -722,6 +679,24 @@ CREATE TABLE routine_day_exercises
   CONSTRAINT routine_day_exercises_routine_day_fk FOREIGN KEY (routine_id, day_number) REFERENCES routine_days (routine_id, day_number) ON DELETE CASCADE
 );
 
+-- public.workouts definition
+
+-- Drop table
+
+-- DROP TABLE workouts;
+
+CREATE TABLE workouts
+(
+  id          int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
+  routine_id  int4                                                                                                        NOT NULL,
+  day_number  int2                                                                                                        NOT NULL,
+  started_at  timestamptz DEFAULT now()                                                                                   NOT NULL,
+  finished_at timestamptz NULL,
+  status public.workout_status                                                                                       NOT NULL,
+  member_id   uuid                                                                                                        NOT NULL,
+  CONSTRAINT routine_executions_pkey PRIMARY KEY (id),
+  CONSTRAINT routine_executions_routine_days_fk FOREIGN KEY (routine_id, day_number) REFERENCES routine_days (routine_id, day_number)
+);
 
 -- public.workout_sets definition
 
@@ -741,7 +716,7 @@ CREATE TABLE workout_sets
   CONSTRAINT routine_day_exercise_executions_routine_execution_id_fkey FOREIGN KEY (workout_id) REFERENCES workouts (id)
 );
 
-create table public.gym_metrics_monthly
+create table gym_metrics_monthly
 (
   gym_branch_id      integer        not null,
   year_month         date           not null,
@@ -756,6 +731,69 @@ create table public.gym_metrics_monthly
   calculated_at      timestamp without time zone not null default now(),
   constraint gym_metrics_monthly_pkey primary key (gym_branch_id, year_month),
   constraint gym_metrics_monthly_gym_branch_id_fkey foreign KEY (gym_branch_id) references gym_branches (id)
+);
+
+CREATE TABLE employee_schedule_shift_series
+(
+  id              bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  employee_id     uuid                                NOT NULL,
+  gym_id          integer                             NOT NULL,
+  gym_branch_id   integer                             NOT NULL,
+  start_time      time without time zone              NOT NULL,
+  end_time        time without time zone              NOT NULL,
+  recurrence_type character varying(20)               NOT NULL,
+  interval_value  integer           DEFAULT 1         NOT NULL,
+  days_of_week    smallint[],
+  series_start    date                                NOT NULL,
+  series_end      date,
+  created_at      timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT employee_schedule_shift_series_pkey PRIMARY KEY (id),
+  CONSTRAINT employee_schedule_shift_series_employee_fk FOREIGN KEY (employee_id) REFERENCES users (id),
+  CONSTRAINT employee_schedule_shift_series_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id)
+);
+
+CREATE TABLE employee_schedule_shift
+(
+  id              bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  series_id       bigint,
+  employee_id     uuid                                NOT NULL,
+  gym_id          integer                             NOT NULL,
+  gym_branch_id   integer                             NOT NULL,
+  shift_date      date                                NOT NULL,
+  start_time      time without time zone              NOT NULL,
+  end_time        time without time zone              NOT NULL,
+  status          character varying(20) DEFAULT 'SCHEDULED'::character varying NOT NULL,
+  is_exception    boolean           DEFAULT false     NOT NULL,
+  created_at      timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT employee_schedule_shift_pkey PRIMARY KEY (id),
+  CONSTRAINT employee_schedule_shift_employee_fk FOREIGN KEY (employee_id) REFERENCES users (id),
+  CONSTRAINT employee_schedule_shift_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id),
+  CONSTRAINT employee_schedule_shift_series_id_fkey FOREIGN KEY (series_id) REFERENCES employee_schedule_shift_series (id)
+);
+
+create table products (
+  id integer generated always as identity not null,
+  gym_id integer not null,
+  gym_branch_id integer not null,
+  name text not null,
+  image text null,
+  price numeric(4, 2) not null,
+  stock smallint null,
+  CONSTRAINT products_pkey primary key (id),
+  CONSTRAINT products_gym_branch_id_fkey foreign KEY (gym_branch_id) references gym_branches (id)
+);
+
+create table sales (
+  id integer generated always as identity not null,
+  product_id integer not null,
+  member_id uuid null,
+  gym_id integer null,
+  created_at timestamp with time zone null default now(),
+  verifactu_id uuid null,
+  CONSTRAINT sales_pkey primary key (id),
+  CONSTRAINT sales_verifactu_id_key unique (verifactu_id),
+  CONSTRAINT sales_member_id_fk foreign KEY (member_id) references users (id),
+  CONSTRAINT sales_product_id_fkey foreign KEY (product_id) references products (id)
 );
 
 
@@ -827,41 +865,3 @@ create trigger trg_update_gym_current_occupancy
     public.member_accesses
   for each row
   execute function update_gym_branch_current_occupancy();
-
-CREATE TABLE employee_schedule_shift_series
-(
-    id              bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-    employee_id     uuid                                NOT NULL,
-    gym_id          integer                             NOT NULL,
-    gym_branch_id   integer                             NOT NULL,
-    start_time      time without time zone              NOT NULL,
-    end_time        time without time zone              NOT NULL,
-    recurrence_type character varying(20)               NOT NULL,
-    interval_value  integer           DEFAULT 1         NOT NULL,
-    days_of_week    smallint[],
-    series_start    date                                NOT NULL,
-    series_end      date,
-    created_at      timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT employee_schedule_shift_series_pkey PRIMARY KEY (id),
-    CONSTRAINT employee_schedule_shift_series_employee_fk FOREIGN KEY (employee_id, gym_id) REFERENCES users (id, gym_id),
-    CONSTRAINT employee_schedule_shift_series_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id)
-);
-
-CREATE TABLE employee_schedule_shift
-(
-    id              bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-    series_id       bigint,
-    employee_id     uuid                                NOT NULL,
-    gym_id          integer                             NOT NULL,
-    gym_branch_id   integer                             NOT NULL,
-    shift_date      date                                NOT NULL,
-    start_time      time without time zone              NOT NULL,
-    end_time        time without time zone              NOT NULL,
-    status          character varying(20) DEFAULT 'SCHEDULED'::character varying NOT NULL,
-    is_exception    boolean           DEFAULT false     NOT NULL,
-    created_at      timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT employee_schedule_shift_pkey PRIMARY KEY (id),
-    CONSTRAINT employee_schedule_shift_employee_fk FOREIGN KEY (employee_id, gym_id) REFERENCES users (id, gym_id),
-    CONSTRAINT employee_schedule_shift_branch_fk FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id),
-    CONSTRAINT employee_schedule_shift_series_id_fkey FOREIGN KEY (series_id) REFERENCES employee_schedule_shift_series (id)
-);

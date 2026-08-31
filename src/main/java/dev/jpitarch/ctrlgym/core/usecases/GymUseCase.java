@@ -100,11 +100,11 @@ public class GymUseCase {
     return users;
   }
 
-  public MemberRetention getMemberRetention(GymBranchId gymBranchId, Member.Id memberId) {
+  public MemberRetention getMemberRetention(GymBranchId gymBranchId, UUID memberId) {
     return new MemberRetention(memberId, 85, 2340, 14, 9);
   }
 
-  public Page<Invoice> getInvoices(GymBranchId gymBranchId, Member.Id memberId, Pageable pageable) {
+  public Page<Invoice> getInvoices(GymBranchId gymBranchId, UUID memberId, Pageable pageable) {
     return invoiceRepository.findByMemberId(memberId, pageable);
   }
 
@@ -154,7 +154,7 @@ public class GymUseCase {
     exercisesService.delete(exerciseId, gymId);
   }
 
-  public byte[] getMemberInvoiceReport(GymBranchId gymBranchId, Member.Id memberId, String invoiceId) throws IOException {
+  public byte[] getMemberInvoiceReport(GymBranchId gymBranchId, UUID memberId, String invoiceId) throws IOException {
     log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
     return generateInvoiceReportService.generate(memberId, invoiceId);
   }
@@ -200,12 +200,12 @@ public class GymUseCase {
       genderCode
     );
 
-    var employeeId = Member.Id.of(user.getId(), gymId);
+    var employeeId = user.getId();
 
     if (request.allBranches()) {
-      employeesRepository.assignToAllBranches(employeeId);
+      employeesRepository.assignToAllBranches(employeeId, gymId);
     } else {
-      employeesRepository.assignToBranch(employeeId, request.gymBranchId());
+      employeesRepository.assignToBranch(employeeId, gymId, request.gymBranchId());
     }
 
     eventPublisher.publishEvent(new EmployeeCreatedEvent(this, user.getId(), gymId, request.email()));

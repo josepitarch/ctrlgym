@@ -21,6 +21,8 @@ public class User {
 
   private Id id;
 
+  private Integer gymId;
+
   @JsonProperty("avatar_url")
   private URI avatarUrl;
 
@@ -41,15 +43,15 @@ public class User {
     return name + " " + firstSurname + " " + Optional.ofNullable(secondSurname).orElse("");
   }
 
-  public record Id(@JsonProperty("member_id") UUID memberId, @JsonProperty("gym_id") Integer gymId) {
+  public record Id(@JsonProperty("member_id") UUID memberId) {
 
-    public static Id of(UUID id, Integer gymId) {
-      return new Id(id, gymId);
+    public static Id of(UUID id) {
+      return new Id(id);
     }
 
     @Override
     public @NonNull String toString() {
-      return gymId + "-" + memberId;
+      return memberId.toString();
     }
 
   }

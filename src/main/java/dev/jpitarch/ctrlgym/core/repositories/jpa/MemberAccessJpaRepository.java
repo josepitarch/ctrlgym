@@ -12,8 +12,8 @@ import java.util.UUID;
 @Repository
 public interface MemberAccessJpaRepository extends JpaRepository<MemberAccessEntity, Integer> {
 
-  List<MemberAccessEntity> findByMemberIdAndGymId(UUID memberId, Integer gymId);
+  List<MemberAccessEntity> findByMemberId(UUID memberId);
 
-  @Query("SELECT ma FROM MemberAccessEntity ma WHERE ma.memberId = :memberId AND ma.gymId = :gymId AND ma.createdAt >= :from AND ma.createdAt <= :to")
-  List<MemberAccessEntity> findByMemberIdAndGymIdAndDateRange(UUID memberId, Integer gymId, OffsetDateTime from, OffsetDateTime to);
+  @Query("SELECT ma FROM MemberAccessEntity ma WHERE ma.memberId = :memberId AND ma.createdAt >= :from AND ma.createdAt <= :to")
+  List<MemberAccessEntity> findByMemberIdAndDateRange(UUID memberId, OffsetDateTime from, OffsetDateTime to);
 }

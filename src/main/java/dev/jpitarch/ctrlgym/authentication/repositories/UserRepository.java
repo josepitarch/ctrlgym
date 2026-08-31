@@ -24,9 +24,8 @@ public class UserRepository {
     return jpaRepository.findByEmailAndGymId(email, gymId);
   }
 
-  public UserEntity findById(UUID id, Integer gymId) {
-    var compositeId = new UserEntity.ID(id, gymId);
-    return jpaRepository.findById(compositeId).orElse(null);
+  public UserEntity findById(UUID id) {
+    return jpaRepository.findById(id).orElse(null);
   }
 
   public void save(UserEntity user) {

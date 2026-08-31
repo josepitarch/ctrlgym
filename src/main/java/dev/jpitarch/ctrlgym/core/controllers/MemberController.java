@@ -33,29 +33,30 @@ public class MemberController {
   @PostMapping("/{memberId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Member member, @RequestParam Integer gymId) throws StripeException {
-    member.setId(Member.Id.of(memberId, gymId));
+    member.setId(Member.Id.of(memberId));
+    member.setGymId(gymId);
     memberUseCase.createMember(member);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @GetMapping("/{memberId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Member> getMember(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return ResponseEntity.ok(memberUseCase.getMember(Member.Id.of(memberId, gymId)));
+  public ResponseEntity<Member> getMember(@PathVariable UUID memberId) {
+    return ResponseEntity.ok(memberUseCase.getMember(memberId));
   }
 
 
   @PostMapping("/{memberId}/memberships/{membershipPlanId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Membership> initializeMembership(@PathVariable UUID memberId, @PathVariable String membershipPlanId, @RequestParam Integer gymId) throws StripeException {
-    var membership = memberUseCase.initializeMembership(Member.Id.of(memberId, gymId), membershipPlanId);
+    var membership = memberUseCase.initializeMembership(memberId, gymId, membershipPlanId);
     return ResponseEntity.ok(membership);
   }
 
   @PutMapping("/{memberId}/memberships")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> changeMembership(@PathVariable UUID memberId, @RequestBody String membershipPlanId, @RequestParam Integer gymId) {
-    memberUseCase.changeMembership(Member.Id.of(memberId, gymId), membershipPlanId);
+    memberUseCase.changeMembership(memberId, gymId, membershipPlanId);
     return ResponseEntity.noContent().build();
   }
 
@@ -65,7 +66,7 @@ public class MemberController {
                                                @RequestParam Integer cancellationReasonId,
                                                @RequestBody Map<String, String> body
   ) throws StripeException {
-    memberUseCase.cancelMembership(Member.Id.of(memberId, gymId), membershipId, cancellationReasonId, body.get("comment"));
+    memberUseCase.cancelMembership(memberId, gymId, membershipId, cancellationReasonId, body.get("comment"));
     return ResponseEntity.noContent().build();
   }
 
@@ -73,39 +74,39 @@ public class MemberController {
   @GetMapping("/{memberId}/memberships")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Optional<Membership>> getMembership(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return ResponseEntity.ok(memberUseCase.getMembership(Member.Id.of(memberId, gymId)));
+    return ResponseEntity.ok(memberUseCase.getMembership(memberId));
   }
 
   @GetMapping(value = "/{memberId}/accesses")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<List<MemberAccess>> getAccesses(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return ResponseEntity.ok(memberUseCase.getAccesses(Member.Id.of(memberId, gymId)));
+    return ResponseEntity.ok(memberUseCase.getAccesses(memberId));
   }
 
   @GetMapping(value = "/{memberId}/attendaces/summary")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Map<LocalDate, Boolean>> getAttendanceSummary(@PathVariable UUID memberId, @RequestParam Integer gymId,
                                                                       @RequestParam LocalDate from, @RequestParam(required = false) LocalDate to) {
-    return ResponseEntity.ok(memberUseCase.getAttendanceSummary(Member.Id.of(memberId, gymId), from, Optional.ofNullable(to).orElse(LocalDate.now())));
+    return ResponseEntity.ok(memberUseCase.getAttendanceSummary(memberId, from, Optional.ofNullable(to).orElse(LocalDate.now())));
   }
 
   @PostMapping("/{memberId}/routines")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Routine routine, @RequestParam Integer gymId) {
-    memberUseCase.createRoutine(routine, Member.Id.of(memberId, gymId));
+    memberUseCase.createRoutine(routine, memberId, gymId);
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
   @GetMapping(value = "/{memberId}/routines")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<List<Routine>> getRoutines(@PathVariable UUID memberId, @RequestParam Integer gymId) {
-    return ResponseEntity.ok(memberUseCase.getRoutines(Member.Id.of(memberId, gymId)));
+    return ResponseEntity.ok(memberUseCase.getRoutines(memberId));
   }
 
   @DeleteMapping("/{memberId}/routines/{routineId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> delete(@PathVariable UUID memberId, @PathVariable Integer routineId, @RequestParam Integer gymId) {
-    memberUseCase.deleteRoutine(routineId, Member.Id.of(memberId, gymId));
+    memberUseCase.deleteRoutine(routineId, memberId);
     return ResponseEntity.noContent().build();
   }
 
@@ -125,7 +126,7 @@ public class MemberController {
   @GetMapping("/{memberId}/invoices")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable UUID memberId, @RequestParam Integer gymId, Pageable pageable) {
-    return ResponseEntity.ok(memberUseCase.getInvoices(Member.Id.of(memberId, gymId), pageable)
+    return ResponseEntity.ok(memberUseCase.getInvoices(memberId, pageable)
       .map(invoice -> new InvoiceSummary(
         invoice.getId(),
         invoice.getIssueAt(),
@@ -136,7 +137,7 @@ public class MemberController {
 
   @GetMapping(value = "/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
   public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable String invoiceId, @RequestParam Integer gymId) throws IOException {
-    byte[] pdfReport = memberUseCase.getInvoiceReport(Member.Id.of(memberId, gymId), invoiceId);
+    byte[] pdfReport = memberUseCase.getInvoiceReport(memberId, invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
   }
 
@@ -145,7 +146,7 @@ public class MemberController {
   @PreAuthorize("#memberId.toString() == authentication.name")
   @PostMapping(value = "/{memberId}/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
   public ResponseEntity<byte[]> generateQr(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID memberId, @RequestParam Integer gymId) throws WriterException, IOException {
-    byte[] qrImage = memberUseCase.generateQrCode(Member.Id.of(memberId, gymId));
+    byte[] qrImage = memberUseCase.generateQrCode(memberId, gymId);
     return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
   }
 

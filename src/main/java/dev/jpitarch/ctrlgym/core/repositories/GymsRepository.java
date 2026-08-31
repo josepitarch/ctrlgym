@@ -108,8 +108,9 @@ public class GymsRepository {
       params.put("q", "%" + q + "%");
     }
 
-    return jdbc.query(sql, params, (rs, _) -> Member.builder()
-        .id(User.Id.of(UUID.fromString(rs.getString("id")), rs.getInt("gym_id")))
+    return jdbc.query(sql, params, (rs, rowNum) -> Member.builder()
+        .id(User.Id.of(UUID.fromString(rs.getString("id"))))
+        .gymId(rs.getInt("gym_id"))
         .avatarUrl(Optional.ofNullable(rs.getString("avatar_url")).map(URI::create).orElse(null))
         .name(rs.getString("name"))
         .nif(rs.getString("nif"))
@@ -158,7 +159,7 @@ public class GymsRepository {
       "granularity", convertGranularity(granularity)
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var bucket = row.getTimestamp("bucket").toLocalDateTime();
       var avgOccupancy = row.getInt("avg_occupancy");
       return new OccupancyGranularity.OccupancyDataPoint(bucket, avgOccupancy);

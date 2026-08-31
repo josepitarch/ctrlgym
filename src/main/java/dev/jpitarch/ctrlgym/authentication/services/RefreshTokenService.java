@@ -77,7 +77,7 @@ public class RefreshTokenService {
     stored.setReplacedBy(newEntity.getId());
     refreshTokenRepository.save(stored);
 
-    var user = userRepository.findById(stored.getUserId(), stored.getGymId());
+    var user = userRepository.findById(stored.getUserId());
     if (user == null) {
       throw new InvalidTokenException("Usuario no encontrado");
     }

@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.logging.Level;
 
 @Slf4j
@@ -145,11 +146,11 @@ public class GenerateInvoiceReportService {
     XRLog.listRegisteredLoggers().forEach(logger -> XRLog.setLevel(logger, Level.OFF));
   }
 
-  public byte[] generate(Member.Id memberId, String invoiceId) throws IOException {
-    GymEntity gym = gymsRepository.getById(memberId.gymId());
+  public byte[] generate(UUID memberId, String invoiceId) throws IOException {
     Member member = membersRepository.getById(memberId);
     Invoice invoice = invoiceService.getInvoiceWithMemberData(invoiceId);
-    StatusResponse qrUrl = verifactuService.getStatus(memberId.gymId(), invoiceId);
+    StatusResponse qrUrl = verifactuService.getStatus(member.getGymId(), invoiceId);
+    GymEntity gym = gymsRepository.getById(member.getGymId());
 
     var decimalFormat = new DecimalFormat("#,##0.00");
     var dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");

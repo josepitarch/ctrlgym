@@ -47,7 +47,7 @@ public class ExpensesRepository {
       "to", LocalDate.now()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var categoryId = row.getInt("category_id");
       var nature = Expense.Nature.from(row.getString("nature"));
       var frequency = Expense.Frequency.from(row.getString("frequency"));
@@ -91,7 +91,7 @@ public class ExpensesRepository {
       "to", datePeriod.to()
     );
 
-    return jdbc.query(sql, params, (row, _) -> {
+    return jdbc.query(sql, params, (row, rowNum) -> {
       var month = row.getDate("month").toLocalDate();
       var totalExpenses = row.getDouble("total_expenses");
       return Map.entry(YearMonth.from(month), totalExpenses);

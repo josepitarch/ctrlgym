@@ -34,7 +34,8 @@ class SubscriptionServiceTest {
   @InjectMocks
   SubscriptionService subscriptionService;
 
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID(), 1);
+  private final Member.Id memberId = new Member.Id(UUID.randomUUID());
+  private final Integer gymId = 1;
 
   @Test
   @DisplayName("create - creates subscription with correct parameters")
@@ -68,7 +69,7 @@ class SubscriptionServiceTest {
         .thenReturn(mockSubscription);
       when(mockSubscription.getId()).thenReturn("sub_test123");
 
-      String result = subscriptionService.create(memberId, props);
+      String result = subscriptionService.create(memberId.memberId(), gymId, props);
 
       assertThat(result).isEqualTo("sub_test123");
 
@@ -80,7 +81,7 @@ class SubscriptionServiceTest {
       assertThat(capturedParams.getApplicationFeePercent().toString()).isEqualTo("0.0");
       assertThat(capturedParams.getBillingCycleAnchor()).isNotNull();
       assertThat(capturedParams.getProrationBehavior()).isEqualTo(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS);
-      assertThat(capturedParams.getMetadata()).extracting("gym_id").isEqualTo(memberId.gymId().toString());
+      assertThat(capturedParams.getMetadata()).extracting("gym_id").isEqualTo(gymId.toString());
     }
   }
 
@@ -120,7 +121,7 @@ class SubscriptionServiceTest {
         .thenReturn(mockSubscription);
       when(mockSubscription.getId()).thenReturn("sub_test");
 
-      subscriptionService.create(memberId, props);
+      subscriptionService.create(memberId.memberId(), gymId, props);
 
       ArgumentCaptor<SubscriptionCreateParams> paramsCaptor = ArgumentCaptor.forClass(SubscriptionCreateParams.class);
       subscriptionMock.verify(() -> Subscription.create(paramsCaptor.capture(), any(RequestOptions.class)));
@@ -149,7 +150,7 @@ class SubscriptionServiceTest {
       setupIntentMock.when(() -> SetupIntent.retrieve(anyString(), any(RequestOptions.class)))
         .thenThrow(cardException);
 
-      assertThatThrownBy(() -> subscriptionService.create(memberId, props))
+      assertThatThrownBy(() -> subscriptionService.create(memberId.memberId(), gymId, props))
         .isInstanceOf(StripeException.class);
     }
   }

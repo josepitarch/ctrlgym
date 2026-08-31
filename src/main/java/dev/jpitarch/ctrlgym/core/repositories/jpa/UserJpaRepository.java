@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserJpaRepository extends JpaRepository<UserEntity, UserEntity.ID> {
+public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
 
   boolean existsByGymIdAndEmail(Integer gymId, String email);
 
@@ -29,27 +29,27 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, UserEntity.
   @Query("""
         SELECT m.stripeCustomerId
         FROM UserEntity m
-        WHERE m.id = :memberId AND m.gymId = :gymId
+        WHERE m.id = :memberId
     """)
-  Optional<String> getStripeCustomerId(UUID memberId, Integer gymId);
+  Optional<String> getStripeCustomerId(UUID memberId);
 
   @Query("""
         SELECT m.stripeSetupIntentId
         FROM UserEntity m
-        WHERE m.id = :memberId AND m.gymId = :gymId
+        WHERE m.id = :memberId
     """)
-  Optional<String> getStripeSetupIntentId(UUID memberId, Integer gymId);
+  Optional<String> getStripeSetupIntentId(UUID memberId);
 
 
   @Query("""
         SELECT u.role
         FROM UserEntity u
-        WHERE u.id = :memberId AND u.gymId = :gymId
+        WHERE u.id = :memberId
     """)
-  Optional<String> findRoleById(UUID memberId, Integer gymId);
+  Optional<String> findRoleById(UUID memberId);
 
   @Modifying
   @Transactional
-  @Query("UPDATE UserEntity u SET u.stripeSetupIntentId = :setupIntentId WHERE u.id = :memberId AND u.gymId = :gymId")
-  void saveStripeSetupIntentId(UUID memberId, Integer gymId, String setupIntentId);
+  @Query("UPDATE UserEntity u SET u.stripeSetupIntentId = :setupIntentId WHERE u.id = :memberId")
+  void saveStripeSetupIntentId(UUID memberId, String setupIntentId);
 }

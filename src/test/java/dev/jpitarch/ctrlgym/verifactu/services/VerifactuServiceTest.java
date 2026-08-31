@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;
 import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceResponse;
@@ -49,6 +50,9 @@ class VerifactuServiceTest {
   InvoiceService invoiceService;
 
   @Mock
+  MembersRepository membersRepository;
+
+  @Mock
   TelegramNotificationService telegramNotificationService;
 
   @Mock
@@ -63,7 +67,7 @@ class VerifactuServiceTest {
   private final UUID verifactuUuid = UUID.randomUUID();
   private final CreateInvoiceResponse createInvoiceResponse = new CreateInvoiceResponse(verifactuUuid);
 
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID(), 1);
+  private final UUID memberId = UUID.randomUUID();
 
   private final Invoice invoice = Invoice.builder()
     .id("inv-001")
@@ -92,7 +96,7 @@ class VerifactuServiceTest {
     lenient().when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
     lenient().when(requestBodySpec.retrieve()).thenReturn(responseSpec);
 
-    verifactuService = new VerifactuService(restClientBuilder, gymsRepository, invoiceRepository, invoiceService, telegramNotificationService);
+    verifactuService = new VerifactuService(restClientBuilder, gymsRepository, invoiceRepository, invoiceService, membersRepository, telegramNotificationService);
   }
 
   @Test
@@ -102,6 +106,7 @@ class VerifactuServiceTest {
 
     when(gymsRepository.getVerifactuApiKey(1)).thenReturn("test-api-key");
     when(invoiceService.getInvoiceWithMemberData("inv-001")).thenReturn(invoice);
+    when(membersRepository.getById(memberId)).thenReturn(Member.builder().id(Member.Id.of(memberId)).gymId(1).build());
     when(responseSpec.body(CreateInvoiceResponse.class)).thenReturn(createInvoiceResponse);
 
     verifactuService.createInvoice(event);

@@ -41,7 +41,8 @@ class CustomerServiceTest {
   @Mock
   StripeBridge stripeBridge;
 
-  private final Member.Id memberId = new Member.Id(UUID.randomUUID(), 1);
+  private final Member.Id memberId = new Member.Id(UUID.randomUUID());
+  private final Integer gymId = 1;
 
   @Test
   @DisplayName("create - creates customer with correct parameters")
@@ -49,10 +50,11 @@ class CustomerServiceTest {
     try (MockedStatic<Customer> customerMock = mockStatic(Customer.class)) {
 
       String stripeAccountId = "acct_test123";
-      when(stripeBridge.getStripeAccountId(memberId.gymId())).thenReturn(stripeAccountId);
+      when(stripeBridge.getStripeAccountId(gymId)).thenReturn(stripeAccountId);
 
       Member member = Member.builder()
         .id(memberId)
+        .gymId(gymId)
         .name("John")
         .firstSurname("Doe")
         .secondSurname("Smith")
@@ -90,10 +92,11 @@ class CustomerServiceTest {
   void create_propagatesStripeException() throws StripeException {
     try (MockedStatic<Customer> customerMock = mockStatic(Customer.class)) {
 
-      when(stripeBridge.getStripeAccountId(memberId.gymId())).thenReturn("acct_test");
+      when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
 
       Member member = Member.builder()
         .id(memberId)
+        .gymId(gymId)
         .name("John")
         .firstSurname("Doe")
         .email("john@example.com")
@@ -121,8 +124,8 @@ class CustomerServiceTest {
       String accountId = "acct_test123";
       String customerId = "cus_test123";
 
-      when(stripeBridge.getStripeAccountId(memberId.gymId())).thenReturn(accountId);
-      when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.of(customerId));
+      when(stripeBridge.getStripeAccountId(gymId)).thenReturn(accountId);
+      when(stripeBridge.getStripeCustomerId(memberId.memberId())).thenReturn(Optional.of(customerId));
 
       SetupIntent mockSetupIntent = mock(SetupIntent.class);
       when(mockSetupIntent.getId()).thenReturn("seti_test123");
@@ -131,7 +134,7 @@ class CustomerServiceTest {
       setupIntentMock.when(() -> SetupIntent.create(any(SetupIntentCreateParams.class), any(RequestOptions.class)))
         .thenReturn(mockSetupIntent);
 
-      SetupIntentResponse result = customerService.createSetupIntent(memberId);
+      SetupIntentResponse result = customerService.createSetupIntent(memberId.memberId(), gymId);
 
       assertThat(result.id()).isEqualTo("seti_test123");
       assertThat(result.clientSecret()).isEqualTo("seti_test123_secret_abc");
@@ -144,17 +147,17 @@ class CustomerServiceTest {
       assertThat(capturedParams.getPaymentMethodTypes()).containsExactly("sepa_debit");
       assertThat(capturedParams.getUsage()).isEqualTo(SetupIntentCreateParams.Usage.OFF_SESSION);
 
-      verify(stripeBridge).saveStripeSetupIntentId(memberId,"seti_test123");
+      verify(stripeBridge).saveStripeSetupIntentId(memberId.memberId(),"seti_test123");
     }
   }
 
   @Test
   @DisplayName("createSetupIntent - throws NoSuchElementException when customer not found")
   void createSetupIntent_throwsExceptionWhenCustomerNotFound() {
-    when(stripeBridge.getStripeAccountId(memberId.gymId())).thenReturn("acct_test");
-    when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.empty());
+    when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
+    when(stripeBridge.getStripeCustomerId(memberId.memberId())).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> customerService.createSetupIntent(memberId))
+    assertThatThrownBy(() -> customerService.createSetupIntent(memberId.memberId(), gymId))
       .isInstanceOf(NoSuchElementException.class);
   }
 
@@ -166,14 +169,14 @@ class CustomerServiceTest {
       String accountId = "acct_test";
       String customerId = "cus_test";
 
-      when(stripeBridge.getStripeAccountId(memberId.gymId())).thenReturn(accountId);
-      when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.of(customerId));
+      when(stripeBridge.getStripeAccountId(gymId)).thenReturn(accountId);
+      when(stripeBridge.getStripeCustomerId(memberId.memberId())).thenReturn(Optional.of(customerId));
 
       CardException cardException = mock(CardException.class);
       setupIntentMock.when(() -> SetupIntent.create(any(SetupIntentCreateParams.class), any(RequestOptions.class)))
         .thenThrow(cardException);
 
-      assertThatThrownBy(() -> customerService.createSetupIntent(memberId))
+      assertThatThrownBy(() -> customerService.createSetupIntent(memberId.memberId(), gymId))
         .isInstanceOf(StripeException.class);
     }
   }

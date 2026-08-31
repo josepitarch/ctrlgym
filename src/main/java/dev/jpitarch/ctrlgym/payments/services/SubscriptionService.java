@@ -4,7 +4,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +14,14 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
 
-  public String create(Member.Id memberId, Map<String, String> props) throws StripeException {
+  public String create(UUID memberId, Integer gymId, Map<String, String> props) throws StripeException {
     var options = RequestOptions.builder()
       .setStripeAccount(props.get("stripeAccountId"))
       .build();
@@ -61,7 +61,7 @@ public class SubscriptionService {
       )
       .setBillingCycleAnchor(billingAnchorTimestamp)
       .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.CREATE_PRORATIONS)
-      .setMetadata(Map.of("gym_id", memberId.gymId().toString()))
+      .setMetadata(Map.of("gym_id", gymId.toString()))
       .build();
 
     var subscription = Subscription.create(subscriptionParams, options);

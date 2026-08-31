@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -38,12 +39,12 @@ public class MembershipService {
 
   public static final Integer PAYMENT_FAILED_ATTEMPTS_EXCEEDED = 10;
 
-  public Membership initialize(Member.Id memberId, String membershipPlanId) throws StripeException {
+  public Membership initialize(UUID memberId, Integer gymId, String membershipPlanId) throws StripeException {
     if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
       throw new DuplicateMembershipException(memberId, membershipPlanId);
     }
 
-    String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
+    String stripeAccountId = stripeBridge.getStripeAccountId(gymId);
     String stripePriceId = stripeBridge.getStripePriceId(membershipPlanId);
     String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow(() -> new CoreBusinessException(Member.class, "Member with id %s has no customer id configured".formatted(memberId)));
     String setupIntentId = stripeBridge.getStripeSetupIntentId(memberId).orElseThrow(() -> new CoreBusinessException(Member.class, "Member with id %s has no setup intent configured".formatted(memberId)));
@@ -57,23 +58,23 @@ public class MembershipService {
 
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
 
-    String subscriptionId = subscriptionService.create(memberId, props);
-    return membershipsRepository.save(memberId, membershipPlanId, subscriptionId, LocalDate.now().withDayOfMonth(1).plusMonths(1));
+    String subscriptionId = subscriptionService.create(memberId, gymId, props);
+    return membershipsRepository.save(memberId, gymId, membershipPlanId, subscriptionId, LocalDate.now().withDayOfMonth(1).plusMonths(1));
   }
 
-  public void change(Member.Id memberId, String newMembershipPlanId) throws StripeException {
+  public void change(UUID memberId, Integer gymId, String newMembershipPlanId) throws StripeException {
     var currentMembership = membershipsRepository.getMemberships(memberId).stream().filter(m -> m.getDatePeriod().isCurrent()).findFirst();
     if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
     String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(currentMembership.get().getId());
-    String stripeAccountId = stripeBridge.getStripeAccountId(memberId.gymId());
+    String stripeAccountId = stripeBridge.getStripeAccountId(gymId);
     String currentStripePriceId = stripeBridge.getStripePriceId(stripeSubscriptionId);
     String newCurrentStripePriceId = stripeBridge.getStripePriceId(newMembershipPlanId);
     subscriptionService.change(stripeSubscriptionId, currentStripePriceId, newCurrentStripePriceId, stripeAccountId);
   }
 
-  public void cancel(Member.Id memberId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
+  public void cancel(UUID memberId, Integer gymId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
     var props = Map.of(
-      "stripeAccountId", stripeBridge.getStripeAccountId(memberId.gymId()),
+      "stripeAccountId", stripeBridge.getStripeAccountId(gymId),
       "subscriptionId", stripeBridge.getStripeSubscriptionId(membershipId)
     );
 
@@ -83,7 +84,7 @@ public class MembershipService {
     membershipsRepository.setCancellationReasonId(membershipId, endDate, cancellationReasonId, comment);
   }
 
-  public Optional<Membership> retrieve(Member.Id memberId) {
+  public Optional<Membership> retrieve(UUID memberId) {
     log.debug("Retrieving memberships for member with id {}...", memberId);
     var memberships = membershipsRepository.getMemberships(memberId);
 

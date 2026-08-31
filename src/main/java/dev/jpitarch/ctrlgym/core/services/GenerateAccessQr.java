@@ -5,7 +5,6 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +17,7 @@ import java.security.PrivateKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -31,7 +31,7 @@ public class GenerateAccessQr {
 
   private static final int QR_SIZE = 300;
 
-  public byte[] generateQrCode(Member.Id memberId, String role, List<Integer> branches) throws WriterException, IOException {
+  public byte[] generateQrCode(UUID memberId, String role, List<Integer> branches) throws WriterException, IOException {
     var qrCodeWriter = new QRCodeWriter();
     var data = this.generateQrToken(memberId, role, branches);
     BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
@@ -41,11 +41,10 @@ public class GenerateAccessQr {
     return pngOutputStream.toByteArray();
   }
 
-  private String generateQrToken(Member.Id memberId, String role, List<Integer> gymIds) {
+  private String generateQrToken(UUID memberId, String role, List<Integer> gymIds) {
     var now = Instant.now();
     return Jwts.builder()
-      .subject(memberId.memberId().toString())
-      .claim("gym_id", memberId.gymId())
+      .subject(memberId.toString())
       .claim("gym_branches", gymIds)
       .claim("role", role)
       .issuedAt(Date.from(now))

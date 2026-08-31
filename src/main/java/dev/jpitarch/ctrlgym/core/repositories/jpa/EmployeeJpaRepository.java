@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface EmployeeJpaRepository extends JpaRepository<EmployeeWorkplaceEntity, EmployeeWorkplaceEntity.ID> {
+public interface EmployeeJpaRepository extends JpaRepository<EmployeeWorkplaceEntity, UUID> {
 
   @Query("""
     SELECT ew FROM EmployeeWorkplaceEntity ew

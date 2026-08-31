@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -29,7 +30,7 @@ public class CustomerService {
   private final StripeBridge stripeBridge;
 
   public String create(Member member) throws StripeException {
-    Integer gymId = member.getId().gymId();
+    Integer gymId = member.getGymId();
 
     var requestOptions = RequestOptions.builder()
       .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
@@ -62,8 +63,8 @@ public class CustomerService {
     return customer.getId();
   }
 
-  public SetupIntentResponse createSetupIntent(Member.Id memberId) throws StripeException {
-    String accountId = stripeBridge.getStripeAccountId(memberId.gymId());
+  public SetupIntentResponse createSetupIntent(UUID memberId, Integer gymId) throws StripeException {
+    String accountId = stripeBridge.getStripeAccountId(gymId);
     String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow();
 
     var options = RequestOptions.builder()
@@ -104,9 +105,9 @@ public class CustomerService {
     PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
   }
 
-  public Optional<String> getIbanLast4(Member.Id memberId) {
+  public Optional<String> getIbanLast4(UUID memberId, Integer gymId) {
     var options = RequestOptions.builder()
-      .setStripeAccount(stripeBridge.getStripeAccountId(memberId.gymId()))
+      .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
       .build();
     var params = SetupIntentRetrieveParams.builder()
       .addExpand("payment_method")

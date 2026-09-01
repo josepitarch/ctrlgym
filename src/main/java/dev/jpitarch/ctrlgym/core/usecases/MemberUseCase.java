@@ -8,12 +8,16 @@ import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MissingMandatoryAcceptanceException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.StaleLegalDocumentException;
 import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
+import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.core.services.*;
+import dev.jpitarch.ctrlgym.lib.AgeHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,8 @@ public class MemberUseCase {
 
   private final LegalDocumentsRepository legalDocumentsRepository;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   private static final Set<LegalDocumentType> MANDATORY_TYPES =
     Set.of(LegalDocumentType.TERMS_OF_SERVICE, LegalDocumentType.PRIVACY_POLICY);
 
@@ -68,11 +74,17 @@ public class MemberUseCase {
       }
     }
 
-    member.setStatus(UserStatus.ACTIVE);
+    if (AgeHelper.isAdult(member.getBirthDate())) {
+      member.setStatus(UserStatus.ACTIVE);
+    } else {
+      member.setStatus(UserStatus.PENDING_GUARDIAN_CONSENT);
+      eventPublisher.publishEvent(new GuardianAuthorizationRequiredEvent(this, member.getId(), TenantContextHolder.getTenantId()));
+    }
+
     membersService.create(member);
 
     for (LegalDocumentVersion version : acceptedVersions) {
-      MemberTermsAcceptanceEntity acceptance = new MemberTermsAcceptanceEntity();
+      var acceptance = new MemberTermsAcceptanceEntity();
       acceptance.setId(UUID.randomUUID());
       acceptance.setMemberId(member.getId());
       acceptance.setDocumentVersionId(version.getId());

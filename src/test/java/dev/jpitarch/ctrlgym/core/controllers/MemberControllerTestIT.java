@@ -4,12 +4,16 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
+import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -19,7 +23,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,11 +39,15 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   @MockitoBean
   CustomerService customerService;
 
+  @Autowired
+  UserJpaRepository userJpaRepository;
+
   JsonMapper jsonMapper = JsonMapper.builder()
     .addModule(new JavaTimeModule())
     .build();
 
   UUID memberId = UUID.fromString("c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1");
+  UUID minorMemberId = UUID.fromString("d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2");
   Integer gymId = 1;
 
   UUID termsOfServiceVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000001");
@@ -113,5 +123,27 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(jsonMapper.writeValueAsString(request)))
       .andExpect(status().isConflict());
+  }
+
+  @Test
+  @Order(4)
+  @DisplayName("Creates a minor member with PENDING_GUARDIAN_CONSENT status and publishes event")
+  void createMember_minor_returns201_withPendingGuardianConsent() throws Exception {
+    var request = buildBaseRequest();
+    request.setBirthDate(LocalDate.now().minusYears(16));
+    request.setAcceptedDocumentVersionIds(List.of(termsOfServiceVersionId, privacyPolicyVersionId));
+
+    when(customerService.create(any())).thenReturn("cus_test_minor");
+
+    mockMvc.perform(post("/v1/members/{memberId}", minorMemberId)
+        .header("X-Tenant-Id", gymId.toString())
+        .with(jwt().jwt(j -> j.subject(minorMemberId.toString()))
+          .authorities(new SimpleGrantedAuthority("ROLE_MEMBER")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(jsonMapper.writeValueAsString(request)))
+      .andExpect(status().isCreated());
+
+    var user = userJpaRepository.findById(minorMemberId).orElseThrow();
+    assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_GUARDIAN_CONSENT);
   }
 }

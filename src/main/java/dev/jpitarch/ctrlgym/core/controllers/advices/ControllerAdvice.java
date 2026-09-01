@@ -105,6 +105,30 @@ public class ControllerAdvice {
     return problem;
   }
 
+  @ExceptionHandler(StaleLegalDocumentException.class)
+  public ProblemDetail handleStaleLegalDocumentException(StaleLegalDocumentException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    problem.setTitle("Stale Legal Document");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(MissingMandatoryAcceptanceException.class)
+  public ProblemDetail handleMissingMandatoryAcceptanceException(MissingMandatoryAcceptanceException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    problem.setTitle("Missing Mandatory Acceptance");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
+
+    return problem;
+  }
+
   private void publishExceptionEvent(String exceptionType, String message, HttpStatus status, HttpServletRequest request) {
     eventPublisher.publishEvent(new ExceptionEvent(
       this,

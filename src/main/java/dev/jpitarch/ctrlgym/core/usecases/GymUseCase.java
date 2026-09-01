@@ -11,12 +11,14 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
+import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.ProductRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
@@ -76,6 +78,8 @@ public class GymUseCase {
   private final EmployeeScheduleService employeeScheduleService;
 
   private final ApplicationEventPublisher eventPublisher;
+
+  private final LegalDocumentsRepository legalDocumentsRepository;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -263,6 +267,19 @@ public class GymUseCase {
 
   public Shift updateShift(Long shiftId, UpdateShiftRequest request) {
     return employeeScheduleService.updateShift(shiftId, request);
+  }
+
+  public List<LegalDocumentResponse> getActiveLegalDocuments(Integer gymId) {
+    return legalDocumentsRepository.findAllActiveByGymId(gymId)
+      .stream()
+      .map(doc -> new LegalDocumentResponse(
+        doc.getId(),
+        doc.getType(),
+        doc.getVersion(),
+        doc.getContent(),
+        doc.getEffectiveDate()
+      ))
+      .toList();
   }
 
 }

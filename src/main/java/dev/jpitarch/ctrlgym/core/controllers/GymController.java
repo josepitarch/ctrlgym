@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
+import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
@@ -231,6 +232,12 @@ public class GymController {
   public ResponseEntity<Void> deleteShift(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Long shiftId) {
     useCase.deleteShift(shiftId);
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/{gymId}/legal/documents/current")
+  @PreAuthorize("#gymId == authentication.gymId")
+  public ResponseEntity<List<LegalDocumentResponse>> getActiveLegalDocuments(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getActiveLegalDocuments(gymId));
   }
 
 }

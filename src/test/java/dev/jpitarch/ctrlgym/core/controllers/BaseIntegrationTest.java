@@ -27,7 +27,7 @@ public abstract class BaseIntegrationTest {
 
   @Container
   @ServiceConnection
-  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17.6")
+  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18.6")
     .withInitScripts("sql/schema.sql", "sql/data.sql");
 
   @Autowired

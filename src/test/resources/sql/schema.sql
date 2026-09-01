@@ -75,6 +75,12 @@ CREATE TYPE public.workout_status AS ENUM (
     'COMPLETED',
     'ABANDONED');
 
+CREATE TYPE legal_document_type AS ENUM (
+    'TERMS_OF_USE',
+    'PRIVACY_POLICY',
+    'IMAGE_CONSENT'
+);
+
 -- DROP SEQUENCE access_events_id_seq;
 
 CREATE SEQUENCE access_events_id_seq
@@ -790,6 +796,29 @@ create table sales (
   CONSTRAINT sales_product_id_fkey foreign KEY (product_id) references products (id)
 );
 
+CREATE TABLE legal_document_version (
+  id              UUID PRIMARY KEY DEFAULT uuidv7(),
+  gym_id          int not null references gyms(id),
+  type            legal_document_type NOT NULL,
+  version         VARCHAR(50) NOT NULL,
+  content         TEXT NOT NULL,
+  content_hash    VARCHAR(64) NOT NULL,
+  effective_date  DATE NOT NULL,
+  active          BOOLEAN NOT NULL DEFAULT true,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  CONSTRAINT uq_legal_doc_type_version UNIQUE (type, version)
+);
+
+CREATE TABLE member_terms_acceptance (
+   id                    UUID PRIMARY KEY DEFAULT uuidv7(),
+   member_id             UUID NOT NULL REFERENCES users(id),
+   document_version_id   UUID NOT NULL REFERENCES legal_document_version(id),
+   accepted_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+   ip_address            VARCHAR(45),
+   user_agent            TEXT,
+   revoked_at            TIMESTAMPTZ
+);
 
 -- DROP FUNCTION public.handle_new_user();
 

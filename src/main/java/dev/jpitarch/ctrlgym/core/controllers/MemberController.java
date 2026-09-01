@@ -4,7 +4,9 @@ import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
+import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,9 +35,34 @@ public class MemberController {
 
   @PostMapping("/{memberId}")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Member member) throws StripeException {
-    member.setId(memberId);
-    memberUseCase.createMember(member);
+  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody CreateMemberRequest body, HttpServletRequest request) throws StripeException {
+
+    Function<HttpServletRequest, String> extractIp = req -> {
+      String forwardedFor = request.getHeader("X-Forwarded-For");
+      if (forwardedFor != null && !forwardedFor.isBlank()) {
+        return forwardedFor.split(",")[0].trim();
+      }
+      return request.getRemoteAddr();
+    };
+
+    Member member = Member.builder()
+      .id(memberId)
+      .name(body.getName())
+      .firstSurname(body.getFirstSurname())
+      .secondSurname(body.getSecondSurname())
+      .email(body.getEmail())
+      .gender(body.getGender())
+      .birthDate(body.getBirthDate())
+      .nif(body.getNif())
+      .address(body.getAddress() != null
+        ? Member.Address.builder()
+          .city(body.getAddress().getCity())
+          .postalCode(body.getAddress().getPostalCode())
+          .build()
+        : null)
+      .build();
+
+    memberUseCase.createMember(member, body.getAcceptedDocumentVersionIds(), extractIp.apply(request), request.getHeader("User-Agent"));
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 

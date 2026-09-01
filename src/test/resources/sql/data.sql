@@ -152,7 +152,6 @@ INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", 
 VALUES ('d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2', 1, 'test.minor@example.com', 'Minor', 'Test', 'User', 'M', '2010-01-01', now(), 'AUTH', 'MEMBER');
 
 INSERT INTO "public"."legal_document_version" ("id", "gym_id", "type", "version", "content", "content_hash", "effective_date", "active", "created_at")
-VALUES ('d0d0d0d0-0000-0000-0000-000000000001', 1, 'TERMS_OF_SERVICE', '1.0', 'Terms of service content', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '2026-01-01', true, now()),
+VALUES ('d0d0d0d0-0000-0000-0000-000000000001', 1, 'TERMS_OF_USE', '1.0', 'Terms of service content', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '2026-01-01', true, now()),
        ('d0d0d0d0-0000-0000-0000-000000000002', 1, 'PRIVACY_POLICY', '1.0', 'Privacy policy content', 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3', '2026-01-01', true, now()),
-       ('d0d0d0d0-0000-0000-0000-000000000003', 1, 'COOKIE_POLICY', '1.0', 'Cookie policy content', 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4', '2026-01-01', true, now()),
-       ('d0d0d0d0-0000-0000-0000-000000000004', 1, 'TERMS_OF_SERVICE', '0.9', 'Old terms of service content', 'd4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5', '2025-01-01', false, now());
+       ('d0d0d0d0-0000-0000-0000-000000000003', 1, 'IMAGE_CONSENT', '1.0', 'Image consent', 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4', '2026-01-01', true, now());

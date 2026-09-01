@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -75,6 +76,18 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     request.setAddress(address);
 
     return request;
+  }
+
+  @BeforeEach
+  void resetMemberStatus() {
+    userJpaRepository.findById(memberId).ifPresent(u -> {
+      u.setStatus(UserStatus.AUTH);
+      userJpaRepository.save(u);
+    });
+    userJpaRepository.findById(minorMemberId).ifPresent(u -> {
+      u.setStatus(UserStatus.AUTH);
+      userJpaRepository.save(u);
+    });
   }
 
   @Test

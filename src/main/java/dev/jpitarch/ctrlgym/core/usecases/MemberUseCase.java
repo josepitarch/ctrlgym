@@ -55,6 +55,10 @@ public class MemberUseCase {
 
   @Transactional
   public void createMember(Member member, List<UUID> acceptedDocumentVersionIds, String ip, String userAgent) throws StripeException {
+    Member existingMember = membersService.getMember(member.getId());
+    if (existingMember.getStatus() != UserStatus.AUTH) {
+      throw new IllegalStateException("Member must be in AUTH status to be created");
+    }
 
     List<LegalDocumentVersion> acceptedVersions = legalDocumentsRepository.findAllById(acceptedDocumentVersionIds);
 

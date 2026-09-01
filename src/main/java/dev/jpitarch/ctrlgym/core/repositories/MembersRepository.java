@@ -2,9 +2,9 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
-import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
+import dev.jpitarch.ctrlgym.core.mappers.MemberMapper;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
@@ -22,6 +22,8 @@ public class MembersRepository {
   private final UserJpaRepository jpaRepository;
 
   private final MemberAccessJpaRepository memberAccessJpaRepository;
+
+  private final MemberMapper memberMapper;
 
   public boolean exists(UUID memberId) {
     return jpaRepository.existsById(memberId);
@@ -44,21 +46,7 @@ public class MembersRepository {
       .findById(memberId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
 
-    return Member.builder()
-      .id(memberId)
-      .nif(UserEntity.getNif())
-      .email(UserEntity.getEmail())
-      .name(UserEntity.getName())
-      .firstSurname(UserEntity.getFirstSurname())
-      .secondSurname(UserEntity.getSecondSurname())
-      .gender(mapGender(UserEntity.getGender()))
-      .birthDate(UserEntity.getBirthDate())
-      .address(Member.Address.builder()
-        .postalCode(UserEntity.getPostalCode())
-        .build()
-      )
-      .status(UserEntity.getStatus())
-      .build();
+    return memberMapper.toDomain(UserEntity);
   }
 
   public Integer getGymIdByMemberId(UUID memberId) {
@@ -78,21 +66,9 @@ public class MembersRepository {
       .orElseThrow(() -> new MemberNotFoundException(member.getId()));
 
     memberEntity.setGymId(TenantContextHolder.getTenantId());
-    memberEntity.setName(member.getName());
-    memberEntity.setFirstSurname(member.getFirstSurname());
-    memberEntity.setSecondSurname(member.getSecondSurname());
-    memberEntity.setEmail(member.getEmail());
-    memberEntity.setGender(mapGender(member.getGender()));
-    memberEntity.setBirthDate(member.getBirthDate());
-    //TODO
+    memberMapper.updateEntity(member, memberEntity);
     if (customerId != null) {
       memberEntity.setStripeCustomerId(customerId);
-    }
-    memberEntity.setStatus(member.getStatus());
-
-    if (member.getAddress() != null) {
-      var address = member.getAddress();
-      memberEntity.setPostalCode(address.getPostalCode());
     }
 
     jpaRepository.save(memberEntity);
@@ -101,49 +77,15 @@ public class MembersRepository {
   public List<MemberAccess> getMemberAccessesByMemberId(UUID memberId) {
     return memberAccessJpaRepository.findByMemberId(memberId)
       .stream()
-      .map(memberAccess -> MemberAccess.builder()
-        .branchId(memberAccess.getGymBranchId())
-        .direction(mapDirection(memberAccess.getDirection()))
-        .timestamp(memberAccess.getCreatedAt())
-        .build()
-      )
+      .map(memberMapper::toDomain)
       .toList();
   }
 
   public List<MemberAccess> getMemberAccessesByMemberIdAndDateRange(UUID memberId, OffsetDateTime from, OffsetDateTime to) {
     return memberAccessJpaRepository.findByMemberIdAndDateRange(memberId, from, to)
       .stream()
-      .map(memberAccess -> MemberAccess.builder()
-        .branchId(memberAccess.getGymBranchId())
-        .direction(mapDirection(memberAccess.getDirection()))
-        .timestamp(memberAccess.getCreatedAt())
-        .build()
-      )
+      .map(memberMapper::toDomain)
       .toList();
-  }
-
-  private MemberAccess.Direction mapDirection(Integer direction) {
-    return switch (direction) {
-      case 0 -> MemberAccess.Direction.IN;
-      case 1 -> MemberAccess.Direction.OUT;
-      default -> throw new IllegalStateException("Unexpected value: " + direction);
-    };
-  }
-
-  private String mapGender(Gender gender) {
-    return switch (gender) {
-      case MALE -> "M";
-      case FEMALE -> "F";
-    };
-  }
-
-  private Gender mapGender(String gender) {
-    return switch (gender) {
-      case "M" -> Gender.MALE;
-      case "F" -> Gender.FEMALE;
-      case null -> null;
-      default -> throw new IllegalStateException("Unexpected value: " + gender);
-    };
   }
 
 }

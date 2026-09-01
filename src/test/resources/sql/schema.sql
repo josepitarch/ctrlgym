@@ -79,9 +79,9 @@ CREATE TYPE public.workout_status AS ENUM (
     'ABANDONED');
 
 CREATE TYPE legal_document_type AS ENUM (
-    'TERMS_OF_SERVICE',
+    'TERMS_OF_USE',
     'PRIVACY_POLICY',
-    'COOKIE_POLICY'
+    'IMAGE_CONSENT'
 );
 
 -- DROP SEQUENCE access_events_id_seq;

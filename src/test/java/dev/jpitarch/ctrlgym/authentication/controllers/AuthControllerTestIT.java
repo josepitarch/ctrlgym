@@ -1,16 +1,38 @@
 package dev.jpitarch.ctrlgym.authentication.controllers;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import dev.jpitarch.ctrlgym.authentication.dtos.ForgotPasswordRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.RefreshRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.LoginRequest;
+import dev.jpitarch.ctrlgym.authentication.dtos.ResetPasswordRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.controllers.BaseIntegrationTest;
+import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
+import dev.jpitarch.ctrlgym.notifications.services.EmailService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,6 +43,23 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
 
   static String accessToken;
   static String refreshToken;
+
+  @Value("${jwt.secret}")
+  String jwtSecret;
+
+  @Autowired
+  UserRepository userRepository;
+
+  @MockitoBean
+  EmailTemplateComponent emailTemplateComponent;
+
+  @MockitoBean
+  EmailService emailService;
+
+  @BeforeEach
+  void setUp() {
+    when(emailTemplateComponent.build(anyString(), any())).thenReturn("<html></html>");
+  }
 
   @Test
   @Order(1)
@@ -35,6 +74,7 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
     );
 
     MvcResult result = mockMvc.perform(post("/v1/auth/signup")
+        .header("X-Tenant-Id", 1)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
@@ -104,6 +144,44 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
     var request = new RefreshRequest(refreshToken);
 
     mockMvc.perform(post("/v1/auth/logout")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isOk());
+  }
+
+  @Test
+  @Order(6)
+  @DisplayName("Forgot password returns 200 and sends email")
+  void forgotPassword_returns200_sendsEmail() throws Exception {
+    var request = new ForgotPasswordRequest("newuser@test.com");
+
+    mockMvc.perform(post("/v1/auth/password/forgot")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isOk());
+
+    verify(emailTemplateComponent).build(eq("password-reset.html"), any());
+    verify(emailService).send(eq("newuser@test.com"), anyString(), anyString());
+  }
+
+  @Test
+  @Order(7)
+  @DisplayName("Reset password with valid token returns 200")
+  void resetPassword_returns200() throws Exception {
+    var user = userRepository.findByEmail("newuser@test.com").orElseThrow();
+    SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    String token = Jwts.builder()
+      .subject(user.getId().toString())
+      .claim("type", "password_reset")
+      .claim("email", "newuser@test.com")
+      .issuedAt(Date.from(Instant.now()))
+      .expiration(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+      .signWith(key)
+      .compact();
+
+    var request = new ResetPasswordRequest(token, "NewPassword1!");
+
+    mockMvc.perform(post("/v1/auth/password/reset")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk());

@@ -23,6 +23,8 @@ public class AuthController {
 
   private final InvitationService invitationService;
 
+  private final PasswordRecoveryService passwordRecoveryService;
+
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(
     @RequestBody SignupRequest request,
@@ -49,6 +51,18 @@ public class AuthController {
   public ResponseEntity<AuthResponse> acceptInvitation(
     @RequestBody AcceptInvitationRequest request) {
     return ResponseEntity.ok(invitationService.acceptInvitation(request.token(), request.password()));
+  }
+
+  @PostMapping("/password/forgot")
+  public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+    passwordRecoveryService.forgotPassword(request.email());
+    return ResponseEntity.ok().build();
+  }
+
+  @PostMapping("/password/reset")
+  public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
+    passwordRecoveryService.resetPassword(request.token(), request.password());
+    return ResponseEntity.ok().build();
   }
 
   @PostMapping("/logout")

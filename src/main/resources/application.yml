@@ -62,7 +62,11 @@ management:
   otlp:
     metrics:
       export:
-        enabled: false
+        enabled: true
+        url: https://api.axiom.co/v1/metrics
+        headers:
+          Authorization: "Bearer ${AXIOM_API_TOKEN}"
+          X-Axiom-Dataset: ctrlgym-metrics
   opentelemetry:
     logging:
       export:

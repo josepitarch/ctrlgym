@@ -205,7 +205,7 @@ CREATE TABLE gym_branches
   longitude       NUMERIC(9, 6) NOT NULL,
   full_address    text NULL,
   api_key         text          NOT NULL,
-  is_active       bool DEFAULT true NULL,
+  is_active       bool NOT NULL DEFAULT true ,
 
   CONSTRAINT gyms_pkey1 PRIMARY KEY (id),
   CONSTRAINT gyms_company_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)

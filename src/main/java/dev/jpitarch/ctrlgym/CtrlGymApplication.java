@@ -7,6 +7,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.resilience.annotation.EnableResilientMethods;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ public class CtrlGymApplication {
 
   @Slf4j
   @Component
-  @ConditionalOnBean(OpenTelemetry.class)
+  @Profile("!local & !test")
   static class InstallOpenTelemetryAppender implements InitializingBean {
 
     private final OpenTelemetry openTelemetry;

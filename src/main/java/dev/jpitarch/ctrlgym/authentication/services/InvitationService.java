@@ -29,6 +29,8 @@ public class InvitationService {
 
   private final SecretKey secretKey;
 
+  private final String baseUrl;
+
   private final UserRepository userRepository;
 
   private final PasswordEncoder passwordEncoder;
@@ -45,12 +47,14 @@ public class InvitationService {
 
   public InvitationService(
     @Value("${jwt.secret}") String secret,
+    @Value("${email.redirect.base-url}") String baseUrl,
     UserRepository userRepository,
     PasswordEncoder passwordEncoder,
     JwtService jwtService,
     RefreshTokenService refreshTokenService, EmailTemplateComponent emailTemplateComponent, EmailService emailService
   ) {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    this.baseUrl = baseUrl;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtService = jwtService;
@@ -73,7 +77,7 @@ public class InvitationService {
       .signWith(secretKey)
       .compact();
 
-    String template = emailTemplateComponent.build("employee-invitation.html", Map.of("ConfirmationURL", "https://app.ctrlgym.es/signup" + "?token=" + token));
+    String template = emailTemplateComponent.build("employee-invitation.html", Map.of("ConfirmationURL", baseUrl + "/signup" + "?token=" + token));
     emailService.send(event.getEmail(), "Invitación a CtrlGym", template);
   }
 

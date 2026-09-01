@@ -25,6 +25,8 @@ public class PasswordRecoveryService {
 
   private final SecretKey secretKey;
 
+  private final String baseUrl;
+
   private final UserRepository userRepository;
 
   private final PasswordEncoder passwordEncoder;
@@ -37,12 +39,14 @@ public class PasswordRecoveryService {
 
   public PasswordRecoveryService(
     @Value("${jwt.secret}") String secret,
+    @Value("${email.redirect.base-url}") String baseUrl,
     UserRepository userRepository,
     PasswordEncoder passwordEncoder,
     EmailTemplateComponent emailTemplateComponent,
     EmailService emailService
   ) {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    this.baseUrl = baseUrl;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.emailTemplateComponent = emailTemplateComponent;
@@ -69,7 +73,7 @@ public class PasswordRecoveryService {
       .compact();
 
     String template = emailTemplateComponent.build("password-reset.html",
-      Map.of("ResetURL", "https://app.ctrlgym.es/reset-password" + "?token=" + token));
+      Map.of("ResetURL", baseUrl + "/reset-password" + "?token=" + token));
     emailService.send(email, "Recuperar contraseña - CtrlGym", template);
   }
 

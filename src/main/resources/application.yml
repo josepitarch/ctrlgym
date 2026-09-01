@@ -28,6 +28,7 @@ spring:
 
 jwt.secret: ${JWT_SECRET}
 
+email.redirect.base-url: https://app.ctrlgym.es
 resend:
   api-key: ${RESEND_API_KEY}
   from-email: "noreply@ctrlgym.es"

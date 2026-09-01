@@ -51,7 +51,7 @@ public class MemberUseCase {
   private final ApplicationEventPublisher eventPublisher;
 
   private static final Set<LegalDocumentType> MANDATORY_TYPES =
-    Set.of(LegalDocumentType.TERMS_OF_SERVICE, LegalDocumentType.PRIVACY_POLICY);
+    Set.of(LegalDocumentType.TERMS_OF_USE, LegalDocumentType.PRIVACY_POLICY);
 
   @Transactional
   public void createMember(Member member, List<UUID> acceptedDocumentVersionIds, String ip, String userAgent) throws StripeException {

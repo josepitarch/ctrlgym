@@ -5,16 +5,16 @@ import dev.jpitarch.ctrlgym.core.domain.MemberGuardianAuthorization;
 import dev.jpitarch.ctrlgym.core.domain.enums.GuardianConsentStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthorizationNotFoundException;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.InvalidAuthorizationStateException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthorizationTokenExpiredException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.InvalidAuthorizationStateException;
 import dev.jpitarch.ctrlgym.core.dto.GuardianAuthorizationDto;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.MemberGuardianAuthorizationRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
@@ -28,8 +28,9 @@ import static dev.jpitarch.ctrlgym.core.domain.enums.GuardianConsentStatus.PENDI
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GuardianAuthorizationService {
+
+  private final String baseUrl;
 
   private final MemberGuardianAuthorizationRepository repository;
 
@@ -38,6 +39,19 @@ public class GuardianAuthorizationService {
   private final EmailTemplateComponent emailTemplateComponent;
 
   private final EmailService emailService;
+
+  public GuardianAuthorizationService(
+    @Value("${email.redirect.base-url}") String baseUrl,
+    MemberGuardianAuthorizationRepository repository,
+    MembersRepository memberRepository,
+    EmailTemplateComponent emailTemplateComponent,
+    EmailService emailService) {
+    this.baseUrl = baseUrl;
+    this.repository = repository;
+    this.memberRepository = memberRepository;
+    this.emailTemplateComponent = emailTemplateComponent;
+    this.emailService = emailService;
+  }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleGuardianAuthorizationRequiredEvent(GuardianAuthorizationRequiredEvent event) {
@@ -57,7 +71,7 @@ public class GuardianAuthorizationService {
 
     repository.save(auth);
 
-    String authorizationUrl = "http://localhost:3000/guardian-authorization/" + token;
+    String authorizationUrl = baseUrl + "/guardian-authorization/" + token;
     String template = emailTemplateComponent.build("guardian-authorization.html", Map.of(
       "MemberFullName", member.getFullName(),
       "AuthorizationURL", authorizationUrl

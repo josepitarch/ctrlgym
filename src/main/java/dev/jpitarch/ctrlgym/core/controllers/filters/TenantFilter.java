@@ -24,7 +24,7 @@ public class TenantFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
     String path = request.getRequestURI();
-    return !path.startsWith("/v1/members/");
+    return path.startsWith("/v1/auth");
   }
 
   @Override
@@ -33,13 +33,18 @@ public class TenantFilter extends OncePerRequestFilter {
                                   @NonNull FilterChain chain) throws IOException, ServletException {
     try {
       String tenantId = request.getHeader("X-Tenant-Id");
+      String path = request.getRequestURI();
 
-      if (tenantId == null) {
-        writeProblemDetail(response);
-        return;
+      if (path.startsWith("/v1/members/")) {
+        if (tenantId == null) {
+          writeProblemDetail(response);
+          return;
+        }
+        TenantContextHolder.setTenantId(Integer.valueOf(tenantId));
+      } else if (tenantId != null) {
+        TenantContextHolder.setTenantId(Integer.valueOf(tenantId));
       }
 
-      TenantContextHolder.setTenantId(Integer.valueOf(tenantId));
       chain.doFilter(request, response);
     } finally {
       TenantContextHolder.clear();

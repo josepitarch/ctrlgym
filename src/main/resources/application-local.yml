@@ -6,3 +6,9 @@ spring:
     show-sql: false
     properties:
       hibernate.hibernate.format_sql: true
+
+management:
+  otlp:te
+    metrics:
+      export:
+        enabled: false

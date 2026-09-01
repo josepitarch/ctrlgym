@@ -29,6 +29,7 @@ CREATE TYPE public.invoice_status AS ENUM (
 CREATE TYPE public.user_status AS ENUM (
   'AUTH',
   'PENDING_ACTIVATION',
+  'PENDING_GUARDIAN_CONSENT',
   'ACTIVE');
 
 CREATE TYPE public.app_role AS ENUM (
@@ -36,6 +37,8 @@ CREATE TYPE public.app_role AS ENUM (
   'EMPLOYEE',
   'MANAGER'
 );
+
+CREATE TYPE guardian_consent_status AS ENUM ('PENDING', 'APPROVED', 'EXPIRED');
 
 -- DROP TYPE public.muscle_group;
 
@@ -76,9 +79,9 @@ CREATE TYPE public.workout_status AS ENUM (
     'ABANDONED');
 
 CREATE TYPE legal_document_type AS ENUM (
-    'TERMS_OF_USE',
+    'TERMS_OF_SERVICE',
     'PRIVACY_POLICY',
-    'IMAGE_CONSENT'
+    'COOKIE_POLICY'
 );
 
 -- DROP SEQUENCE access_events_id_seq;
@@ -248,6 +251,27 @@ CREATE TABLE users
   CONSTRAINT members_stripe_customer_id_uk UNIQUE (stripe_customer_id),
   CONSTRAINT members_stripe_setup_intent_id_uk UNIQUE (stripe_setup_intent_id),
   CONSTRAINT members_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
+);
+
+CREATE TABLE member_guardian_authorization (
+  id                   UUID PRIMARY KEY DEFAULT uuidv7(),
+  member_id            UUID NOT NULL UNIQUE REFERENCES users(id),
+
+  guardian_first_name  VARCHAR(100) NOT NULL,
+  guardian_last_name   VARCHAR(100) NOT NULL,
+  guardian_dni         VARCHAR(20) NOT NULL,
+  guardian_email       VARCHAR(255) NOT NULL,
+
+  status               guardian_consent_status NOT NULL DEFAULT 'PENDING',
+  token                VARCHAR(255) NOT NULL UNIQUE,
+  token_expires_at     TIMESTAMPTZ NOT NULL,
+
+  requested_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  approved_at          TIMESTAMPTZ,
+  approved_ip          VARCHAR(45),
+  approved_user_agent  TEXT,
+
+  requires_accompaniment BOOLEAN NOT NULL DEFAULT false
 );
 
 

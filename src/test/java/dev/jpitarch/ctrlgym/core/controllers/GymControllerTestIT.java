@@ -75,8 +75,8 @@ public class GymControllerTestIT extends BaseIntegrationTest {
   private RequestPostProcessor jwtAuth() {
     Jwt jwt = Jwt.withTokenValue("token")
       .header("alg", "none")
-      .claim("user_metadata", Map.of("gym_id", gymId))
-      .claim("user_roles", List.of("MANAGER"))
+      .claim("gym_id", gymId)
+      .claim("role", "MANAGER")
       .subject(UUID.randomUUID().toString())
       .issuedAt(Instant.now())
       .build();

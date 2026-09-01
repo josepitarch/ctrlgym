@@ -11,7 +11,6 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -26,8 +25,8 @@ class DashboardControllerTestIT extends BaseIntegrationTest {
   private RequestPostProcessor jwtAuth() {
     Jwt jwt = Jwt.withTokenValue("token")
       .header("alg", "none")
-      .claim("user_metadata", Map.of("gym_id", gymId))
-      .claim("user_roles", List.of("MANAGER"))
+      .claim("gym_id", gymId)
+      .claim("role", "MANAGER")
       .subject(UUID.randomUUID().toString())
       .issuedAt(Instant.now())
       .build();

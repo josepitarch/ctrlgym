@@ -50,9 +50,11 @@ storage:
 
 management:
   otlp:
+    metrics:
+      export:
+        enabled: false
     logging:
       export:
         otlp:
           headers:
             Authorization: "Bearer ${AXIOM_API_TOKEN}"
-

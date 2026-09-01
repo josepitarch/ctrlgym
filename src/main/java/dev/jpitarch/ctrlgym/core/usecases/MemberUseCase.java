@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,6 +74,7 @@ public class MemberUseCase {
       acceptance.setId(UUID.randomUUID());
       acceptance.setMemberId(member.getId());
       acceptance.setDocumentVersionId(version.getId());
+      acceptance.setAcceptedAt(OffsetDateTime.now());
       acceptance.setIpAddress(ip);
       acceptance.setUserAgent(userAgent);
       legalDocumentsRepository.saveAcceptance(acceptance);

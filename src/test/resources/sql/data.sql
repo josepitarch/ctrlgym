@@ -144,3 +144,12 @@ VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01',
 
 --INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
 --VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);
+
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role")
+VALUES ('c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', 1, 'test.member@example.com', 'Test', 'Member', 'User', 'M', '1995-08-20', now(), 'AUTH', 'MEMBER');
+
+INSERT INTO "public"."legal_document_version" ("id", "gym_id", "type", "version", "content", "content_hash", "effective_date", "active", "created_at")
+VALUES ('d0d0d0d0-0000-0000-0000-000000000001', 1, 'TERMS_OF_SERVICE', '1.0', 'Terms of service content', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '2026-01-01', true, now()),
+       ('d0d0d0d0-0000-0000-0000-000000000002', 1, 'PRIVACY_POLICY', '1.0', 'Privacy policy content', 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3', '2026-01-01', true, now()),
+       ('d0d0d0d0-0000-0000-0000-000000000003', 1, 'COOKIE_POLICY', '1.0', 'Cookie policy content', 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4', '2026-01-01', true, now()),
+       ('d0d0d0d0-0000-0000-0000-000000000004', 1, 'TERMS_OF_SERVICE', '0.9', 'Old terms of service content', 'd4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5', '2025-01-01', false, now());

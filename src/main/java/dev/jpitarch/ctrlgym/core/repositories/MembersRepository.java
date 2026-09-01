@@ -75,8 +75,9 @@ public class MembersRepository {
   }
 
   public void save(Member member, String customerId) {
-    var memberEntity = new UserEntity();
-    memberEntity.setId(member.getId());
+    var memberEntity = jpaRepository.findById(member.getId())
+      .orElseThrow(() -> new MemberNotFoundException(member.getId()));
+
     memberEntity.setGymId(TenantContextHolder.getTenantId());
     memberEntity.setName(member.getName());
     memberEntity.setFirstSurname(member.getFirstSurname());

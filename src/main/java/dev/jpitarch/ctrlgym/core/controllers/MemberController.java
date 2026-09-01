@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
 import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
+import dev.jpitarch.ctrlgym.lib.RequestHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,14 +38,6 @@ public class MemberController {
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody CreateMemberRequest body, HttpServletRequest request) throws StripeException {
 
-    Function<HttpServletRequest, String> extractIp = req -> {
-      String forwardedFor = request.getHeader("X-Forwarded-For");
-      if (forwardedFor != null && !forwardedFor.isBlank()) {
-        return forwardedFor.split(",")[0].trim();
-      }
-      return request.getRemoteAddr();
-    };
-
     Member member = Member.builder()
       .id(memberId)
       .name(body.getName())
@@ -62,7 +55,7 @@ public class MemberController {
         : null)
       .build();
 
-    memberUseCase.createMember(member, body.getAcceptedDocumentVersionIds(), extractIp.apply(request), request.getHeader("User-Agent"));
+    memberUseCase.createMember(member, body.getAcceptedDocumentVersionIds(), RequestHelper.extractIp(request), request.getHeader("User-Agent"));
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 

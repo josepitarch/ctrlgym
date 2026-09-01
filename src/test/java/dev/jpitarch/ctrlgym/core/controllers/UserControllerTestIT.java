@@ -84,6 +84,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
     when(customerService.create(any())).thenReturn("cus_test123");
 
     mockMvc.perform(post("/v1/members/{memberId}", memberId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
@@ -100,6 +101,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns an existing member")
   void getMember_returnsMember() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}", memberId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON))
@@ -121,6 +123,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
     var nonExistentId = UUID.randomUUID();
 
     mockMvc.perform(get("/v1/members/{memberId}", nonExistentId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwt().jwt(j -> j.subject(nonExistentId.toString()))
           .authorities(new SimpleGrantedAuthority("ROLE_MEMBER")))
@@ -133,6 +136,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns 409 when generating QR without active membership")
   void generateQr_returns409_whenMemberHasNoActiveMembership() throws Exception {
     mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isConflict());
@@ -145,6 +149,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
     when(subscriptionService.create(any(), any(), any())).thenReturn("sub_test123");
 
     mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipId}", memberId, "plan_basic")
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isNoContent());
@@ -155,6 +160,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns all memberships for a member")
   void getMemberships_returnsAllMemberships() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}/memberships", memberId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isOk())
@@ -173,6 +179,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
       {}
       """;
     mockMvc.perform(patch("/v1/members/{memberId}/memberships/{membershipId}", memberId, "plan_basic")
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .param("cancellationReasonId", "1")
         .with(jwtAuth())
@@ -192,6 +199,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
     var routineJson = jsonMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
 
     mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth())
         .contentType(MediaType.APPLICATION_JSON)
@@ -204,6 +212,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
   @DisplayName("Returns member routines")
   void getRoutines_returnsRoutines() throws Exception {
     mockMvc.perform(get("/v1/members/{memberId}/routines", memberId)
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isOk())
@@ -223,6 +232,7 @@ class UserControllerTestIT extends BaseIntegrationTest {
     RoutineEntity routine = routineJpaRepository.findByMemberId(memberId).getFirst();
 
     mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId, routine.getId())
+        .header("X-Tenant-Id", gymId.toString())
         .param("gymId", gymId.toString())
         .with(jwtAuth()))
       .andExpect(status().isNoContent());

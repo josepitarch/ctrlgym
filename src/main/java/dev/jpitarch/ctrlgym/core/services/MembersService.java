@@ -46,7 +46,7 @@ public class MembersService {
 
     String customerId = customerService.create(member);
 
-    log.info("Setting member with id {} from {} to {}...", member.getId(), UserStatus.AUTH, UserStatus.ACTIVE);
+    log.info("Setting member with id {} from {} to {}...", member.getId(), UserStatus.AUTH, member.getStatus());
     membersRepository.save(member, customerId);
   }
 

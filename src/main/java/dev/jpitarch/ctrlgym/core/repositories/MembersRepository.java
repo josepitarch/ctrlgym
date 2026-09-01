@@ -3,7 +3,6 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
-import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MemberAccessJpaRepository;
@@ -85,8 +84,11 @@ public class MembersRepository {
     memberEntity.setEmail(member.getEmail());
     memberEntity.setGender(mapGender(member.getGender()));
     memberEntity.setBirthDate(member.getBirthDate());
-    memberEntity.setStatus(UserStatus.ACTIVE);
-    memberEntity.setStripeCustomerId(customerId);
+    //TODO
+    if (customerId != null) {
+      memberEntity.setStripeCustomerId(customerId);
+    }
+    memberEntity.setStatus(member.getStatus());
 
     if (member.getAddress() != null) {
       var address = member.getAddress();

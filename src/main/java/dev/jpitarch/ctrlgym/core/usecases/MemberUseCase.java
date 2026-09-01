@@ -4,6 +4,7 @@ import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MissingMandatoryAcceptanceException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.StaleLegalDocumentException;
 import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
@@ -67,6 +68,7 @@ public class MemberUseCase {
       }
     }
 
+    member.setStatus(UserStatus.ACTIVE);
     membersService.create(member);
 
     for (LegalDocumentVersion version : acceptedVersions) {

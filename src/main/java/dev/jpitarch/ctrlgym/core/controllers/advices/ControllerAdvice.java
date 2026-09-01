@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers.advices;
 
+import dev.jpitarch.ctrlgym.authentication.exceptions.AccountNotActivatedException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.*;
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import jakarta.servlet.http.HttpServletRequest;
@@ -125,6 +126,18 @@ public class ControllerAdvice {
     problem.setProperty("timestamp", Instant.now());
 
     publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(AccountNotActivatedException.class)
+  public ProblemDetail handleAccountNotActivatedException(AccountNotActivatedException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+    problem.setTitle("Account Not Activated");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.UNPROCESSABLE_CONTENT, request);
 
     return problem;
   }

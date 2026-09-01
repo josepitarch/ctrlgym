@@ -43,7 +43,6 @@ public class MemberController {
       .name(body.getName())
       .firstSurname(body.getFirstSurname())
       .secondSurname(body.getSecondSurname())
-      .email(body.getEmail())
       .gender(body.getGender())
       .birthDate(body.getBirthDate())
       .nif(body.getNif())

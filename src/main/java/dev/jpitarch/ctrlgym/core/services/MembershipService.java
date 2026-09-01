@@ -1,15 +1,18 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.stripe.exception.StripeException;
+import dev.jpitarch.ctrlgym.authentication.exceptions.AccountNotActivatedException;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipCancellationReason;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.DuplicateMembershipException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +23,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -33,6 +32,8 @@ public class MembershipService {
 
   private final MembershipsRepository membershipsRepository;
 
+  private final MembersRepository membersRepository;
+
   private final SubscriptionService subscriptionService;
 
   private final StripeBridge stripeBridge;
@@ -40,6 +41,11 @@ public class MembershipService {
   public static final Integer PAYMENT_FAILED_ATTEMPTS_EXCEEDED = 10;
 
   public Membership initialize(UUID memberId, Integer gymId, String membershipPlanId) throws StripeException {
+    Member member = membersRepository.getById(memberId);
+    if (member.getStatus() != UserStatus.ACTIVE) {
+      throw new AccountNotActivatedException(memberId, member.getStatus());
+    }
+
     if (membershipsRepository.hasActiveMembership(memberId, membershipPlanId)) {
       throw new DuplicateMembershipException(memberId, membershipPlanId);
     }

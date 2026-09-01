@@ -21,8 +21,6 @@ public class CreateMemberRequest {
   @JsonProperty("second_surname")
   private String secondSurname;
 
-  private String email;
-
   private Gender gender;
 
   @JsonProperty("birth_date")

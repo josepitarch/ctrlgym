@@ -39,7 +39,7 @@ public class LoginService {
     }
 
     if (user.getStatus().equals(UserStatus.PENDING_ACTIVATION)) {
-      throw new AccountNotActivatedException("Account not activated");
+      throw new AccountNotActivatedException(user.getId(), user.getStatus());
     }
 
     if (!passwordEncoder.matches(request.password(), user.getPassword())) {

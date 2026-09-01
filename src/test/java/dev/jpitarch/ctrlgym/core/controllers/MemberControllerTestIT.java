@@ -65,7 +65,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     request.setName("Test");
     request.setFirstSurname("Member");
     request.setSecondSurname("User");
-    request.setEmail("test.member@example.com");
     request.setGender(Gender.MALE);
     request.setBirthDate(LocalDate.of(1995, 8, 20));
     request.setNif("12345678Z");

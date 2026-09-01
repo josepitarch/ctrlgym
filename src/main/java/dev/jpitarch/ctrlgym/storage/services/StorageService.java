@@ -23,8 +23,8 @@ public class StorageService {
 
   private final R2Properties properties;
 
-  public String uploadFile(MultipartFile file, String folder) {
-    String key = generateKey(file.getOriginalFilename(), folder);
+  public String uploadFile(MultipartFile file, Integer tenant, String folder) {
+    String key = generateKey(file.getOriginalFilename(), tenant, folder);
 
     try {
       var request = PutObjectRequest.builder()
@@ -56,12 +56,12 @@ public class StorageService {
     log.info("File deleted successfully: {}", key);
   }
 
-  private String generateKey(String originalFilename, String folder) {
+  private String generateKey(String originalFilename, Integer tenant, String folder) {
     String extension = "";
     if (originalFilename != null && originalFilename.contains(".")) {
       extension = originalFilename.substring(originalFilename.lastIndexOf("."));
     }
-    return folder + "/" + UUID.randomUUID() + extension;
+    return "tenants/" + tenant + "/" + folder + "/" + UUID.randomUUID() + extension;
   }
 
   private String extractKeyFromUrl(String fileUrl) {

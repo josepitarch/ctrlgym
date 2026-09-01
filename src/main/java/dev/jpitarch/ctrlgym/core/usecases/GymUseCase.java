@@ -4,7 +4,9 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
+
 import java.time.LocalDate;
+
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
@@ -139,7 +141,7 @@ public class GymUseCase {
 
   public Exercise createExercise(Integer gymId, Exercise exercise, MultipartFile image) {
     if (image != null && !image.isEmpty()) {
-      String imageUrl = storageService.uploadFile(image, "exercises");
+      String imageUrl = storageService.uploadFile(image, gymId, "exercises");
       exercise.setImage(imageUrl);
     }
     return exercisesService.create(exercise, gymId);
@@ -182,7 +184,7 @@ public class GymUseCase {
   @Transactional
   public void createEmployee(Integer gymId, CreateEmployeeRequest request) {
     if ((request.gymBranchId() == null && !request.allBranches()) ||
-        (request.gymBranchId() != null && request.allBranches())) {
+      (request.gymBranchId() != null && request.allBranches())) {
       throw new CoreBusinessException(Employee.class, "gymBranchId is informed and allBranches is true or vice versa");
     }
 
@@ -213,7 +215,7 @@ public class GymUseCase {
 
   public Product createProduct(Integer gymId, Integer branchId, Product product, MultipartFile image) {
     if (image != null && !image.isEmpty()) {
-      String imageUrl = storageService.uploadFile(image, "products");
+      String imageUrl = storageService.uploadFile(image, gymId, "products");
       product.setImage(imageUrl);
     }
     return productRepository.create(product, gymId, branchId);

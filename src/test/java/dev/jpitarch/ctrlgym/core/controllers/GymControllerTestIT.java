@@ -619,8 +619,8 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.member_id").value(memberId.toString()))
         .andExpect(jsonPath("$.gym_branch_id").value(branchId))
         .andExpect(jsonPath("$.items.length()").value(2))
-        .andExpect(jsonPath("$.items[0].product_name_snapshot").isString())
-        .andExpect(jsonPath("$.items[0].product_price_snapshot").isNumber())
+        .andExpect(jsonPath("$.items[0].product_name").isString())
+        .andExpect(jsonPath("$.items[0].product_price").isNumber())
         .andExpect(jsonPath("$.items[0].quantity").isNumber());
 
       assertThat(capturedEvents).hasSize(1);

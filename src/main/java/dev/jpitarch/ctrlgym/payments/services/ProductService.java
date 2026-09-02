@@ -30,10 +30,10 @@ public class ProductService {
 
     var productParams = ProductCreateParams.builder()
       .setName(request.getName())
-      .putMetadata("gymId", String.valueOf(gymId))
+      .putMetadata("gym_id", String.valueOf(gymId))
       .build();
 
-    log.info("Creating product for gym with id {} with name {}", gymId, request.getName());
+    log.info("Creating product for gym with id {} with name {}...", gymId, request.getName());
 
     var product = Product.create(productParams, options);
 
@@ -48,7 +48,7 @@ public class ProductService {
       )
       .build();
 
-    log.info("Creating price for product with id {} with amount {}", product.getId(), request.getPrice());
+    log.info("Creating price for product with id {} with amount {}...", product.getId(), request.getPrice());
 
     var price = Price.create(priceParams, options);
 
@@ -62,17 +62,19 @@ public class ProductService {
       .setStripeAccount(stripeAccountId)
       .build();
 
-    log.info("Deleting product for gym with id {} with product with id {}...", gymId, productId);
-
     var priceParams = PriceUpdateParams.builder()
       .setActive(false)
       .build();
+
+    log.info("Deleting price for gym with id {} with product with id {}...", gymId, productId);
 
     Price.retrieve(productId, options).update(priceParams, options);
 
     var productParams = ProductUpdateParams.builder()
       .setActive(false)
       .build();
+
+    log.info("Deleting product for gym with id {} with product with id {}...", gymId, productId);
 
     Product.retrieve(productId, options).update(productParams, options);
   }

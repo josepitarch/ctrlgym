@@ -345,6 +345,11 @@ CREATE TABLE membership_plans
     CONSTRAINT chk_schedule_consistency CHECK (
       ((start_time IS NULL AND end_time IS NULL) OR (start_time IS NOT NULL AND end_time IS NOT NULL))
     ),
+    CONSTRAINT chk_all_day_schedule_exclusivity CHECK (
+      (all_day IS TRUE AND start_time IS NULL AND end_time IS NULL) OR
+      (all_day IS FALSE AND start_time IS NOT NULL AND end_time IS NOT NULL) OR
+      (all_day IS NULL AND start_time IS NULL AND end_time IS NULL)
+    ),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),
     CONSTRAINT membership_plans_stripe_price_id_uk UNIQUE (stripe_price_id),
     CONSTRAINT membership_plan_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)

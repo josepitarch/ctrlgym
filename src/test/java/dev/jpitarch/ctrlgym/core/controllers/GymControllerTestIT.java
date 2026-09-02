@@ -372,4 +372,21 @@ public class GymControllerTestIT extends BaseIntegrationTest {
     assertThat(shiftSeriesJpaRepository.findById(seriesId.longValue())).isEmpty();
   }
 
+  @Test
+  @Order(16)
+  @DisplayName("Returns current active legal documents")
+  void getActiveLegalDocuments_returnsDocuments() throws Exception {
+    mockMvc.perform(get("/v1/gyms/{gymId}/legal/documents/current", gymId)
+        .with(jwtAuth())
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.length()").value(3))
+      .andExpect(jsonPath("$[0].type").value("TERMS_OF_USE"))
+      .andExpect(jsonPath("$[0].version").value("1.0"))
+      .andExpect(jsonPath("$[0].content").value("Terms of service content"))
+      .andExpect(jsonPath("$[0].effective_date").value("2026-01-01"))
+      .andExpect(jsonPath("$[1].type").value("PRIVACY_POLICY"))
+      .andExpect(jsonPath("$[2].type").value("IMAGE_CONSENT"));
+  }
+
 }

@@ -1,12 +1,13 @@
 package dev.jpitarch.ctrlgym.core.services;
 
+import dev.jpitarch.ctrlgym.core.config.AccessQrProperties;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.PrivateKey;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -19,20 +20,17 @@ public class GenerateAccessQr {
 
   private final PrivateKey signingKey;
 
-  @Value("${member-access-qr.expiration-seconds:10}")
-  private int expirationSeconds;
-
-  private static final int EXIT_TOKEN_EXPIRATION_HOURS = 24;
+  private final AccessQrProperties accessQrProperties;
 
   public String generateEntryToken(UUID memberId, String role, List<Integer> branches) {
-    return generateToken(memberId, role, branches, expirationSeconds, "entry");
+    return generateToken(memberId, role, branches, accessQrProperties.getEntry(), "entry");
   }
 
   public String generateExitToken(UUID memberId, String role, List<Integer> branches) {
-    return generateToken(memberId, role, branches, EXIT_TOKEN_EXPIRATION_HOURS * 3600, "exit");
+    return generateToken(memberId, role, branches, accessQrProperties.getExit(), "exit");
   }
 
-  private String generateToken(UUID memberId, String role, List<Integer> gymIds, int expirationInSeconds, String type) {
+  private String generateToken(UUID memberId, String role, List<Integer> gymIds, Duration expiration, String type) {
     var now = Instant.now();
     return Jwts.builder()
       .subject(memberId.toString())
@@ -40,7 +38,7 @@ public class GenerateAccessQr {
       .claim("role", role)
       .claim("type", type)
       .issuedAt(Date.from(now))
-      .expiration(Date.from(now.plusSeconds(expirationInSeconds)))
+      .expiration(Date.from(now.plus(expiration)))
       .signWith(signingKey, Jwts.SIG.ES256)
       .compact();
   }

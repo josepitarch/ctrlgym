@@ -43,7 +43,10 @@ supabase:
 
 member-access-qr:
   private-key: ${MEMBER_ACCESS_QR_PRIVATE_KEY}
-  expiration-seconds: 10
+
+access:
+  entry: 10s
+  exit: 24h
 
 notifications:
   telegram:

@@ -33,7 +33,10 @@ member-access-qr:
     6Dyyo4lzjUnQ4lR1xpqRrNP37lGhRANCAAQ0/n2o/AMAXjyCOrOgKJGIlOKBxrYh
     qeX2wSf0sd0IDs9C2RZMTv4ot5QDtjCQ8if7W2ePc3jS2KRx5yNXuwc1
     -----END PRIVATE KEY-----
-  expiration-seconds: 10
+
+access:
+  entry: 10s
+  exit: 24h
 
 notifications:
   telegram:

@@ -2,7 +2,6 @@ package dev.jpitarch.ctrlgym.core.usecases;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
-import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 
 import java.time.LocalDate;
@@ -125,16 +124,16 @@ public class GymUseCase {
       throw new CoreBusinessException(MembershipPlan.class, "gymBranchId is informed and allBranches is true or vice versa");
     }
 
-    boolean fromPresent = plan.getFrom() != null;
-    boolean toPresent = plan.getTo() != null;
+    boolean fromPresent = plan.getStartTime() != null;
+    boolean toPresent = plan.getEndTime() != null;
     boolean allDayPresent = plan.getAllDay() != null && plan.getAllDay();
 
     if (fromPresent != toPresent) {
-      throw new CoreBusinessException(MembershipPlan.class, "Both 'from' and 'to' must be informed together or both null");
+      throw new CoreBusinessException(MembershipPlan.class, "Both 'start_time' and 'end_time' must be informed together or both null");
     }
 
     if (fromPresent && allDayPresent) {
-      throw new CoreBusinessException(MembershipPlan.class, "When 'from' and 'to' are informed, 'all_day' must be false or null");
+      throw new CoreBusinessException(MembershipPlan.class, "When 'start_time' and 'end_time' are informed, 'all_day' must be false or null");
     }
 
     String[] data = productService.create(gymId, plan);
@@ -309,10 +308,10 @@ public class GymUseCase {
       .items(request.getItems().stream().map(item -> {
         Product product = productRepository.findById(item.getProductId())
           .orElseThrow(() -> new ProductNotFoundException(item.getProductId()));
-        return OrderItem.builder()
+        return Order.Item.builder()
           .productId(product.getId())
-          .productNameSnapshot(product.getName())
-          .productPriceSnapshot(product.getPrice())
+          .productName(product.getName())
+          .productPrice(product.getPrice())
           .quantity(item.getQuantity())
           .build();
       }).toList())

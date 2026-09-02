@@ -21,6 +21,7 @@ public class MembershipPlan {
 
   private Double price;
 
+  @JsonProperty("billing_period")
   private BillingPeriod billingPeriod;
 
   @JsonProperty("gym_branch_id")
@@ -29,11 +30,11 @@ public class MembershipPlan {
   @JsonProperty("all_branches")
   private boolean allBranches;
 
-  @JsonProperty("from")
-  private LocalTime from;
+  @JsonProperty("start_time")
+  private LocalTime startTime;
 
-  @JsonProperty("to")
-  private LocalTime to;
+  @JsonProperty("end_time")
+  private LocalTime endTime;
 
   @JsonProperty("all_day")
   private Boolean allDay;

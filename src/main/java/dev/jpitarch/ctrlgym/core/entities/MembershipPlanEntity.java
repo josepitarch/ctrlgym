@@ -57,11 +57,11 @@ public class MembershipPlanEntity {
   @Column(name = "deleted_at")
   private LocalDate deletedAt;
 
-  @Column(name = "from")
-  private LocalTime from;
+  @Column(name = "start_time")
+  private LocalTime startTime;
 
-  @Column(name = "to")
-  private LocalTime to;
+  @Column(name = "end_time")
+  private LocalTime endTime;
 
   @Column(name = "all_day")
   private Boolean allDay;

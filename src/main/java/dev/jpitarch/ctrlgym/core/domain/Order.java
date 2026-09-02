@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -37,5 +38,23 @@ public class Order {
   @JsonProperty("verifactu_id")
   private UUID verifactuId;
 
-  private List<OrderItem> items;
+  private List<Item> items;
+
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class Item {
+
+    @JsonProperty("product_id")
+    private Integer productId;
+
+    @JsonProperty("product_name")
+    private String productName;
+
+    @JsonProperty("product_price")
+    private BigDecimal productPrice;
+
+    private Integer quantity;
+  }
 }

@@ -38,6 +38,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class GymControllerTestIT extends BaseIntegrationTest {
 
-  static final List<OrderCreatedEvent> capturedEvents = new java.util.ArrayList<>();
+  static final List<OrderCreatedEvent> capturedEvents = new ArrayList<>();
 
   @Component
   static class TestOrderEventListener {
@@ -201,9 +202,12 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .billingPeriod(MembershipPlan.BillingPeriod.MONTHLY)
         .gymBranchId(1)
         .allBranches(false)
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(21, 0))
+        .allDay(false)
         .build();
 
-      when(productService.create(eq(gymId), any(MembershipPlan.class))).thenReturn(new String[]{"new_plan_id", "price"});
+      when(productService.create(eq(gymId), any(MembershipPlan.class))).thenReturn(new String[]{"new_plan_id", "price_premium_plan"});
 
       mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", gymId)
           .with(jwtAuth())
@@ -216,6 +220,92 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
     @Test
     @Order(2)
+    @DisplayName("Creates a membership plan with all_day successfully")
+    void createMembershipPlan_allDay_returns204() throws Exception {
+      var request = MembershipPlan.builder()
+        .name("All Day Plan")
+        .price(59.99)
+        .billingPeriod(MembershipPlan.BillingPeriod.MONTHLY)
+        .gymBranchId(1)
+        .allBranches(false)
+        .allDay(true)
+        .build();
+
+      when(productService.create(eq(gymId), any(MembershipPlan.class))).thenReturn(new String[]{"all_day_plan_id", "price_all_day"});
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isNoContent());
+
+      verify(productService).create(eq(gymId), any(MembershipPlan.class));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Returns 422 when start_time is informed but end_time is null")
+    void createMembershipPlan_startTimeWithoutEndTime_returns422() throws Exception {
+      var request = MembershipPlan.builder()
+        .name("Invalid Plan")
+        .price(49.99)
+        .billingPeriod(MembershipPlan.BillingPeriod.MONTHLY)
+        .gymBranchId(1)
+        .allBranches(false)
+        .startTime(LocalTime.of(9, 0))
+        .build();
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Returns 422 when end_time is informed but start_time is null")
+    void createMembershipPlan_endTimeWithoutStartTime_returns422() throws Exception {
+      var request = MembershipPlan.builder()
+        .name("Invalid Plan")
+        .price(49.99)
+        .billingPeriod(MembershipPlan.BillingPeriod.MONTHLY)
+        .gymBranchId(1)
+        .allBranches(false)
+        .endTime(LocalTime.of(21, 0))
+        .build();
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("Returns 422 when start_time/end_time are informed and all_day is true")
+    void createMembershipPlan_startTimeEndTimeWithAllDay_returns422() throws Exception {
+      var request = MembershipPlan.builder()
+        .name("Invalid Plan")
+        .price(49.99)
+        .billingPeriod(MembershipPlan.BillingPeriod.MONTHLY)
+        .gymBranchId(1)
+        .allBranches(false)
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(21, 0))
+        .allDay(true)
+        .build();
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/memberships/plans", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    @Order(6)
     @DisplayName("Returns all membership plans")
     void getMembershipPlans_returnsAllPlans() throws Exception {
       mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans", gymId)
@@ -223,28 +313,34 @@ class GymControllerTestIT extends BaseIntegrationTest {
           .queryParam("gymBranchId", "1")
           .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(3))
+        .andExpect(jsonPath("$.length()").value(4))
         .andExpect(jsonPath("$[0].name").value("Basic"))
         .andExpect(jsonPath("$[0].price").value(29.99))
-        .andExpect(jsonPath("$[0].recurring").value("MONTHLY"))
+        .andExpect(jsonPath("$[0].billing_period").value("MONTHLY"))
         .andExpect(jsonPath("$[1].name").value("Premium"))
         .andExpect(jsonPath("$[1].price").value(49.99))
         .andExpect(jsonPath("$[2].name").value("Premium Plan"))
-        .andExpect(jsonPath("$[2].price").value(49.99));
+        .andExpect(jsonPath("$[2].price").value(49.99))
+        .andExpect(jsonPath("$[2].start_time").value("09:00:00"))
+        .andExpect(jsonPath("$[2].end_time").value("21:00:00"))
+        .andExpect(jsonPath("$[2].all_day").value(false))
+        .andExpect(jsonPath("$[3].name").value("All Day Plan"))
+        .andExpect(jsonPath("$[3].price").value(59.99))
+        .andExpect(jsonPath("$[3].all_day").value(true));
     }
 
     @Test
-    @Order(3)
+    @Order(7)
     @DisplayName("Deletes a membership plan successfully")
     void deleteMembershipPlan_returns204() throws Exception {
-      mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", gymId, "new_plan_id")
+      mockMvc.perform(delete("/v1/gyms/{gymId}/memberships/plans/{planId}", gymId, "plan_basic")
           .with(jwtAuth())
           .queryParam("gymBranchId", "1")
         )
         .andExpect(status().isNoContent());
 
-      assertThat(membershipPlanJpaRepository.findById("new_plan_id")).isEmpty();
-      verify(productService).delete(1, "new_plan_id");
+      assertThat(membershipPlanJpaRepository.findById("plan_basic")).isEmpty();
+      verify(productService).delete(1, "plan_basic");
     }
   }
 

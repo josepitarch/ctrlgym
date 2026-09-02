@@ -98,114 +98,114 @@ class GymUseCaseTest {
   }
 
   @Test
-  @DisplayName("Should throw CoreBusinessException when from is informed but to is null")
-  void createMembershipPlan_fromInformedButToNull_throwsException() {
+  @DisplayName("Should throw CoreBusinessException when start_time is informed but end_time is null")
+  void createMembershipPlan_startTimeInformedButEndTimeNull_throwsException() {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)
         .gymBranchId(5)
         .allBranches(false)
-        .from(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
         .build();
 
     assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
         .isInstanceOf(CoreBusinessException.class)
-        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+        .hasMessageContaining("Both 'start_time' and 'end_time' must be informed together or both null");
 
     verifyNoInteractions(productService);
     verifyNoInteractions(membershipPlanRepository);
   }
 
   @Test
-  @DisplayName("Should throw CoreBusinessException when to is informed but from is null")
-  void createMembershipPlan_toInformedButFromNull_throwsException() {
+  @DisplayName("Should throw CoreBusinessException when end_time is informed but start_time is null")
+  void createMembershipPlan_endTimeInformedButStartTimeNull_throwsException() {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)
         .gymBranchId(5)
         .allBranches(false)
-        .to(LocalTime.of(21, 0))
+        .endTime(LocalTime.of(21, 0))
         .build();
 
     assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
         .isInstanceOf(CoreBusinessException.class)
-        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+        .hasMessageContaining("Both 'start_time' and 'end_time' must be informed together or both null");
 
     verifyNoInteractions(productService);
     verifyNoInteractions(membershipPlanRepository);
   }
 
   @Test
-  @DisplayName("Should throw CoreBusinessException when from and to are informed and all_day is true")
-  void createMembershipPlan_fromToInformedAndAllDayTrue_throwsException() {
+  @DisplayName("Should throw CoreBusinessException when start_time and end_time are informed and all_day is true")
+  void createMembershipPlan_startTimeEndTimeInformedAndAllDayTrue_throwsException() {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)
         .gymBranchId(5)
         .allBranches(false)
-        .from(LocalTime.of(9, 0))
-        .to(LocalTime.of(21, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(21, 0))
         .allDay(true)
         .build();
 
     assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
         .isInstanceOf(CoreBusinessException.class)
-        .hasMessageContaining("When 'from' and 'to' are informed, 'all_day' must be false or null");
+        .hasMessageContaining("When 'start_time' and 'end_time' are informed, 'all_day' must be false or null");
 
     verifyNoInteractions(productService);
     verifyNoInteractions(membershipPlanRepository);
   }
 
   @Test
-  @DisplayName("Should throw CoreBusinessException when all_day is true and from is informed")
-  void createMembershipPlan_allDayTrueAndFromInformed_throwsException() {
+  @DisplayName("Should throw CoreBusinessException when all_day is true and start_time is informed")
+  void createMembershipPlan_allDayTrueAndStartTimeInformed_throwsException() {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)
         .gymBranchId(5)
         .allBranches(false)
-        .from(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
         .allDay(true)
         .build();
 
     assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
         .isInstanceOf(CoreBusinessException.class)
-        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+        .hasMessageContaining("Both 'start_time' and 'end_time' must be informed together or both null");
 
     verifyNoInteractions(productService);
     verifyNoInteractions(membershipPlanRepository);
   }
 
   @Test
-  @DisplayName("Should throw CoreBusinessException when all_day is true and to is informed")
-  void createMembershipPlan_allDayTrueAndToInformed_throwsException() {
+  @DisplayName("Should throw CoreBusinessException when all_day is true and end_time is informed")
+  void createMembershipPlan_allDayTrueAndEndTimeInformed_throwsException() {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)
         .gymBranchId(5)
         .allBranches(false)
-        .to(LocalTime.of(21, 0))
+        .endTime(LocalTime.of(21, 0))
         .allDay(true)
         .build();
 
     assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
         .isInstanceOf(CoreBusinessException.class)
-        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+        .hasMessageContaining("Both 'start_time' and 'end_time' must be informed together or both null");
 
     verifyNoInteractions(productService);
     verifyNoInteractions(membershipPlanRepository);
   }
 
   @Test
-  @DisplayName("Should create membership plan successfully when from and to are informed and all_day is false")
-  void createMembershipPlan_fromToInformedAndAllDayFalse_createsSuccessfully() throws StripeException {
+  @DisplayName("Should create membership plan successfully when start_time and end_time are informed and all_day is false")
+  void createMembershipPlan_startTimeEndTimeInformedAndAllDayFalse_createsSuccessfully() throws StripeException {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)
         .gymBranchId(5)
         .allBranches(false)
-        .from(LocalTime.of(9, 0))
-        .to(LocalTime.of(21, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(21, 0))
         .allDay(false)
         .build();
 
@@ -220,8 +220,8 @@ class GymUseCaseTest {
   }
 
   @Test
-  @DisplayName("Should create membership plan successfully when all_day is true and from/to are null")
-  void createMembershipPlan_allDayTrueAndFromToNull_createsSuccessfully() throws StripeException {
+  @DisplayName("Should create membership plan successfully when all_day is true and start_time/end_time are null")
+  void createMembershipPlan_allDayTrueAndStartTimeEndTimeNull_createsSuccessfully() throws StripeException {
     MembershipPlan plan = MembershipPlan.builder()
         .name("Basic Plan")
         .price(29.99)

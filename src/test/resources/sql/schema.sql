@@ -334,8 +334,8 @@ CREATE TABLE membership_plans
   stripe_price_id text                      NOT NULL,
   created_at      date DEFAULT CURRENT_DATE NOT NULL,
   deleted_at      date NULL,
-  "from"          time NULL,
-  "to"            time NULL,
+  start_time      time NULL,
+  end_time        time NULL,
   all_day         bool NULL,
   CONSTRAINT membership_plan_billing_period_check CHECK (((billing_period)::text = ANY
     ((ARRAY ['MONTHLY':: character varying, 'QUARTERLY':: character varying, 'SEMESTERLY':: character varying, 'YEARLY':: character varying])::text[])
@@ -343,7 +343,7 @@ CREATE TABLE membership_plans
     CONSTRAINT chk_all_branches_or_gym_branch_id CHECK ((((all_branches IS TRUE) AND (gym_branch_id IS NULL)) OR
                                                          ((all_branches IS FALSE) AND (gym_branch_id IS NOT NULL)))),
     CONSTRAINT chk_schedule_consistency CHECK (
-      (("from" IS NULL AND "to" IS NULL) OR ("from" IS NOT NULL AND "to" IS NOT NULL))
+      ((start_time IS NULL AND end_time IS NULL) OR (start_time IS NOT NULL AND end_time IS NOT NULL))
     ),
     CONSTRAINT membership_plan_pkey PRIMARY KEY (id),
     CONSTRAINT membership_plans_stripe_price_id_uk UNIQUE (stripe_price_id),

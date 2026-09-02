@@ -137,7 +137,7 @@ public class VerifactuService {
     var apiKey = gymsRepository.getVerifactuApiKey(event.getGymId());
 
     var subtotal = order.getItems().stream()
-      .map(item -> item.getProductPriceSnapshot().multiply(BigDecimal.valueOf(item.getQuantity())))
+      .map(item -> item.getProductPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
       .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     var tax = subtotal.multiply(BigDecimal.valueOf(Invoice.TAX)).divide(BigDecimal.valueOf(100));

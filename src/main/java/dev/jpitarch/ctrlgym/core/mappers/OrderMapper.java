@@ -1,10 +1,8 @@
 package dev.jpitarch.ctrlgym.core.mappers;
 
 import dev.jpitarch.ctrlgym.core.domain.Order;
-import dev.jpitarch.ctrlgym.core.domain.OrderItem;
 import dev.jpitarch.ctrlgym.core.entities.OrderEntity;
 import dev.jpitarch.ctrlgym.core.entities.OrderItemEntity;
-import dev.jpitarch.ctrlgym.core.entities.OrderItemId;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -31,8 +29,12 @@ public interface OrderMapper {
   @Mapping(target = "id.orderId", ignore = true)
   @Mapping(target = "product", expression = "java(new dev.jpitarch.ctrlgym.core.entities.ProductEntity() {{ setId(item.getProductId()); }})")
   @Mapping(target = "order", ignore = true)
-  OrderItemEntity toItemEntity(OrderItem item);
+  @Mapping(target = "productNameSnapshot", source = "productName")
+  @Mapping(target = "productPriceSnapshot", source = "productPrice")
+  OrderItemEntity toItemEntity(Order.Item item);
 
   @Mapping(target = "productId", source = "id.productId")
-  OrderItem toItem(OrderItemEntity entity);
+  @Mapping(target = "productName", source = "productNameSnapshot")
+  @Mapping(target = "productPrice", source = "productPriceSnapshot")
+  Order.Item toItem(OrderItemEntity entity);
 }

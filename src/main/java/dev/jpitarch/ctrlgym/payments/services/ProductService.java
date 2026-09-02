@@ -57,6 +57,7 @@ public class ProductService {
 
   public void delete(Integer gymId, String productId) throws StripeException {
     String stripeAccountId = stripeBridge.getStripeAccountId(gymId);
+    String priceId = stripeBridge.getStripePriceId(productId);
 
     var options = RequestOptions.builder()
       .setStripeAccount(stripeAccountId)
@@ -68,7 +69,7 @@ public class ProductService {
 
     log.info("Deleting price for gym with id {} with product with id {}...", gymId, productId);
 
-    Price.retrieve(productId, options).update(priceParams, options);
+    Price.retrieve(priceId, options).update(priceParams, options);
 
     var productParams = ProductUpdateParams.builder()
       .setActive(false)

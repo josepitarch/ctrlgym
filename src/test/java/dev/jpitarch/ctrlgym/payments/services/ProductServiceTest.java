@@ -41,7 +41,7 @@ class ProductServiceTest {
          MockedStatic<Price> priceMock = mockStatic(Price.class)) {
 
       Integer gymId = 1;
-      MembershipPlan request = MembershipPlan.builder()
+      var request = MembershipPlan.builder()
         .name("Premium Plan")
         .price(29.99)
         .build();
@@ -72,7 +72,7 @@ class ProductServiceTest {
 
       ProductCreateParams capturedProductParams = productCaptor.getValue();
       assertThat(capturedProductParams.getName()).isEqualTo("Premium Plan");
-      assertThat(capturedProductParams.getMetadata()).extracting("gymId").isEqualTo("1");
+      assertThat(capturedProductParams.getMetadata()).extracting("gym_id").isEqualTo("1");
 
       ArgumentCaptor<PriceCreateParams> priceCaptor = ArgumentCaptor.forClass(PriceCreateParams.class);
       priceMock.verify(() -> Price.create(priceCaptor.capture(), any(RequestOptions.class)));
@@ -92,7 +92,7 @@ class ProductServiceTest {
          MockedStatic<Price> priceMock = mockStatic(Price.class)) {
 
       Integer gymId = 1;
-      MembershipPlan request = MembershipPlan.builder()
+      var request = MembershipPlan.builder()
         .name("Basic Plan")
         .price(10.50)
         .build();
@@ -125,7 +125,7 @@ class ProductServiceTest {
     try (MockedStatic<Product> productMock = mockStatic(Product.class)) {
 
       Integer gymId = 1;
-      MembershipPlan request = MembershipPlan.builder()
+      var request = MembershipPlan.builder()
         .name("Test Plan")
         .price(10.0)
         .build();
@@ -149,14 +149,16 @@ class ProductServiceTest {
 
       Integer gymId = 1;
       String productId = "prod_test123";
+      String priceId = "price_test123";
       String stripeAccountId = "acct_test123";
 
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn(stripeAccountId);
+      when(stripeBridge.getStripePriceId(productId)).thenReturn(priceId);
 
       Price mockPrice = mock(Price.class);
       Product mockProduct = mock(Product.class);
 
-      priceMock.when(() -> Price.retrieve(eq(productId), any(RequestOptions.class)))
+      priceMock.when(() -> Price.retrieve(eq(priceId), any(RequestOptions.class)))
         .thenReturn(mockPrice);
       when(mockPrice.update(any(PriceUpdateParams.class), any(RequestOptions.class)))
         .thenReturn(mockPrice);
@@ -185,11 +187,13 @@ class ProductServiceTest {
 
       Integer gymId = 1;
       String productId = "prod_test";
+      String priceId = "price_test";
 
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
+      when(stripeBridge.getStripePriceId(productId)).thenReturn(priceId);
 
       CardException cardException = mock(CardException.class);
-      priceMock.when(() -> Price.retrieve(anyString(), any(RequestOptions.class)))
+      priceMock.when(() -> Price.retrieve(eq(priceId), any(RequestOptions.class)))
         .thenThrow(cardException);
 
       assertThatThrownBy(() -> productService.delete(gymId, productId))

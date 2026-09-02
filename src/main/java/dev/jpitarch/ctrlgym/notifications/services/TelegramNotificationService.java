@@ -34,7 +34,7 @@ public class TelegramNotificationService {
   }
 
   public void send(String message) {
-    if (env.matchesProfiles("local")) return;
+    if (env.matchesProfiles("local", "test")) return;
     if (botToken == null || botToken.isBlank() || chatId == null || chatId.isBlank()) {
       log.debug("Telegram notification disabled: missing bot token or chat id");
       return;

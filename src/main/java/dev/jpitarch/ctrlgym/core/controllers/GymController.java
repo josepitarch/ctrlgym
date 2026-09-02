@@ -97,9 +97,8 @@ public class GymController {
 
   @PostMapping("/{gymId}/memberships/plans")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public ResponseEntity<Void> createMembershipPlan(@PathVariable Integer gymId, @RequestBody MembershipPlan plan) throws StripeException {
-    useCase.createMembershipPlan(gymId, plan);
-    return ResponseEntity.noContent().build();
+  public ResponseEntity<MembershipPlan> createMembershipPlan(@PathVariable Integer gymId, @RequestBody MembershipPlan plan) throws StripeException {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createMembershipPlan(gymId, plan));
   }
 
   @GetMapping("/{gymId}/memberships/plans")

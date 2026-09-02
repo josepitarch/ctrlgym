@@ -86,9 +86,10 @@ class GymUseCaseTest {
     String[] stripeData = {"prod_abc123", "price_xyz789"};
     when(productService.create(eq(1), any(MembershipPlan.class))).thenReturn(stripeData);
 
-    gymUseCase.createMembershipPlan(1, plan);
+    MembershipPlan result = gymUseCase.createMembershipPlan(1, plan);
 
-    assertThat(plan.getId()).isEqualTo("prod_abc123");
+    assertThat(result.getId()).isEqualTo("prod_abc123");
+    assertThat(result.getName()).isEqualTo("Basic Plan");
 
     ArgumentCaptor<MembershipPlan> planCaptor = ArgumentCaptor.forClass(MembershipPlan.class);
     verify(productService).create(eq(1), planCaptor.capture());

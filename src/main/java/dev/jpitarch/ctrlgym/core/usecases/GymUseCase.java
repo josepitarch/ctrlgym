@@ -119,7 +119,7 @@ public class GymUseCase {
   }
 
 
-  public void createMembershipPlan(Integer gymId, MembershipPlan plan) throws StripeException {
+  public MembershipPlan createMembershipPlan(Integer gymId, MembershipPlan plan) throws StripeException {
     if ((plan.getGymBranchId() == null && !plan.isAllBranches()) || (plan.getGymBranchId() != null && plan.isAllBranches())) {
       throw new CoreBusinessException(MembershipPlan.class, "gymBranchId is informed and allBranches is true or vice versa");
     }
@@ -139,6 +139,7 @@ public class GymUseCase {
     String[] data = productService.create(gymId, plan);
     plan.setId(data[0]);
     membershipPlanRepository.create(plan, gymId, data[1]);
+    return plan;
   }
 
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {

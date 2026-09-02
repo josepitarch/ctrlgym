@@ -195,7 +195,7 @@ class GymControllerTestIT extends BaseIntegrationTest {
     @Test
     @Order(1)
     @DisplayName("Creates a membership plan successfully")
-    void createMembershipPlan_returns204() throws Exception {
+    void createMembershipPlan_returns201() throws Exception {
       var request = MembershipPlan.builder()
         .name("Premium Plan")
         .price(49.99)
@@ -213,7 +213,16 @@ class GymControllerTestIT extends BaseIntegrationTest {
           .with(jwtAuth())
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value("new_plan_id"))
+        .andExpect(jsonPath("$.name").value("Premium Plan"))
+        .andExpect(jsonPath("$.price").value(49.99))
+        .andExpect(jsonPath("$.billing_period").value("MONTHLY"))
+        .andExpect(jsonPath("$.gym_branch_id").value(1))
+        .andExpect(jsonPath("$.all_branches").value(false))
+        .andExpect(jsonPath("$.start_time").value("09:00:00"))
+        .andExpect(jsonPath("$.end_time").value("21:00:00"))
+        .andExpect(jsonPath("$.all_day").value(false));
 
       verify(productService).create(eq(gymId), any(MembershipPlan.class));
     }
@@ -221,7 +230,7 @@ class GymControllerTestIT extends BaseIntegrationTest {
     @Test
     @Order(2)
     @DisplayName("Creates a membership plan with all_day successfully")
-    void createMembershipPlan_allDay_returns204() throws Exception {
+    void createMembershipPlan_allDay_returns201() throws Exception {
       var request = MembershipPlan.builder()
         .name("All Day Plan")
         .price(59.99)
@@ -237,7 +246,11 @@ class GymControllerTestIT extends BaseIntegrationTest {
           .with(jwtAuth())
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value("all_day_plan_id"))
+        .andExpect(jsonPath("$.name").value("All Day Plan"))
+        .andExpect(jsonPath("$.price").value(59.99))
+        .andExpect(jsonPath("$.all_day").value(true));
 
       verify(productService).create(eq(gymId), any(MembershipPlan.class));
     }

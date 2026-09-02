@@ -3,9 +3,9 @@ package dev.jpitarch.ctrlgym.core.repositories;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.entities.MembershipPlanEntity;
+import dev.jpitarch.ctrlgym.core.mappers.MembershipPlanMapper;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -15,25 +15,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MembershipPlanRepository {
 
-  private final NamedParameterJdbcTemplate jdbc;
-
   private final MembershipPlanJpaRepository membershipPlanJpaRepository;
 
+  private final MembershipPlanMapper mapper;
+
   public void create(MembershipPlan membershipPlan, Integer gymId, String stripePriceId) {
-    var plan = new MembershipPlanEntity();
-    plan.setId(membershipPlan.getId());
+    var plan = mapper.map(membershipPlan);
     plan.setGymId(gymId);
-    plan.setName(membershipPlan.getName());
     plan.setStripePriceId(stripePriceId);
-    plan.setPrice(java.math.BigDecimal.valueOf(membershipPlan.getPrice()));
-    plan.setBillingPeriod(membershipPlan.getBillingPeriod());
     plan.setActive(true);
     plan.setCreatedAt(LocalDate.now());
-    plan.setGymBranchId(membershipPlan.getGymBranchId());
-    plan.setAllBranches(membershipPlan.isAllBranches());
-    plan.setStartTime(membershipPlan.getStartTime());
-    plan.setEndTime(membershipPlan.getEndTime());
-    plan.setAllDay(membershipPlan.getAllDay());
 
     membershipPlanJpaRepository.save(plan);
   }
@@ -43,7 +34,7 @@ public class MembershipPlanRepository {
       ? membershipPlanJpaRepository.findByGymIdAndAllBranchesIsTrue(gymBranchId.gymId())
       : membershipPlanJpaRepository.findByGymIdAndGymBranchId(gymBranchId.gymId(), gymBranchId.branchId());
 
-    return plans.stream().map(this::map).toList();
+    return plans.stream().map(mapper::map).toList();
   }
 
   public void delete(String planId, Integer gymId) {
@@ -51,19 +42,5 @@ public class MembershipPlanRepository {
       .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
     planEntity.setDeletedAt(LocalDate.now());
     membershipPlanJpaRepository.save(planEntity);
-  }
-
-  private MembershipPlan map(MembershipPlanEntity plan) {
-    return MembershipPlan.builder()
-      .id(plan.getId())
-      .name(plan.getName())
-      .price(plan.getPrice().doubleValue())
-      .billingPeriod(plan.getBillingPeriod())
-      .gymBranchId(plan.getGymBranchId())
-      .allBranches(plan.getAllBranches())
-      .startTime(plan.getStartTime())
-      .endTime(plan.getEndTime())
-      .allDay(plan.getAllDay())
-      .build();
   }
 }

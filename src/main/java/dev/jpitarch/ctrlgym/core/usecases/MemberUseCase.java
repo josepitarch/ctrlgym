@@ -103,13 +103,13 @@ public class MemberUseCase {
     return membersService.getMember(memberId);
   }
 
-  public Membership initializeMembership(UUID memberId, Integer gymId, String membershipPlanId) throws StripeException {
-    return membershipService.initialize(memberId, gymId, membershipPlanId);
+  public Membership initializeMembership(UUID memberId, String membershipPlanId) throws StripeException {
+    return membershipService.initialize(memberId, TenantContextHolder.getTenantId(), membershipPlanId);
   }
 
   @SneakyThrows
-  public void changeMembership(UUID memberId, Integer gymId, String newMembershipPlanId) {
-    membershipService.change(memberId, gymId, newMembershipPlanId);
+  public void changeMembership(UUID memberId, String newMembershipPlanId) {
+    membershipService.change(memberId, TenantContextHolder.getTenantId(), newMembershipPlanId);
   }
 
   public void cancelMembership(UUID memberId, Integer gymId, Long membershipId, Integer cancellationReasonId, String comment) throws StripeException {
@@ -128,8 +128,8 @@ public class MemberUseCase {
     return membersService.getAttendanceSummary(memberId, from, to);
   }
 
-  public Routine createRoutine(Routine routine, UUID memberId, Integer gymId) {
-    return routinesService.create(routine, memberId, gymId);
+  public Routine createRoutine(Routine routine, UUID memberId) {
+    return routinesService.create(routine, memberId, TenantContextHolder.getTenantId());
   }
 
   public List<Routine> getRoutines(UUID memberId) {

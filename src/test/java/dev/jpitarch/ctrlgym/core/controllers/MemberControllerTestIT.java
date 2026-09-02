@@ -5,11 +5,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
+import dev.jpitarch.ctrlgym.core.domain.enums.WorkoutStatus;
 import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
 import dev.jpitarch.ctrlgym.core.entities.RoutineEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.WorkoutJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.*;
@@ -21,6 +23,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -59,6 +62,9 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   @Autowired
   RoutineJpaRepository routineJpaRepository;
 
+  @Autowired
+  WorkoutJpaRepository workoutJpaRepository;
+
   JsonMapper jsonMapper = JsonMapper.builder()
     .addModule(new JavaTimeModule())
     .build();
@@ -69,7 +75,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   UUID termsOfServiceVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000001");
   UUID privacyPolicyVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000002");
-  UUID cookiePolicyVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000003");
   UUID staleTermsVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000004");
 
   private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtAuth() {
@@ -105,6 +110,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
       userJpaRepository.save(u);
     });
     membershipJpaRepository.findByMemberId(memberId).forEach(membershipJpaRepository::delete);
+    workoutJpaRepository.findByMemberId(memberId).forEach(workoutJpaRepository::delete);
     routineJpaRepository.findByMemberId(memberId).forEach(routineJpaRepository::delete);
   }
 
@@ -434,7 +440,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
       mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
           .header("X-Tenant-Id", gymId.toString())
-          .param("gymId", gymId.toString())
           .with(jwtAuth())
           .contentType(MediaType.APPLICATION_JSON)
           .content(routineJson))
@@ -490,7 +495,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
       mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
           .header("X-Tenant-Id", gymId.toString())
-          .param("gymId", gymId.toString())
           .with(jwtAuth())
           .contentType(MediaType.APPLICATION_JSON)
           .content(routineJson))
@@ -498,7 +502,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
       mockMvc.perform(get("/v1/members/{memberId}/routines", memberId)
           .header("X-Tenant-Id", gymId.toString())
-          .param("gymId", gymId.toString())
           .with(jwtAuth()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(1))
@@ -553,7 +556,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
       mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
           .header("X-Tenant-Id", gymId.toString())
-          .param("gymId", gymId.toString())
           .with(jwtAuth())
           .contentType(MediaType.APPLICATION_JSON)
           .content(routineJson))
@@ -563,11 +565,169 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
       mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId, routine.getId())
           .header("X-Tenant-Id", gymId.toString())
-          .param("gymId", gymId.toString())
           .with(jwtAuth()))
         .andExpect(status().isNoContent());
 
       assertThat(routineJpaRepository.findByMemberId(memberId)).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("[WORKOUT]")
+  @Tag("WORKOUT")
+  class WorkoutTests {
+
+    private Integer createRoutineAndGetId() throws Exception {
+      var routineJson = jsonMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
+
+      var result = mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(routineJson))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+      var responseJson = result.getResponse().getContentAsString();
+      var routine = jsonMapper.readTree(responseJson);
+      return routine.get("id").asInt();
+    }
+
+    @Test
+    @Order(1)
+    @DisplayName("Creates a workout successfully")
+    void createWorkout_returns201() throws Exception {
+      Integer routineId = createRoutineAndGetId();
+
+      var workout = Map.of(
+        "routine_id", routineId,
+        "day_number", 1,
+        "started_at", "2026-09-02T10:00:00Z",
+        "finished_at", "2026-09-02T11:30:00Z",
+        "status", "COMPLETED",
+        "exercises", List.of(
+          Map.of(
+            "id", 1,
+            "sets", List.of(
+              Map.of("set_number", 1, "reps", 10, "weight", 60.0),
+              Map.of("set_number", 2, "reps", 8, "weight", 65.0),
+              Map.of("set_number", 3, "reps", 8, "weight", 65.0)
+            )
+          ),
+          Map.of(
+            "id", 8,
+            "sets", List.of(
+              Map.of("set_number", 1, "reps", 10, "weight", 20.0),
+              Map.of("set_number", 2, "reps", 10, "weight", 22.5)
+            )
+          )
+        )
+      );
+
+      mockMvc.perform(post("/v1/members/{memberId}/workouts", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(jsonMapper.writeValueAsString(workout)))
+        .andExpect(status().isCreated());
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Returns member workouts paginated")
+    void getWorkouts_returnsPaginatedWorkouts() throws Exception {
+      Integer routineId = createRoutineAndGetId();
+
+      var workout = Map.of(
+        "routine_id", routineId,
+        "day_number", 1,
+        "started_at", "2026-09-02T10:00:00Z",
+        "finished_at", "2026-09-02T11:30:00Z",
+        "status", "COMPLETED",
+        "exercises", List.of(
+          Map.of(
+            "id", 1,
+            "sets", List.of(
+              Map.of("set_number", 1, "reps", 10, "weight", 60.0),
+              Map.of("set_number", 2, "reps", 8, "weight", 65.0)
+            )
+          )
+        )
+      );
+
+      mockMvc.perform(post("/v1/members/{memberId}/workouts", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(jsonMapper.writeValueAsString(workout)))
+        .andExpect(status().isCreated());
+
+      mockMvc.perform(get("/v1/members/{memberId}/workouts", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .param("page", "0")
+          .param("size", "10")
+          .with(jwtAuth()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].routine_id").value(routineId))
+        .andExpect(jsonPath("$.content[0].day_number").value(1))
+        .andExpect(jsonPath("$.content[0].started_at").value("2026-09-02T10:00:00Z"))
+        .andExpect(jsonPath("$.content[0].finished_at").value("2026-09-02T11:30:00Z"))
+        .andExpect(jsonPath("$.content[0].status").value("COMPLETED"))
+        .andExpect(jsonPath("$.content[0].exercises.length()").value(1))
+        .andExpect(jsonPath("$.content[0].exercises[0].id").value(1))
+        .andExpect(jsonPath("$.content[0].exercises[0].sets.length()").value(2))
+        .andExpect(jsonPath("$.content[0].exercises[0].sets[0].set_number").value(1))
+        .andExpect(jsonPath("$.content[0].exercises[0].sets[0].reps").value(10))
+        .andExpect(jsonPath("$.content[0].exercises[0].sets[1].set_number").value(2))
+        .andExpect(jsonPath("$.content[0].exercises[0].sets[1].reps").value(8))
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.number").value(0));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Creates workout with IN_PROGRESS status")
+    void createWorkout_inProgress_returns201() throws Exception {
+      Integer routineId = createRoutineAndGetId();
+
+      var workout = Map.of(
+        "routine_id", routineId,
+        "day_number", 2,
+        "started_at", "2026-09-02T14:00:00Z",
+        "status", "IN_PROGRESS",
+        "exercises", List.of(
+          Map.of(
+            "id", 2,
+            "sets", List.of(
+              Map.of("set_number", 1, "reps", 8, "weight", 0.0)
+            )
+          )
+        )
+      );
+
+      mockMvc.perform(post("/v1/members/{memberId}/workouts", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(jsonMapper.writeValueAsString(workout)))
+        .andExpect(status().isCreated());
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Returns empty page when member has no workouts")
+    void getWorkouts_empty_returnsEmptyPage() throws Exception {
+      mockMvc.perform(get("/v1/members/{memberId}/workouts", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .param("page", "0")
+          .param("size", "10")
+          .with(jwtAuth()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.totalElements").value(0))
+        .andExpect(jsonPath("$.totalPages").value(0));
     }
   }
 }

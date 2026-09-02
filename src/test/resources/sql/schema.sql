@@ -71,6 +71,13 @@ CREATE TYPE public.recurrence_period AS ENUM (
     'MONTHLY',
     'YEARLY');
 
+CREATE TYPE billing_period AS ENUM (
+  'MONTHLY',
+  'QUARTERLY',
+  'SEMI_ANNUAL',
+  'ANNUAL'
+  );
+
 -- DROP TYPE public.workout_status;
 
 CREATE TYPE public.workout_status AS ENUM (
@@ -320,7 +327,7 @@ CREATE TABLE membership_plans
   gym_id          int4                      NOT NULL,
   name            varchar(100)              NOT NULL,
   price           numeric(10, 2)            NOT NULL,
-  billing_period  varchar(20)               NOT NULL,
+  billing_period  billing_period              NOT NULL,
   active          bool DEFAULT true         NOT NULL,
   gym_branch_id   int4 NULL,
   all_branches    bool NULL,

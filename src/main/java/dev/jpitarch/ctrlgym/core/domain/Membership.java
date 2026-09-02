@@ -16,7 +16,7 @@ public class Membership {
 
   private Long id;
 
-  private MembershipPlan.Recurring recurring;
+  private MembershipPlan.BillingPeriod billingPeriod;
 
   @JsonProperty("date_period")
   private DatePeriod datePeriod;

@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +21,7 @@ public class MembershipPlan {
 
   private Double price;
 
-  private Recurring recurring;
+  private BillingPeriod billingPeriod;
 
   @JsonProperty("gym_branch_id")
   private Integer gymBranchId;
@@ -39,12 +38,15 @@ public class MembershipPlan {
   @JsonProperty("all_day")
   private Boolean allDay;
 
-  public enum Recurring {
-    MONTHLY;
+  public enum BillingPeriod {
+    MONTHLY,
+    QUARTERLY,
+    SEMI_ANNUAL,
+    ANNUAL;
 
-    public static Recurring from(String str) {
+    public static BillingPeriod from(String str) {
       if (!StringUtils.hasText(str)) return null;
-      return Recurring.valueOf(str.toUpperCase());
+      return BillingPeriod.valueOf(str.toUpperCase());
     }
 
   }

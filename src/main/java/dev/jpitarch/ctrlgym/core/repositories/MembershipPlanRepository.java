@@ -26,7 +26,7 @@ public class MembershipPlanRepository {
     plan.setName(membershipPlan.getName());
     plan.setStripePriceId(stripePriceId);
     plan.setPrice(java.math.BigDecimal.valueOf(membershipPlan.getPrice()));
-    plan.setBillingPeriod(membershipPlan.getRecurring().name());
+    plan.setBillingPeriod(membershipPlan.getBillingPeriod());
     plan.setActive(true);
     plan.setCreatedAt(LocalDate.now());
     plan.setGymBranchId(membershipPlan.getGymBranchId());
@@ -58,7 +58,7 @@ public class MembershipPlanRepository {
       .id(plan.getId())
       .name(plan.getName())
       .price(plan.getPrice().doubleValue())
-      .recurring(MembershipPlan.Recurring.from(plan.getBillingPeriod()))
+      .billingPeriod(plan.getBillingPeriod())
       .gymBranchId(plan.getGymBranchId())
       .allBranches(plan.getAllBranches())
       .from(plan.getFrom())

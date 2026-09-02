@@ -125,7 +125,7 @@ public class MembershipsRepository {
   private Membership map(MembershipEntity m) {
     return Membership.builder()
       .id(m.getId())
-      .recurring(MembershipPlan.Recurring.from("MONTHLY")) //TODO
+      .billingPeriod(MembershipPlan.BillingPeriod.from("MONTHLY")) //TODO
       .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
       .nextBillingDate(m.getNextBillingDate())
       .build();

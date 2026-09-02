@@ -42,9 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -201,7 +198,7 @@ class GymControllerTestIT extends BaseIntegrationTest {
       var request = MembershipPlan.builder()
         .name("Premium Plan")
         .price(49.99)
-        .recurring(MembershipPlan.Recurring.MONTHLY)
+        .billingPeriod(MembershipPlan.BillingPeriod.MONTHLY)
         .gymBranchId(1)
         .allBranches(false)
         .build();

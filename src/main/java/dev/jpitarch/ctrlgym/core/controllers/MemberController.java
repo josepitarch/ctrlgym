@@ -111,9 +111,9 @@ public class MemberController {
 
   @PostMapping("/{memberId}/routines")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody Routine routine, @RequestParam Integer gymId) {
-    memberUseCase.createRoutine(routine, memberId, gymId);
-    return new ResponseEntity<>(HttpStatus.CREATED);
+  public ResponseEntity<Routine> create(@PathVariable UUID memberId, @RequestBody Routine routine, @RequestParam Integer gymId) {
+    Routine createdRoutine = memberUseCase.createRoutine(routine, memberId, gymId);
+    return new ResponseEntity<>(createdRoutine, HttpStatus.CREATED);
   }
 
   @GetMapping(value = "/{memberId}/routines")

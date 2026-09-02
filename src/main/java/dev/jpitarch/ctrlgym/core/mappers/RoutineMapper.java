@@ -49,12 +49,10 @@ public interface RoutineMapper {
   Routine mapWithContext(RoutineEntity RoutineEntity, @Context List<ExerciseEntity> exercises);
 
   @Mapping(target = "exercises", source = "exercises")
-  @Mapping(target = "description", ignore = true)
   Routine.Day map(RoutineDayEntity dayEntity);
 
   @Named("mapDayWithContext")
   @Mapping(target = "exercises", source = "exercises", qualifiedByName = "mapExerciseWithContext")
-  @Mapping(target = "description", ignore = true)
   Routine.Day mapDayWithContext(RoutineDayEntity dayEntity, @Context List<ExerciseEntity> exercises);
 
   @Mapping(target = "id", source = "exerciseId")

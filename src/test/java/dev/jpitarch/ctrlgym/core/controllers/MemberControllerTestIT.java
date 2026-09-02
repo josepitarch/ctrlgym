@@ -6,12 +6,15 @@ import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
+import dev.jpitarch.ctrlgym.core.entities.RoutineEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.RoutineJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -28,6 +31,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -50,6 +55,9 @@ class MemberControllerTestIT extends BaseIntegrationTest {
 
   @Autowired
   MembershipJpaRepository membershipJpaRepository;
+
+  @Autowired
+  RoutineJpaRepository routineJpaRepository;
 
   JsonMapper jsonMapper = JsonMapper.builder()
     .addModule(new JavaTimeModule())
@@ -97,6 +105,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
       userJpaRepository.save(u);
     });
     membershipJpaRepository.findByMemberId(memberId).forEach(membershipJpaRepository::delete);
+    routineJpaRepository.findByMemberId(memberId).forEach(routineJpaRepository::delete);
   }
 
   @Nested
@@ -409,6 +418,156 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .andExpect(status().isNoContent());
 
       verify(subscriptionService).cancel(any(Map.class));
+    }
+  }
+
+  @Nested
+  @DisplayName("[ROUTINE]")
+  @Tag("ROUTINE")
+  class RoutineTests {
+
+    @Test
+    @Order(1)
+    @DisplayName("Creates a routine successfully")
+    void createRoutine_returns201() throws Exception {
+      var routineJson = jsonMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
+
+      mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .param("gymId", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(routineJson))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.name").value("Push Pull Legs"))
+        .andExpect(jsonPath("$.days.length()").value(2))
+        .andExpect(jsonPath("$.days[0].day_number").value(1))
+        .andExpect(jsonPath("$.days[0].name").value("Push"))
+        .andExpect(jsonPath("$.days[0].description").value("Chest, shoulders and triceps"))
+        .andExpect(jsonPath("$.days[0].exercises.length()").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[0].id").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[0].name").value("Press de banca"))
+        .andExpect(jsonPath("$.days[0].exercises[0].muscle_group").value("CHEST"))
+        .andExpect(jsonPath("$.days[0].exercises[0].position").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[0].number").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[0].repetition").value(10))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[1].number").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[1].repetition").value(8))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[2].number").value(3))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[2].repetition").value(8))
+        .andExpect(jsonPath("$.days[0].exercises[1].id").value(8))
+        .andExpect(jsonPath("$.days[0].exercises[1].name").value("Press inclinado con mancuernas"))
+        .andExpect(jsonPath("$.days[0].exercises[1].muscle_group").value("CHEST"))
+        .andExpect(jsonPath("$.days[0].exercises[1].position").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets.length()").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[0].number").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[0].repetition").value(10))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[1].number").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[1].repetition").value(10))
+        .andExpect(jsonPath("$.days[1].day_number").value(2))
+        .andExpect(jsonPath("$.days[1].name").value("Pull"))
+        .andExpect(jsonPath("$.days[1].description").value("Back and biceps"))
+        .andExpect(jsonPath("$.days[1].exercises.length()").value(1))
+        .andExpect(jsonPath("$.days[1].exercises[0].id").value(2))
+        .andExpect(jsonPath("$.days[1].exercises[0].name").value("Dominadas"))
+        .andExpect(jsonPath("$.days[1].exercises[0].muscle_group").value("BACK"))
+        .andExpect(jsonPath("$.days[1].exercises[0].position").value(1))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[0].number").value(1))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[0].repetition").value(8))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[1].number").value(2))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[1].repetition").value(8))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[2].number").value(3))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[2].repetition").value(6));
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Returns member routines")
+    void getRoutines_returnsRoutines() throws Exception {
+      var routineJson = jsonMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
+
+      mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .param("gymId", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(routineJson))
+        .andExpect(status().isCreated());
+
+      mockMvc.perform(get("/v1/members/{memberId}/routines", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .param("gymId", gymId.toString())
+          .with(jwtAuth()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].name").value("Push Pull Legs"))
+        .andExpect(jsonPath("$[0].days.length()").value(2))
+        .andExpect(jsonPath("$[0].days[0].day_number").value(1))
+        .andExpect(jsonPath("$[0].days[0].name").value("Push"))
+        .andExpect(jsonPath("$[0].days[0].description").value("Chest, shoulders and triceps"))
+        .andExpect(jsonPath("$[0].days[0].exercises.length()").value(2))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].id").value(1))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].name").value("Press de banca"))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].muscle_group").value("CHEST"))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].position").value(1))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets[0].number").value(1))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets[0].repetition").value(10))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets[1].number").value(2))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets[1].repetition").value(8))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets[2].number").value(3))
+        .andExpect(jsonPath("$[0].days[0].exercises[0].sets[2].repetition").value(8))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].id").value(8))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].name").value("Press inclinado con mancuernas"))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].muscle_group").value("CHEST"))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].position").value(2))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].sets.length()").value(2))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].sets[0].number").value(1))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].sets[0].repetition").value(10))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].sets[1].number").value(2))
+        .andExpect(jsonPath("$[0].days[0].exercises[1].sets[1].repetition").value(10))
+        .andExpect(jsonPath("$[0].days[1].day_number").value(2))
+        .andExpect(jsonPath("$[0].days[1].name").value("Pull"))
+        .andExpect(jsonPath("$[0].days[1].description").value("Back and biceps"))
+        .andExpect(jsonPath("$[0].days[1].exercises.length()").value(1))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].id").value(2))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].name").value("Dominadas"))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].muscle_group").value("BACK"))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].position").value(1))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets[0].number").value(1))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets[0].repetition").value(8))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets[1].number").value(2))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets[1].repetition").value(8))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets[2].number").value(3))
+        .andExpect(jsonPath("$[0].days[1].exercises[0].sets[2].repetition").value(6));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Deletes a routine successfully")
+    void deleteRoutine_returns204() throws Exception {
+      var routineJson = jsonMapper.readTree(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream()).toString();
+
+      mockMvc.perform(post("/v1/members/{memberId}/routines", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .param("gymId", gymId.toString())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(routineJson))
+        .andExpect(status().isCreated());
+
+      RoutineEntity routine = routineJpaRepository.findByMemberId(memberId).getFirst();
+
+      mockMvc.perform(delete("/v1/members/{memberId}/routines/{routineId}", memberId, routine.getId())
+          .header("X-Tenant-Id", gymId.toString())
+          .param("gymId", gymId.toString())
+          .with(jwtAuth()))
+        .andExpect(status().isNoContent());
+
+      assertThat(routineJpaRepository.findByMemberId(memberId)).isEmpty();
     }
   }
 }

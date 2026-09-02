@@ -639,9 +639,10 @@ CREATE TABLE "routines"
 
 CREATE TABLE routine_days
 (
-  routine_id int4 NOT NULL,
-  day_number int2 NOT NULL,
-  name       varchar(100) NULL,
+  routine_id  int4 NOT NULL,
+  day_number  int2 NOT NULL,
+  name        varchar(100) NULL,
+  description varchar(500) NULL,
   CONSTRAINT routine_day_day_number_check CHECK (((day_number >= 1) AND (day_number <= 7))),
   CONSTRAINT routine_day_pkey PRIMARY KEY (routine_id, day_number),
   CONSTRAINT routine_day_routine_id_fkey FOREIGN KEY (routine_id) REFERENCES "routines" (id) ON DELETE CASCADE

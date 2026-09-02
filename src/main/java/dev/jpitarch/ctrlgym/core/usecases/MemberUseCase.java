@@ -128,8 +128,8 @@ public class MemberUseCase {
     return membersService.getAttendanceSummary(memberId, from, to);
   }
 
-  public void createRoutine(Routine routine, UUID memberId, Integer gymId) {
-    routinesService.create(routine, memberId, gymId);
+  public Routine createRoutine(Routine routine, UUID memberId, Integer gymId) {
+    return routinesService.create(routine, memberId, gymId);
   }
 
   public List<Routine> getRoutines(UUID memberId) {

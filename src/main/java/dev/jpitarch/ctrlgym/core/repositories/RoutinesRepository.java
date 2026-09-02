@@ -34,6 +34,7 @@ public class RoutinesRepository {
         var dayEntity = new RoutineDayEntity();
         dayEntity.setDayNumber(day.getDayNumber().shortValue());
         dayEntity.setName(day.getName());
+        dayEntity.setDescription(day.getDescription());
 
         if (day.getExercises() != null) {
           for (Routine.Day.Exercise exercise : day.getExercises()) {
@@ -55,7 +56,8 @@ public class RoutinesRepository {
     }
 
     RoutineEntity saved = routineJpaRepository.save(RoutineEntity);
-    return mapper.map(saved);
+    List<ExerciseEntity> exercises = exerciseJpaRepository.findAll();
+    return mapper.mapWithContext(saved, exercises);
   }
 
   public void deleteById(Integer id) {
@@ -83,6 +85,7 @@ public class RoutinesRepository {
         var dayEntity = new RoutineDayEntity();
         dayEntity.setDayNumber(day.getDayNumber().shortValue());
         dayEntity.setName(day.getName());
+        dayEntity.setDescription(day.getDescription());
 
         if (day.getExercises() != null) {
           for (Routine.Day.Exercise exercise : day.getExercises()) {
@@ -104,7 +107,8 @@ public class RoutinesRepository {
     }
 
     RoutineEntity saved = routineJpaRepository.save(RoutineEntity);
-    return mapper.map(saved);
+    List<ExerciseEntity> exercises = exerciseJpaRepository.findAll();
+    return mapper.mapWithContext(saved, exercises);
   }
 
   public List<Routine> findByGymId(Integer gymId) {

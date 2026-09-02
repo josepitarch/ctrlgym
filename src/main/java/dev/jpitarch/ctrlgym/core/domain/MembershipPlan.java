@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -27,6 +29,15 @@ public class MembershipPlan {
 
   @JsonProperty("all_branches")
   private boolean allBranches;
+
+  @JsonProperty("from")
+  private LocalTime from;
+
+  @JsonProperty("to")
+  private LocalTime to;
+
+  @JsonProperty("all_day")
+  private Boolean allDay;
 
   public enum Recurring {
     MONTHLY;

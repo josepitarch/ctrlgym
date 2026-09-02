@@ -11,6 +11,7 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -53,5 +54,14 @@ public class MembershipPlanEntity {
 
   @Column(name = "deleted_at")
   private LocalDate deletedAt;
+
+  @Column(name = "from")
+  private LocalTime from;
+
+  @Column(name = "to")
+  private LocalTime to;
+
+  @Column(name = "all_day")
+  private Boolean allDay;
 
 }

@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,6 +94,149 @@ class GymUseCaseTest {
     verify(productService).create(eq(1), planCaptor.capture());
     assertThat(planCaptor.getValue()).isEqualTo(plan);
 
+    verify(membershipPlanRepository).create(plan, 1, "price_xyz789");
+  }
+
+  @Test
+  @DisplayName("Should throw CoreBusinessException when from is informed but to is null")
+  void createMembershipPlan_fromInformedButToNull_throwsException() {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .from(LocalTime.of(9, 0))
+        .build();
+
+    assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
+        .isInstanceOf(CoreBusinessException.class)
+        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+
+    verifyNoInteractions(productService);
+    verifyNoInteractions(membershipPlanRepository);
+  }
+
+  @Test
+  @DisplayName("Should throw CoreBusinessException when to is informed but from is null")
+  void createMembershipPlan_toInformedButFromNull_throwsException() {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .to(LocalTime.of(21, 0))
+        .build();
+
+    assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
+        .isInstanceOf(CoreBusinessException.class)
+        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+
+    verifyNoInteractions(productService);
+    verifyNoInteractions(membershipPlanRepository);
+  }
+
+  @Test
+  @DisplayName("Should throw CoreBusinessException when from and to are informed and all_day is true")
+  void createMembershipPlan_fromToInformedAndAllDayTrue_throwsException() {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .from(LocalTime.of(9, 0))
+        .to(LocalTime.of(21, 0))
+        .allDay(true)
+        .build();
+
+    assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
+        .isInstanceOf(CoreBusinessException.class)
+        .hasMessageContaining("When 'from' and 'to' are informed, 'all_day' must be false or null");
+
+    verifyNoInteractions(productService);
+    verifyNoInteractions(membershipPlanRepository);
+  }
+
+  @Test
+  @DisplayName("Should throw CoreBusinessException when all_day is true and from is informed")
+  void createMembershipPlan_allDayTrueAndFromInformed_throwsException() {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .from(LocalTime.of(9, 0))
+        .allDay(true)
+        .build();
+
+    assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
+        .isInstanceOf(CoreBusinessException.class)
+        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+
+    verifyNoInteractions(productService);
+    verifyNoInteractions(membershipPlanRepository);
+  }
+
+  @Test
+  @DisplayName("Should throw CoreBusinessException when all_day is true and to is informed")
+  void createMembershipPlan_allDayTrueAndToInformed_throwsException() {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .to(LocalTime.of(21, 0))
+        .allDay(true)
+        .build();
+
+    assertThatThrownBy(() -> gymUseCase.createMembershipPlan(1, plan))
+        .isInstanceOf(CoreBusinessException.class)
+        .hasMessageContaining("Both 'from' and 'to' must be informed together or both null");
+
+    verifyNoInteractions(productService);
+    verifyNoInteractions(membershipPlanRepository);
+  }
+
+  @Test
+  @DisplayName("Should create membership plan successfully when from and to are informed and all_day is false")
+  void createMembershipPlan_fromToInformedAndAllDayFalse_createsSuccessfully() throws StripeException {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .from(LocalTime.of(9, 0))
+        .to(LocalTime.of(21, 0))
+        .allDay(false)
+        .build();
+
+    String[] stripeData = {"prod_abc123", "price_xyz789"};
+    when(productService.create(eq(1), any(MembershipPlan.class))).thenReturn(stripeData);
+
+    gymUseCase.createMembershipPlan(1, plan);
+
+    assertThat(plan.getId()).isEqualTo("prod_abc123");
+    verify(productService).create(eq(1), any(MembershipPlan.class));
+    verify(membershipPlanRepository).create(plan, 1, "price_xyz789");
+  }
+
+  @Test
+  @DisplayName("Should create membership plan successfully when all_day is true and from/to are null")
+  void createMembershipPlan_allDayTrueAndFromToNull_createsSuccessfully() throws StripeException {
+    MembershipPlan plan = MembershipPlan.builder()
+        .name("Basic Plan")
+        .price(29.99)
+        .gymBranchId(5)
+        .allBranches(false)
+        .allDay(true)
+        .build();
+
+    String[] stripeData = {"prod_abc123", "price_xyz789"};
+    when(productService.create(eq(1), any(MembershipPlan.class))).thenReturn(stripeData);
+
+    gymUseCase.createMembershipPlan(1, plan);
+
+    assertThat(plan.getId()).isEqualTo("prod_abc123");
+    verify(productService).create(eq(1), any(MembershipPlan.class));
     verify(membershipPlanRepository).create(plan, 1, "price_xyz789");
   }
 }

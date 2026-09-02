@@ -198,7 +198,13 @@ class GymControllerTestIT extends BaseIntegrationTest {
     @Order(1)
     @DisplayName("Creates a membership plan successfully")
     void createMembershipPlan_returns204() throws Exception {
-      var request = new MembershipPlan(null, "Premium Plan", 49.99, MembershipPlan.Recurring.MONTHLY, 1, false);
+      var request = MembershipPlan.builder()
+        .name("Premium Plan")
+        .price(49.99)
+        .recurring(MembershipPlan.Recurring.MONTHLY)
+        .gymBranchId(1)
+        .allBranches(false)
+        .build();
 
       when(productService.create(eq(gymId), any(MembershipPlan.class))).thenReturn(new String[]{"new_plan_id", "price"});
 

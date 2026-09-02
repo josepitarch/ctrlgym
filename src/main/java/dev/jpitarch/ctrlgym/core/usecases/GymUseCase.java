@@ -124,6 +124,19 @@ public class GymUseCase {
     if ((plan.getGymBranchId() == null && !plan.isAllBranches()) || (plan.getGymBranchId() != null && plan.isAllBranches())) {
       throw new CoreBusinessException(MembershipPlan.class, "gymBranchId is informed and allBranches is true or vice versa");
     }
+
+    boolean fromPresent = plan.getFrom() != null;
+    boolean toPresent = plan.getTo() != null;
+    boolean allDayPresent = plan.getAllDay() != null && plan.getAllDay();
+
+    if (fromPresent != toPresent) {
+      throw new CoreBusinessException(MembershipPlan.class, "Both 'from' and 'to' must be informed together or both null");
+    }
+
+    if (fromPresent && allDayPresent) {
+      throw new CoreBusinessException(MembershipPlan.class, "When 'from' and 'to' are informed, 'all_day' must be false or null");
+    }
+
     String[] data = productService.create(gymId, plan);
     plan.setId(data[0]);
     membershipPlanRepository.create(plan, gymId, data[1]);

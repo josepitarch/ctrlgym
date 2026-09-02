@@ -31,6 +31,9 @@ public class MembershipPlanRepository {
     plan.setCreatedAt(LocalDate.now());
     plan.setGymBranchId(membershipPlan.getGymBranchId());
     plan.setAllBranches(membershipPlan.isAllBranches());
+    plan.setFrom(membershipPlan.getFrom());
+    plan.setTo(membershipPlan.getTo());
+    plan.setAllDay(membershipPlan.getAllDay());
 
     membershipPlanJpaRepository.save(plan);
   }
@@ -58,6 +61,9 @@ public class MembershipPlanRepository {
       .recurring(MembershipPlan.Recurring.from(plan.getBillingPeriod()))
       .gymBranchId(plan.getGymBranchId())
       .allBranches(plan.getAllBranches())
+      .from(plan.getFrom())
+      .to(plan.getTo())
+      .allDay(plan.getAllDay())
       .build();
   }
 }

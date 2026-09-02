@@ -2,10 +2,10 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
-import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
+import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
 import dev.jpitarch.ctrlgym.lib.RequestHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -25,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 
 @RestController
 @RequiredArgsConstructor
@@ -146,13 +143,9 @@ public class MemberController {
   @GetMapping("/{memberId}/invoices")
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable UUID memberId, Pageable pageable) {
-    return ResponseEntity.ok(memberUseCase.getInvoices(memberId, pageable)
-      .map(invoice -> new InvoiceSummary(
-        invoice.getId(),
-        invoice.getIssueAt(),
-        invoice.getTotal(),
-        invoice.getStatus()
-      )));
+    return ResponseEntity
+      .ok(memberUseCase.getInvoices(memberId, pageable)
+      .map(invoice -> new InvoiceSummary(invoice.getId(), invoice.getIssueAt(), invoice.getTotal(), invoice.getStatus())));
   }
 
   @GetMapping(value = "/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)

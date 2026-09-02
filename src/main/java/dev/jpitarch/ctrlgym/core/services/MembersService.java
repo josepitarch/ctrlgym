@@ -55,7 +55,8 @@ public class MembersService {
     return member;
   }
 
-  public AccessTokensResponse generateAccessTokens(UUID memberId, Integer gymId) {
+  public AccessTokensResponse generateAccessTokens(UUID memberId) {
+    Integer gymId = membersRepository.getGymIdByMemberId(memberId);
     List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId, gymId);
     String role = membersRepository.getRoleById(memberId);
 
@@ -63,8 +64,8 @@ public class MembersService {
 
     log.info("Generating access tokens for member with id {}: {}...", memberId, branches);
 
-    String entryToken = generateAccessQr.generateEntryToken(memberId, role, branches);
-    String exitToken = generateAccessQr.generateExitToken(memberId, role, branches);
+    String entryToken = generateAccessQr.generateEntryToken(memberId, role, gymId, branches);
+    String exitToken = generateAccessQr.generateExitToken(memberId, role, gymId, branches);
 
     return new AccessTokensResponse(entryToken, exitToken);
   }

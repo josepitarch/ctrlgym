@@ -154,7 +154,7 @@ public class MemberUseCase {
 
 
   public AccessTokensResponse generateAccessTokens(UUID memberId) {
-    return membersService.generateAccessTokens(memberId, TenantContextHolder.getTenantId());
+    return membersService.generateAccessTokens(memberId);
   }
 
   public byte[] getInvoiceReport(UUID memberId, String invoiceId) throws IOException {

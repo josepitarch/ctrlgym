@@ -22,18 +22,19 @@ public class GenerateAccessQr {
 
   private final AccessQrProperties accessQrProperties;
 
-  public String generateEntryToken(UUID memberId, String role, List<Integer> branches) {
-    return generateToken(memberId, role, branches, accessQrProperties.getEntry(), "entry");
+  public String generateEntryToken(UUID memberId, String role, Integer gymId, List<Integer> branches) {
+    return generateToken(memberId, role, gymId, branches, accessQrProperties.getEntry(), "entry");
   }
 
-  public String generateExitToken(UUID memberId, String role, List<Integer> branches) {
-    return generateToken(memberId, role, branches, accessQrProperties.getExit(), "exit");
+  public String generateExitToken(UUID memberId, String role, Integer gymId, List<Integer> branches) {
+    return generateToken(memberId, role,gymId, branches, accessQrProperties.getExit(), "exit");
   }
 
-  private String generateToken(UUID memberId, String role, List<Integer> gymIds, Duration expiration, String type) {
+  private String generateToken(UUID memberId, String role, Integer gymId, List<Integer> gymIds, Duration expiration, String type) {
     var now = Instant.now();
     return Jwts.builder()
       .subject(memberId.toString())
+      .claim("gym_id", gymId)
       .claim("gym_branches", gymIds)
       .claim("role", role)
       .claim("type", type)

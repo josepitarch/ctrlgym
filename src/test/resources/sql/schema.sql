@@ -802,24 +802,37 @@ create table products (
   gym_branch_id integer not null,
   name text not null,
   image text null,
-  price numeric(4, 2) not null,
+  price numeric(4, 2) not null CHECK (price > 0),
   stock smallint null,
   CONSTRAINT products_pkey primary key (id),
   CONSTRAINT products_gym_branch_id_fkey foreign KEY (gym_branch_id) references gym_branches (id)
 );
 
-create table sales (
+create table orders (
   id integer generated always as identity not null,
-  product_id integer not null,
-  member_id uuid null,
-  gym_id integer null,
-  created_at timestamp with time zone null default now(),
+  gym_id integer not null references gyms(id),
+  member_id uuid null references users(id),
+  gym_branch_id integer null references gym_branches(id),
+  series varchar(20) not null,
+  "number" varchar(20) not null,
+  created_at timestamp with time zone not null default now(),
   verifactu_id uuid null,
-  CONSTRAINT sales_pkey primary key (id),
-  CONSTRAINT sales_verifactu_id_key unique (verifactu_id),
-  CONSTRAINT sales_member_id_fk foreign KEY (member_id) references users (id),
-  CONSTRAINT sales_product_id_fkey foreign KEY (product_id) references products (id)
+  CONSTRAINT orders_pkey primary key (id),
+  CONSTRAINT orders_series_number_uk unique (series, number),
+  CONSTRAINT orders_verifactu_id_key unique (verifactu_id),
+  CONSTRAINT orders_member_id_fk foreign KEY (member_id) references users (id)
 );
+
+CREATE TABLE order_items (
+   order_id        integer          NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+   product_id      integer          NOT NULL REFERENCES products(id),
+   product_name_snapshot          TEXT   NOT NULL,
+   product_price_snapshot         numeric(4, 2) not null,
+   quantity        INTEGER         NOT NULL CHECK (quantity > 0),
+
+  constraint order_items_pk primary key (order_id, product_id)
+);
+
 
 CREATE TABLE legal_document_version (
   id              UUID PRIMARY KEY DEFAULT uuidv7(),

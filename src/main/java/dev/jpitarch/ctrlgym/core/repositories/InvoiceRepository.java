@@ -1,18 +1,16 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
-import dev.jpitarch.ctrlgym.core.domain.Member;
-import dev.jpitarch.ctrlgym.core.domain.User;
 import dev.jpitarch.ctrlgym.core.domain.enums.InvoiceStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.mappers.InvoiceMapper;
 import dev.jpitarch.ctrlgym.core.entities.InvoiceEntity;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.InvoiceJpaRepository;
+import dev.jpitarch.ctrlgym.core.components.InvoiceCounterComponent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -20,7 +18,6 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Year;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,9 +28,9 @@ public class InvoiceRepository {
 
   private final InvoiceJpaRepository invoiceJpaRepository;
 
-  private final NamedParameterJdbcTemplate jdbc;
-
   private final InvoiceMapper mapper;
+
+  private final InvoiceCounterComponent invoiceCounterComponent;
 
   public Optional<Invoice> getInvoice(String id) {
     return invoiceJpaRepository.findById(id).map(mapper::map);
@@ -111,7 +108,7 @@ public class InvoiceRepository {
     InvoiceEntity.setGymId(gymId);
     InvoiceEntity.setMemberId(memberId);
     InvoiceEntity.setSeries(series);
-    InvoiceEntity.setNumber(this.nextNumber(gymId, series).toString());
+    InvoiceEntity.setNumber(invoiceCounterComponent.nextNumber(gymId, series).toString());
     InvoiceEntity.setTotal(invoice.getTotal());
     InvoiceEntity.setSubtotal(invoice.getSubtotal());
     InvoiceEntity.setCurrency(invoice.getCurrency());
@@ -123,23 +120,6 @@ public class InvoiceRepository {
     InvoiceEntity.setMembershipId(membershipId);
 
     return InvoiceEntity;
-  }
-
-  private Integer nextNumber(Integer gymId, String series) {
-    String sql = """
-      INSERT INTO invoice_counter (gym_id, series, last_number)
-      VALUES (:gymId, :series, 1)
-      ON CONFLICT (gym_id, series)
-      DO UPDATE SET last_number = invoice_counter.last_number + 1
-      RETURNING last_number
-      """;
-
-    var params = Map.of(
-      "gymId", gymId,
-      "series", series
-    );
-
-    return jdbc.queryForObject(sql, params, Integer.class);
   }
 
 }

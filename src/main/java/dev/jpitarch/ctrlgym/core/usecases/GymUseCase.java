@@ -10,16 +10,19 @@ import java.time.LocalDate;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
+import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
+import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
 import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
+import dev.jpitarch.ctrlgym.core.repositories.OrderRepository;
 import dev.jpitarch.ctrlgym.core.repositories.ProductRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
@@ -80,6 +83,8 @@ public class GymUseCase {
   private final ApplicationEventPublisher eventPublisher;
 
   private final LegalDocumentsRepository legalDocumentsRepository;
+
+  private final OrderRepository orderRepository;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -280,6 +285,42 @@ public class GymUseCase {
         doc.getEffectiveDate()
       ))
       .toList();
+  }
+
+  @Transactional
+  public Order createOrder(GymBranchId gymBranchId, CreateOrderRequest request) {
+    var order = Order.builder()
+      .memberId(request.getMemberId())
+      .gymId(gymBranchId.gymId())
+      .gymBranchId(gymBranchId.branchId())
+      .items(request.getItems().stream().map(item -> {
+        Product product = productRepository.findById(item.getProductId())
+          .orElseThrow(() -> new ProductNotFoundException(item.getProductId()));
+        return OrderItem.builder()
+          .productId(product.getId())
+          .productNameSnapshot(product.getName())
+          .productPriceSnapshot(product.getPrice())
+          .quantity(item.getQuantity())
+          .build();
+      }).toList())
+      .build();
+
+    Order savedOrder = orderRepository.create(order);
+
+    eventPublisher.publishEvent(new OrderCreatedEvent(
+      this,
+      savedOrder.getId(),
+      savedOrder.getMemberId(),
+      savedOrder.getGymBranchId(),
+      gymBranchId.gymId(),
+      savedOrder.getItems().size()
+    ));
+
+    return savedOrder;
+  }
+
+  public List<Order> getOrders(GymBranchId gymBranchId) {
+    return orderRepository.findByBranchId(gymBranchId.branchId());
   }
 
 }

@@ -7,6 +7,7 @@ import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.OrderRepository;
 import dev.jpitarch.ctrlgym.core.services.InvoiceService;
 import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceRequest;
 import dev.jpitarch.ctrlgym.verifactu.dtos.CreateInvoiceResponse;
@@ -45,6 +46,9 @@ class VerifactuServiceTest {
 
   @Mock
   InvoiceRepository invoiceRepository;
+
+  @Mock
+  OrderRepository orderRepository;
 
   @Mock
   InvoiceService invoiceService;
@@ -96,7 +100,7 @@ class VerifactuServiceTest {
     lenient().when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
     lenient().when(requestBodySpec.retrieve()).thenReturn(responseSpec);
 
-    verifactuService = new VerifactuService(restClientBuilder, gymsRepository, invoiceRepository, invoiceService, membersRepository, telegramNotificationService);
+    verifactuService = new VerifactuService(restClientBuilder, gymsRepository, invoiceRepository, orderRepository, invoiceService, membersRepository, telegramNotificationService);
   }
 
   @Test

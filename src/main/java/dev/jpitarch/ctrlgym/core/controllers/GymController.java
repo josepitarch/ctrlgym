@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
+import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
@@ -238,6 +239,18 @@ public class GymController {
   @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<LegalDocumentResponse>> getActiveLegalDocuments(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getActiveLegalDocuments(gymId));
+  }
+
+  @PostMapping("/{gymId}/branches/{branchId}/orders")
+  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Order> createOrder(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody CreateOrderRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createOrder(GymBranchId.of(gymId, branchId), request));
+  }
+
+  @GetMapping("/{gymId}/branches/{branchId}/orders")
+  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<List<Order>> getOrders(@PathVariable Integer gymId, @PathVariable Integer branchId) {
+    return ResponseEntity.ok(useCase.getOrders(GymBranchId.of(gymId, branchId)));
   }
 
 }

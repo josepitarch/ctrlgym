@@ -1,7 +1,6 @@
 package dev.jpitarch.ctrlgym.verifactu.services;
 
 import dev.jpitarch.ctrlgym.core.domain.Invoice;
-import dev.jpitarch.ctrlgym.core.domain.Order;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
 import dev.jpitarch.ctrlgym.notifications.services.TelegramNotificationService;
@@ -78,9 +77,26 @@ public class VerifactuService {
       .build();
   }
 
+
+  public @Nullable StatusResponse getStatus(Integer gymId, String invoiceId) {
+    var apiKey = gymsRepository.getVerifactuApiKey(gymId);
+    var verifactuId = invoiceRepository.getVerifactuId(invoiceId);
+
+    if (verifactuId.isEmpty()) return null;
+
+    return restClient.get()
+      .uri(uriBuilder -> uriBuilder
+        .path("/status")
+        .queryParam("uuid", verifactuId)
+        .build())
+      .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+      .retrieve()
+      .body(StatusResponse.class);
+  }
+
   @Retryable(includes = HttpServerErrorException.class)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void createInvoice(InvoicePaidEvent event) {
+  public void onInvoicePaid(InvoicePaidEvent event) {
     processInvoice(event.getInvoiceId());
   }
 
@@ -106,10 +122,11 @@ public class VerifactuService {
       .totalAmount(invoice.getTotal().toString())
       .build();
 
-    log.info("Calling to Verifactu for invoice with memberId {}...", invoice.getId());
+    log.info("Calling to Verifactu for invoice with id {}...", invoice.getId());
 
-    callVerifactuAndSave(apiKey, body, response -> invoiceRepository.saveVerifactuId(invoice.getId(), response.uuid()));
+    doRequest(apiKey, body, response -> invoiceRepository.saveVerifactuId(invoice.getId(), response.uuid()));
   }
+
 
   @Retryable(includes = HttpServerErrorException.class)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -143,26 +160,10 @@ public class VerifactuService {
 
     log.info("Calling to Verifactu for order with id {}...", order.getId());
 
-    callVerifactuAndSave(apiKey, body, response -> orderRepository.saveVerifactuId(order.getId(), response.uuid()));
+    doRequest(apiKey, body, response -> orderRepository.saveVerifactuId(order.getId(), response.uuid()));
   }
 
-  public @Nullable StatusResponse getStatus(Integer gymId, String invoiceId) {
-    var apiKey = gymsRepository.getVerifactuApiKey(gymId);
-    var verifactuId = invoiceRepository.getVerifactuId(invoiceId);
-
-    if (verifactuId.isEmpty()) return null;
-
-    return restClient.get()
-      .uri(uriBuilder -> uriBuilder
-        .path("/status")
-        .queryParam("uuid", verifactuId)
-        .build())
-      .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-      .retrieve()
-      .body(StatusResponse.class);
-  }
-
-  private void callVerifactuAndSave(String apiKey, CreateInvoiceRequest body, Consumer<CreateInvoiceResponse> onSave) {
+  private void doRequest(String apiKey, CreateInvoiceRequest body, Consumer<CreateInvoiceResponse> onSave) {
     try {
       retryTemplate.invoke(() -> {
         var response = restClient.post()

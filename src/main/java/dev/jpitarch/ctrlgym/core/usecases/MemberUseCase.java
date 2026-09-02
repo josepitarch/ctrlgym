@@ -1,12 +1,12 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
-import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MissingMandatoryAcceptanceException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.StaleLegalDocumentException;
+import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
@@ -153,8 +153,8 @@ public class MemberUseCase {
   }
 
 
-  public byte[] generateQrCode(UUID memberId, Integer gymId) throws WriterException, IOException {
-    return membersService.generateQrCode(memberId, gymId);
+  public AccessTokensResponse generateAccessTokens(UUID memberId) {
+    return membersService.generateAccessTokens(memberId, TenantContextHolder.getTenantId());
   }
 
   public byte[] getInvoiceReport(UUID memberId, String invoiceId) throws IOException {

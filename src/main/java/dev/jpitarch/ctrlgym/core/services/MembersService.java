@@ -1,12 +1,12 @@
 package dev.jpitarch.ctrlgym.core.services;
 
-import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
+import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -56,15 +55,18 @@ public class MembersService {
     return member;
   }
 
-  public byte[] generateQrCode(UUID memberId, Integer gymId) throws WriterException, IOException {
+  public AccessTokensResponse generateAccessTokens(UUID memberId, Integer gymId) {
     List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId, gymId);
     String role = membersRepository.getRoleById(memberId);
 
     if (CollectionUtils.isEmpty(branches)) throw new MemberWithoutAccessException(memberId);
 
-    log.info("Generating QR code for member with id {}: {}...", memberId, branches);
+    log.info("Generating access tokens for member with id {}: {}...", memberId, branches);
 
-    return generateAccessQr.generateQrCode(memberId, role, branches);
+    String entryToken = generateAccessQr.generateEntryToken(memberId, role, branches);
+    String exitToken = generateAccessQr.generateExitToken(memberId, role, branches);
+
+    return new AccessTokensResponse(entryToken, exitToken);
   }
 
   public List<MemberAccess> getAccesses(UUID memberId) {

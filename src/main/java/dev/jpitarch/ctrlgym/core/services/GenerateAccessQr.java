@@ -1,18 +1,11 @@
 package dev.jpitarch.ctrlgym.core.services;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.security.PrivateKey;
 import java.time.Instant;
 import java.util.Date;
@@ -29,26 +22,25 @@ public class GenerateAccessQr {
   @Value("${member-access-qr.expiration-seconds:10}")
   private int expirationSeconds;
 
-  private static final int QR_SIZE = 300;
+  private static final int EXIT_TOKEN_EXPIRATION_HOURS = 24;
 
-  public byte[] generateQrCode(UUID memberId, String role, List<Integer> branches) throws WriterException, IOException {
-    var qrCodeWriter = new QRCodeWriter();
-    var data = this.generateQrToken(memberId, role, branches);
-    BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
-
-    var pngOutputStream = new ByteArrayOutputStream();
-    MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-    return pngOutputStream.toByteArray();
+  public String generateEntryToken(UUID memberId, String role, List<Integer> branches) {
+    return generateToken(memberId, role, branches, expirationSeconds, "entry");
   }
 
-  private String generateQrToken(UUID memberId, String role, List<Integer> gymIds) {
+  public String generateExitToken(UUID memberId, String role, List<Integer> branches) {
+    return generateToken(memberId, role, branches, EXIT_TOKEN_EXPIRATION_HOURS * 3600, "exit");
+  }
+
+  private String generateToken(UUID memberId, String role, List<Integer> gymIds, int expirationInSeconds, String type) {
     var now = Instant.now();
     return Jwts.builder()
       .subject(memberId.toString())
       .claim("gym_branches", gymIds)
       .claim("role", role)
+      .claim("type", type)
       .issuedAt(Date.from(now))
-      .expiration(Date.from(now.plusSeconds(expirationSeconds)))
+      .expiration(Date.from(now.plusSeconds(expirationInSeconds)))
       .signWith(signingKey, Jwts.SIG.ES256)
       .compact();
   }

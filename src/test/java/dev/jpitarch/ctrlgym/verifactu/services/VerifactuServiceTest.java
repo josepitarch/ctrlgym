@@ -113,7 +113,7 @@ class VerifactuServiceTest {
     when(membersRepository.getGymIdByMemberId(memberId)).thenReturn(1);
     when(responseSpec.body(CreateInvoiceResponse.class)).thenReturn(createInvoiceResponse);
 
-    verifactuService.createInvoice(event);
+    verifactuService.onInvoicePaid(event);
 
     verify(requestBodyUriSpec).uri("/create");
     verify(requestBodySpec).header("Authorization", "Bearer test-api-key");

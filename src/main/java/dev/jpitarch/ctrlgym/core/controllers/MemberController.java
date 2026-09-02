@@ -1,9 +1,9 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
-import com.google.zxing.WriterException;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
+import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
 import dev.jpitarch.ctrlgym.lib.RequestHelper;
@@ -156,7 +156,7 @@ public class MemberController {
   }
 
   @GetMapping(value = "/{memberId}/invoices/{invoiceId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
-  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable String invoiceId, @RequestParam Integer gymId) throws IOException {
+  public ResponseEntity<byte[]> getInvoiceReport(@PathVariable UUID memberId, @PathVariable String invoiceId) throws IOException {
     byte[] pdfReport = memberUseCase.getInvoiceReport(memberId, invoiceId);
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfReport);
   }
@@ -164,10 +164,10 @@ public class MemberController {
 
 
   @PreAuthorize("#memberId.toString() == authentication.name")
-  @PostMapping(value = "/{memberId}/generate-qr", produces = MediaType.IMAGE_PNG_VALUE)
-  public ResponseEntity<byte[]> generateQr(@PathVariable UUID memberId, @RequestParam Integer gymId) throws WriterException, IOException {
-    byte[] qrImage = memberUseCase.generateQrCode(memberId, gymId);
-    return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrImage);
+  @PostMapping(value = "/{memberId}/generate-qr", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<AccessTokensResponse> generateAccessTokens(@PathVariable UUID memberId) {
+    AccessTokensResponse tokens = memberUseCase.generateAccessTokens(memberId);
+    return ResponseEntity.ok(tokens);
   }
 
 }

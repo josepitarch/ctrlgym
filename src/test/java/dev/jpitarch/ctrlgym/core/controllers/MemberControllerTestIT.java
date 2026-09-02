@@ -730,4 +730,52 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.totalPages").value(0));
     }
   }
+
+  @Nested
+  @DisplayName("[GENERATE-ACCESS-TOKENS]")
+  @Tag("GENERATE-ACCESS-TOKENS")
+  class GenerateAccessTokensTests {
+
+    @Test
+    @Order(1)
+    @DisplayName("Generates access tokens successfully for member with active membership")
+    void generateAccessTokens_success() throws Exception {
+      var user = userJpaRepository.findById(memberId).orElseThrow();
+      user.setStatus(UserStatus.ACTIVE);
+      userJpaRepository.save(user);
+
+      var existingMembership = new MembershipEntity();
+      existingMembership.setMemberId(memberId);
+      existingMembership.setGymId(gymId);
+      existingMembership.setMembershipPlanId("plan_basic");
+      existingMembership.setStartDate(LocalDate.now().minusMonths(1));
+      existingMembership.setEndDate(null);
+      existingMembership.setNextBillingDate(LocalDate.now().plusMonths(1));
+      existingMembership.setAutoRenew(true);
+      membershipJpaRepository.save(existingMembership);
+
+      mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .with(jwtAuth()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.entry_token").isString())
+        .andExpect(jsonPath("$.exit_token").isString());
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Returns 409 when member has no accessible branches")
+    void generateAccessTokens_noAccess_returns409() throws Exception {
+      var user = userJpaRepository.findById(memberId).orElseThrow();
+      user.setStatus(UserStatus.ACTIVE);
+      userJpaRepository.save(user);
+
+      membershipJpaRepository.findByMemberId(memberId).forEach(membershipJpaRepository::delete);
+
+      mockMvc.perform(post("/v1/members/{memberId}/generate-qr", memberId)
+          .header("X-Tenant-Id", gymId.toString())
+          .with(jwtAuth()))
+        .andExpect(status().isConflict());
+    }
+  }
 }

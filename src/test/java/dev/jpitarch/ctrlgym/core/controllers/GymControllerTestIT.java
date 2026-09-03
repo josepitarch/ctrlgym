@@ -22,6 +22,7 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.ShiftSeriesJpaRepository;
 import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationToken;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
+import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -70,6 +71,9 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
   @MockitoBean
   SubscriptionService subscriptionService;
+
+  @MockitoBean
+  VerifactuService verifactuService;
 
   @Autowired
   ExerciseJpaRepository exerciseJpaRepository;
@@ -630,6 +634,8 @@ class GymControllerTestIT extends BaseIntegrationTest {
       assertThat(event.getGymBranchId()).isEqualTo(branchId);
       assertThat(event.getGymId()).isEqualTo(gymId);
       assertThat(event.getItemCount()).isEqualTo(2);
+
+      verify(verifactuService).listenOrderEvents(any(OrderCreatedEvent.class));
     }
 
     @Test

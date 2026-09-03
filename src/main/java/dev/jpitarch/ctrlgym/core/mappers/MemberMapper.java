@@ -18,6 +18,7 @@ public interface MemberMapper {
   @Mapping(target = "isActive", ignore = true)
   @Mapping(target = "iban", ignore = true)
   @Mapping(target = "avatarUrl", ignore = true)
+  @Mapping(target = "role", source = "role")
   Member toDomain(UserEntity entity);
 
   @Mapping(target = "id", ignore = true)

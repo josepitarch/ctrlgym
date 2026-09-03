@@ -3,11 +3,14 @@ package dev.jpitarch.ctrlgym.core.services;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
+import dev.jpitarch.ctrlgym.core.domain.Membership;
+import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -36,6 +40,10 @@ public class MembersService {
   private final GenerateAccessQr generateAccessQr;
 
   private final CustomerService customerService;
+
+  private final MembershipService membershipService;
+
+  private final MembershipPlanRepository membershipPlanRepository;
 
   @Transactional
   public void create(Member member) throws StripeException {
@@ -57,15 +65,26 @@ public class MembersService {
 
   public AccessTokensResponse generateAccessTokens(UUID memberId) {
     Integer gymId = membersRepository.getGymIdByMemberId(memberId);
-    List<Integer> branches = membershipsRepository.getAccessibleBranches(memberId, gymId);
     String role = membersRepository.getRoleById(memberId);
+    Membership membership = membershipService.retrieve(memberId).orElseThrow();
 
-    if (CollectionUtils.isEmpty(branches)) throw new MemberWithoutAccessException(memberId);
+    if (membership.getDatePeriod().isPast()) {
+      throw new MemberWithoutAccessException(memberId);
+    }
 
-    log.info("Generating access tokens for member with id {}: {}...", memberId, branches);
+    MembershipPlan plan = membershipPlanRepository.retrieve(membership.getPlanId());
 
-    String entryToken = generateAccessQr.generateEntryToken(memberId, role, gymId, branches);
-    String exitToken = generateAccessQr.generateExitToken(memberId, role, gymId, branches);
+    if (!plan.getAllDay()) {
+      var now = LocalTime.now();
+      if (plan.getStartTime().isAfter(now) || plan.getEndTime().isBefore(now)) {
+        throw new MemberWithoutAccessException(memberId);
+      }
+    }
+
+    log.info("Generating access tokens for member with id {}: {}...", memberId, plan.getGymBranchId());
+
+    String entryToken = generateAccessQr.generateEntryToken(memberId, role, plan.getGymBranchId(), plan.getGymBranchId());
+    String exitToken = generateAccessQr.generateExitToken(memberId, role, gymId, plan.getGymBranchId());
 
     return new AccessTokensResponse(entryToken, exitToken);
   }

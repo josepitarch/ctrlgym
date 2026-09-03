@@ -149,7 +149,7 @@ public class GymUseCase {
 
   public void deleteMembershipPlan(String planId, Integer gymId) throws StripeException {
     productService.delete(gymId, planId);
-    membershipPlanRepository.delete(planId, gymId);
+    membershipPlanRepository.delete(planId);
   }
 
   public CurrentOccupancy getCurrentOccupancy(GymBranchId gymBranchId) {

@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
+import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -34,6 +35,8 @@ public class User {
   private String email;
 
   private Gender gender;
+
+  private Role role;
 
   @JsonIgnore
   public String getFullName() {

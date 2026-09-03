@@ -22,8 +22,6 @@ public class MembershipsRepository {
 
   private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
 
-  private final NamedParameterJdbcTemplate jdbc;
-
   public Membership save(UUID memberId, Integer gymId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
     var membership = new MembershipEntity();
     membership.setMemberId(memberId);
@@ -76,34 +74,6 @@ public class MembershipsRepository {
     return membershipJpaRepository.hasActiveMembership(memberId, membershipId);
   }
 
-  public List<Integer> getAccessibleBranches(UUID memberId, Integer gymId) {
-    var sql = """
-      SELECT gb.id AS gym_branch_id
-      FROM memberships m
-      INNER JOIN membership_plans mp ON m.membership_plan_id = mp.id
-      CROSS JOIN gym_branches gb
-      WHERE m.member_id = :memberId AND mp.gym_id = :gymId
-        AND mp.all_branches IS TRUE
-        AND gb.gym_id = :gymId AND gb.is_active IS TRUE
-        AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
-
-      UNION
-
-      SELECT mp.gym_branch_id
-      FROM memberships m
-      INNER JOIN membership_plans mp ON m.membership_plan_id = mp.id
-      WHERE m.member_id = :memberId AND mp.gym_id = :gymId
-        AND mp.all_branches IS FALSE
-        AND m.start_date <= CURRENT_DATE AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
-      """;
-
-    var params = Map.of(
-      "memberId", memberId,
-      "gymId", gymId
-    );
-
-    return jdbc.queryForList(sql, params, Integer.class);
-  }
 
   public List<MembershipCancellationReason> getCancellationReasons(String language) {
     return cancellationReasonJpaRepository.findByLanguageCode(language)

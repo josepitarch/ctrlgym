@@ -16,6 +16,9 @@ public class Membership {
 
   private Long id;
 
+  @JsonProperty("membership_plan_id")
+  private String planId;
+
   private MembershipPlan.BillingPeriod billingPeriod;
 
   @JsonProperty("date_period")

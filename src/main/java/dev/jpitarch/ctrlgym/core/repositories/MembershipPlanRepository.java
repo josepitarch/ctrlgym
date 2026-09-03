@@ -29,6 +29,10 @@ public class MembershipPlanRepository {
     membershipPlanJpaRepository.save(plan);
   }
 
+  public MembershipPlan retrieve(String planId) {
+    return membershipPlanJpaRepository.findById(planId).map(mapper::map).orElseThrow();
+  }
+
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
     var plans = gymBranchId.branchId() == null
       ? membershipPlanJpaRepository.findByGymIdAndAllBranchesIsTrue(gymBranchId.gymId())
@@ -37,7 +41,7 @@ public class MembershipPlanRepository {
     return plans.stream().map(mapper::map).toList();
   }
 
-  public void delete(String planId, Integer gymId) {
+  public void delete(String planId) {
     MembershipPlanEntity planEntity = membershipPlanJpaRepository.findById(planId)
       .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
     planEntity.setDeletedAt(LocalDate.now());

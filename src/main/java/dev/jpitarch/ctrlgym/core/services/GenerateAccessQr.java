@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.security.PrivateKey;
 import java.time.Duration;
@@ -22,20 +23,20 @@ public class GenerateAccessQr {
 
   private final AccessQrProperties accessQrProperties;
 
-  public String generateEntryToken(UUID memberId, String role, Integer gymId, List<Integer> branches) {
-    return generateToken(memberId, role, gymId, branches, accessQrProperties.getEntry(), "entry");
+  public String generateEntryToken(UUID memberId, String role, Integer gymId, Integer gymBranchId) {
+    return generateToken(memberId, role, gymId, gymBranchId, accessQrProperties.getEntry(), "entry");
   }
 
-  public String generateExitToken(UUID memberId, String role, Integer gymId, List<Integer> branches) {
-    return generateToken(memberId, role,gymId, branches, accessQrProperties.getExit(), "exit");
+  public String generateExitToken(UUID memberId, String role, Integer gymId, Integer gymBranchId) {
+    return generateToken(memberId, role,gymId, gymBranchId, accessQrProperties.getExit(), "exit");
   }
 
-  private String generateToken(UUID memberId, String role, Integer gymId, List<Integer> gymIds, Duration expiration, String type) {
+  private String generateToken(UUID memberId, String role, Integer gymId, Integer gymBranchId, Duration expiration, String type) {
     var now = Instant.now();
     return Jwts.builder()
       .subject(memberId.toString())
       .claim("gym_id", gymId)
-      .claim("gym_branches", gymIds)
+      .claim("gym_branch_id", gymBranchId)
       .claim("role", role)
       .claim("type", type)
       .issuedAt(Date.from(now))

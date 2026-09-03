@@ -66,7 +66,8 @@ public class MembersService {
   public AccessTokensResponse generateAccessTokens(UUID memberId) {
     Integer gymId = membersRepository.getGymIdByMemberId(memberId);
     String role = membersRepository.getRoleById(memberId);
-    Membership membership = membershipService.retrieve(memberId).orElseThrow();
+    Membership membership = membershipService.retrieve(memberId)
+      .orElseThrow(() -> new MemberWithoutAccessException(memberId));
 
     if (membership.getDatePeriod().isPast()) {
       throw new MemberWithoutAccessException(memberId);
@@ -74,7 +75,7 @@ public class MembersService {
 
     MembershipPlan plan = membershipPlanRepository.retrieve(membership.getPlanId());
 
-    if (!plan.getAllDay()) {
+    if (!plan.isAllDay()) {
       var now = LocalTime.now();
       if (plan.getStartTime().isAfter(now) || plan.getEndTime().isBefore(now)) {
         throw new MemberWithoutAccessException(memberId);

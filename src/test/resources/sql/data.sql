@@ -126,12 +126,12 @@ INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", 
 VALUES ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 1, 'jane.employee@example.com', 'Jane', 'Employee', 'Doe', 'F', '1985-03-20', now(), 'ACTIVE', 'EMPLOYEE');
 
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
-                                         "stripe_price_id", "gym_branch_id", "all_branches")
-VALUES ('plan_basic', 1, 'Basic', 29.99, 'MONTHLY', true, '2026-01-01', 'price_basic123', 1, false);
+                                         "stripe_price_id", "gym_branch_id", "all_branches", "all_day")
+VALUES ('plan_basic', 1, 'Basic', 29.99, 'MONTHLY', true, '2026-01-01', 'price_basic123', 1, false, true);
 
 INSERT INTO "public"."membership_plans" ("id", "gym_id", "name", "price", "billing_period", "active", "created_at",
-                                         "stripe_price_id", "gym_branch_id", "all_branches")
-VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'price_premium456', 1, false);
+                                         "stripe_price_id", "gym_branch_id", "all_branches", "all_day")
+VALUES ('plan_premium', 1, 'Premium', 49.99, 'MONTHLY', true, '2026-01-01', 'price_premium456', 1, false, true);
 
 INSERT INTO "public"."gym_branches" ("id", "gym_id", "name", "is_active", "capacity", latitude, longitude, full_address, api_key)
 VALUES (1, 1, 'Main Branch', true, 100, 39.939724, -0.097686, null, 'X1Tip67aw5fp9CBLrLpX7GSWnpa09Q7ibSJiGq/laoI=');

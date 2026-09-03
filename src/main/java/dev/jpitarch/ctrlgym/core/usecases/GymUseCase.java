@@ -126,13 +126,12 @@ public class GymUseCase {
 
     boolean fromPresent = plan.getStartTime() != null;
     boolean toPresent = plan.getEndTime() != null;
-    boolean allDayPresent = plan.getAllDay() != null && plan.getAllDay();
 
     if (fromPresent != toPresent) {
       throw new CoreBusinessException(MembershipPlan.class, "Both 'start_time' and 'end_time' must be informed together or both null");
     }
 
-    if (fromPresent && allDayPresent) {
+    if (fromPresent && plan.isAllDay()) {
       throw new CoreBusinessException(MembershipPlan.class, "When 'start_time' and 'end_time' are informed, 'all_day' must be false or null");
     }
 

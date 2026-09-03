@@ -37,7 +37,7 @@ public class MembershipPlan {
   private LocalTime endTime;
 
   @JsonProperty("all_day")
-  private Boolean allDay;
+  private boolean allDay;
 
   public enum BillingPeriod {
     MONTHLY,

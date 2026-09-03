@@ -95,6 +95,7 @@ public class MembershipsRepository {
   private Membership map(MembershipEntity m) {
     return Membership.builder()
       .id(m.getId())
+      .planId(m.getMembershipPlanId())
       .billingPeriod(MembershipPlan.BillingPeriod.from("MONTHLY")) //TODO
       .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
       .nextBillingDate(m.getNextBillingDate())

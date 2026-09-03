@@ -216,7 +216,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
           .with(jwtAuth()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").isNumber())
-        .andExpect(jsonPath("$.recurring").value("MONTHLY"))
+        .andExpect(jsonPath("$.billing_period").value("MONTHLY"))
         .andExpect(jsonPath("$.next_billing_date").isNotEmpty());
 
       verify(subscriptionService).create(eq(memberId), eq(gymId), any(Map.class));

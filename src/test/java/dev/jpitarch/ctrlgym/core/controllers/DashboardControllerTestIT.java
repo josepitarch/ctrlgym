@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
 import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationToken;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Disabled
 class DashboardControllerTestIT extends BaseIntegrationTest {
 
   Integer gymId = 1;

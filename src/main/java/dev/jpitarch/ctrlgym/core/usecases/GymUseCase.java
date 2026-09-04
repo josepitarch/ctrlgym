@@ -15,6 +15,7 @@ import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
 import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.dto.TimeRange;
+import dev.jpitarch.ctrlgym.core.entities.GymScheduleEntity;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
@@ -89,6 +90,16 @@ public class GymUseCase {
   private final OrderRepository orderRepository;
 
   private final GymScheduleJpaRepository gymScheduleJpaRepository;
+
+  public GymScheduleResponse getSchedule(Integer gymId) {
+    Map<Integer, TimeRange> schedule = gymScheduleJpaRepository.findByGymId(gymId).stream()
+      .collect(java.util.stream.Collectors.toMap(
+        GymScheduleEntity::getDayOfWeek,
+        entity -> TimeRange.of(entity.getOpensAt(), entity.getClosesAt())
+      ));
+    return new GymScheduleResponse(schedule);
+  }
+
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -338,15 +349,6 @@ public class GymUseCase {
 
   public List<Order> getOrders(GymBranchId gymBranchId) {
     return orderRepository.findByBranchId(gymBranchId.branchId());
-  }
-
-  public GymScheduleResponse getSchedule(Integer gymId) {
-    Map<Integer, TimeRange> schedule = gymScheduleJpaRepository.findByGymId(gymId).stream()
-      .collect(java.util.stream.Collectors.toMap(
-        entity -> entity.getDayOfWeek(),
-        entity -> new TimeRange(entity.getOpensAt(), entity.getClosesAt())
-      ));
-    return new GymScheduleResponse(schedule);
   }
 
 }

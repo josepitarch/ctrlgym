@@ -37,6 +37,12 @@ public class GymController {
 
   private final GymUseCase useCase;
 
+  @GetMapping("/{gymId}/schedule")
+  @PreAuthorize("#gymId == authentication.gymId")
+  public ResponseEntity<GymScheduleResponse> getSchedule(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getSchedule(gymId));
+  }
+
   @GetMapping("/{gymId}/branches")
   @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<GymBranch>> getBranches(@PathVariable Integer gymId) {
@@ -247,12 +253,6 @@ public class GymController {
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER') and #gymId == authentication.gymId")
   public ResponseEntity<List<Order>> getOrders(@PathVariable Integer gymId, @PathVariable Integer branchId) {
     return ResponseEntity.ok(useCase.getOrders(GymBranchId.of(gymId, branchId)));
-  }
-
-  @GetMapping("/{gymId}/schedule")
-  @PreAuthorize("#gymId == authentication.gymId")
-  public ResponseEntity<GymScheduleResponse> getSchedule(@PathVariable Integer gymId) {
-    return ResponseEntity.ok(useCase.getSchedule(gymId));
   }
 
 }

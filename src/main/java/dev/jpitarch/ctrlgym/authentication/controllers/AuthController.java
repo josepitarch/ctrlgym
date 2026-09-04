@@ -30,7 +30,7 @@ public class AuthController {
     @RequestBody SignupRequest request,
     @RequestHeader(value = "X-Tenant-Id") Integer gymId) {
     AuthResponse response = signupService.signup(request, gymId);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.status(201).body(response);
   }
 
   @PostMapping("/login")

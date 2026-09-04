@@ -27,11 +27,9 @@ public class InvoiceEntity {
   @Column(name = "id")
   private String id;
 
-  @Getter(AccessLevel.NONE)
   @Column(name = "gym_id", nullable = false)
   private Integer gymId;
 
-  @Getter(AccessLevel.NONE)
   @Column(name = "member_id", nullable = false)
   private UUID memberId;
 
@@ -79,14 +77,6 @@ public class InvoiceEntity {
 
   @Column(name = "membership_id")
   private Long membershipId;
-
-  public UUID getMemberId() {
-    return memberId;
-  }
-
-  public Integer getGymId() {
-    return gymId;
-  }
 
   @Override
   public final boolean equals(Object o) {

@@ -11,8 +11,10 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
+import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
 import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
+import dev.jpitarch.ctrlgym.core.dto.TimeRange;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
@@ -23,6 +25,7 @@ import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
 import dev.jpitarch.ctrlgym.core.repositories.OrderRepository;
 import dev.jpitarch.ctrlgym.core.repositories.ProductRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.GymScheduleJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
@@ -84,6 +87,8 @@ public class GymUseCase {
   private final LegalDocumentsRepository legalDocumentsRepository;
 
   private final OrderRepository orderRepository;
+
+  private final GymScheduleJpaRepository gymScheduleJpaRepository;
 
   public List<GymBranch> getBranches(Integer gymId) {
     return gymsRepository.getBranches(gymId);
@@ -333,6 +338,15 @@ public class GymUseCase {
 
   public List<Order> getOrders(GymBranchId gymBranchId) {
     return orderRepository.findByBranchId(gymBranchId.branchId());
+  }
+
+  public GymScheduleResponse getSchedule(Integer gymId) {
+    Map<Integer, TimeRange> schedule = gymScheduleJpaRepository.findByGymId(gymId).stream()
+      .collect(java.util.stream.Collectors.toMap(
+        entity -> entity.getDayOfWeek(),
+        entity -> new TimeRange(entity.getOpensAt(), entity.getClosesAt())
+      ));
+    return new GymScheduleResponse(schedule);
   }
 
 }

@@ -203,6 +203,14 @@ CREATE TABLE gyms
   CONSTRAINT gyms_verifacti_api_key_uk UNIQUE (verifacti_api_key)
 );
 
+CREATE TABLE gym_schedule (
+    gym_id      int4 NOT NULL REFERENCES gyms(id) ON DELETE CASCADE,
+    day_of_week smallint NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+    opens_at    time NOT NULL,
+    closes_at   time NOT NULL,
+    CONSTRAINT gym_schedule_pkey PRIMARY KEY (gym_id, day_of_week)
+);
+
 -- public.gym_branches definition
 
 -- Drop table

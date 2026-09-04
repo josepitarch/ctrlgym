@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 @Entity
 @Table(name = "gym_branch_heartbeat")
 public class GymBranchHeartbeatEntity {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")

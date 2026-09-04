@@ -7,8 +7,10 @@ import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
+import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
 import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
+import dev.jpitarch.ctrlgym.core.dto.TimeRange;
 import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
@@ -25,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -58,13 +61,7 @@ public class GymController {
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/invoices")
   public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, Pageable pageable) {
-    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), memberId, pageable)
-      .map(invoice -> new InvoiceSummary(
-        invoice.getId(),
-        invoice.getIssueAt(),
-        invoice.getTotal(),
-        invoice.getStatus()
-      )));
+    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), memberId, pageable).map(invoice -> new InvoiceSummary(invoice.getId(), invoice.getIssueAt(), invoice.getTotal(), invoice.getStatus())));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")
@@ -234,8 +231,8 @@ public class GymController {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/{gymId}/legal/documents/current")
   @PreAuthorize("#gymId == authentication.gymId")
+  @GetMapping("/{gymId}/legal/documents/current")
   public ResponseEntity<List<LegalDocumentResponse>> getActiveLegalDocuments(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getActiveLegalDocuments(gymId));
   }
@@ -250,6 +247,12 @@ public class GymController {
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER') and #gymId == authentication.gymId")
   public ResponseEntity<List<Order>> getOrders(@PathVariable Integer gymId, @PathVariable Integer branchId) {
     return ResponseEntity.ok(useCase.getOrders(GymBranchId.of(gymId, branchId)));
+  }
+
+  @GetMapping("/{gymId}/schedule")
+  @PreAuthorize("#gymId == authentication.gymId")
+  public ResponseEntity<GymScheduleResponse> getSchedule(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getSchedule(gymId));
   }
 
 }

@@ -77,7 +77,17 @@ public class MembersService {
 
     if (!plan.isAllDay()) {
       var now = LocalTime.now();
-      if (plan.getStartTime().isAfter(now) || plan.getEndTime().isBefore(now)) {
+      var startTime = plan.getStartTime();
+      var endTime = plan.getEndTime();
+
+      boolean isWithinSchedule;
+      if (startTime.isBefore(endTime) || startTime.equals(endTime)) {
+        isWithinSchedule = !now.isBefore(startTime) && !now.isAfter(endTime);
+      } else {
+        isWithinSchedule = !now.isBefore(startTime) || !now.isAfter(endTime);
+      }
+
+      if (!isWithinSchedule) {
         throw new MemberWithoutAccessException(memberId);
       }
     }

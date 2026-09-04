@@ -36,10 +36,6 @@ class ControllerAdviceTest {
       throw new CoreBusinessException(Object.class, "business error");
     }
 
-    @GetMapping("/many-postal-codes")
-    public void throwManyPostalCodesException() {
-      throw new ManyPostalCodesException(28001);
-    }
 
     @GetMapping("/auth")
     public void throwAuthException() {
@@ -85,13 +81,6 @@ class ControllerAdviceTest {
   void coreBusinessException_returns422() throws Exception {
     mockMvc.perform(get("/core-business"))
       .andExpect(status().is(HttpStatus.UNPROCESSABLE_CONTENT.value()));
-  }
-
-  @Test
-  @DisplayName("ManyPostalCodesException returns 409")
-  void manyPostalCodesException_returns409() throws Exception {
-    mockMvc.perform(get("/many-postal-codes"))
-      .andExpect(status().isConflict());
   }
 
   @Test

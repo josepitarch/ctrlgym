@@ -81,18 +81,6 @@ public class ControllerAdvice {
     return problem;
   }
 
-  @ExceptionHandler(ManyPostalCodesException.class)
-  public ProblemDetail handleManyPostalCodesException(ManyPostalCodesException e, HttpServletRequest request) {
-    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
-    problem.setTitle("Multiple Cities For Postal Code");
-    problem.setType(URI.create("about:blank"));
-    problem.setProperty("timestamp", Instant.now());
-
-    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
-
-    return problem;
-  }
-
   @ExceptionHandler(AuthException.class)
   public ProblemDetail handleAuthException(AuthException e, HttpServletRequest request) {
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());

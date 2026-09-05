@@ -29,8 +29,6 @@ public class Routine {
 
     private String name;
 
-    private String description;
-
     private List<Exercise> exercises;
 
     @Data

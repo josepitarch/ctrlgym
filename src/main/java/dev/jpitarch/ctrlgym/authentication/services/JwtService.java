@@ -1,6 +1,5 @@
 package dev.jpitarch.ctrlgym.authentication.services;
 
-import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -12,14 +11,13 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.UUID;
 
 @Service
 public class JwtService {
 
   private final SecretKey secretKey;
 
-  private static final long ACCESS_TOKEN_EXPIRATION_MINUTES = 15;
+  private static final long ACCESS_TOKEN_EXPIRATION_WEEKS = 4;
 
   public JwtService(@Value("${jwt.secret}") String secret) {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -36,7 +34,7 @@ public class JwtService {
       .claim("gym_id", user.getGymId())
       .claim("role", user.getRole())
       .issuedAt(Date.from(now))
-      .expiration(Date.from(now.plus(ACCESS_TOKEN_EXPIRATION_MINUTES, ChronoUnit.MINUTES)))
+      .expiration(Date.from(now.plus(ACCESS_TOKEN_EXPIRATION_WEEKS, ChronoUnit.WEEKS)))
       .signWith(secretKey)
       .compact();
   }

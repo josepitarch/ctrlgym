@@ -32,9 +32,6 @@ public class RoutineDayEntity {
   @Column(name = "name", length = 100)
   private String name;
 
-  @Column(name = "description", length = 500)
-  private String description;
-
   @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RoutineDayExerciseEntity> exercises = new ArrayList<>();
 

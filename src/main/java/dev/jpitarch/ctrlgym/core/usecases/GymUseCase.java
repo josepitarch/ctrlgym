@@ -198,8 +198,8 @@ public class GymUseCase {
     return generateInvoiceReportService.generate(memberId, invoiceId);
   }
 
-  public void createGymRoutine(Integer gymId, Routine routine) {
-    routinesService.createForGym(routine, gymId);
+  public Routine createGymRoutine(Integer gymId, Routine routine) {
+    return routinesService.createForGym(routine, gymId);
   }
 
   public List<Routine> getGymRoutines(Integer gymId) {

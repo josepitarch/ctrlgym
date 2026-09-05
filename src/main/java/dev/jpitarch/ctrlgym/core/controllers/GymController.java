@@ -126,9 +126,8 @@ public class GymController {
 
   @PostMapping("/{gymId}/routines")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public ResponseEntity<Void> createRoutine(@PathVariable Integer gymId, @RequestBody Routine routine) {
-    useCase.createGymRoutine(gymId, routine);
-    return new ResponseEntity<>(HttpStatus.CREATED);
+  public ResponseEntity<Routine> createRoutine(@PathVariable Integer gymId, @RequestBody Routine routine) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createGymRoutine(gymId, routine));
   }
 
   @GetMapping("/{gymId}/routines")

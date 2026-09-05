@@ -17,7 +17,7 @@ public class JwtService {
 
   private final SecretKey secretKey;
 
-  private static final long ACCESS_TOKEN_EXPIRATION_WEEKS = 4;
+  private static final long ACCESS_TOKEN_EXPIRATION_DAYS = 30;
 
   public JwtService(@Value("${jwt.secret}") String secret) {
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -34,7 +34,7 @@ public class JwtService {
       .claim("gym_id", user.getGymId())
       .claim("role", user.getRole())
       .issuedAt(Date.from(now))
-      .expiration(Date.from(now.plus(ACCESS_TOKEN_EXPIRATION_WEEKS, ChronoUnit.WEEKS)))
+      .expiration(Date.from(now.plus(ACCESS_TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS)))
       .signWith(secretKey)
       .compact();
   }

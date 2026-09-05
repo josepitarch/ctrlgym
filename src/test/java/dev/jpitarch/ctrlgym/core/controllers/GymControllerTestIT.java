@@ -25,6 +25,7 @@ import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -585,6 +586,65 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$[0].effective_date").value("2026-01-01"))
         .andExpect(jsonPath("$[1].type").value("PRIVACY_POLICY"))
         .andExpect(jsonPath("$[2].type").value("IMAGE_CONSENT"));
+    }
+  }
+
+  @Nested
+  @DisplayName("[ROUTINE]")
+  @Tag("ROUTINE")
+  class RoutineTests {
+
+    @Test
+    @Order(1)
+    @DisplayName("Creates a gym routine successfully")
+    void createRoutine_returns201WithRoutine() throws Exception {
+      var routineJson = new String(new ClassPathResource("fixtures/routine_push_pull_legs.json").getInputStream().readAllBytes());
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/routines", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(routineJson))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.name").value("Push Pull Legs"))
+        .andExpect(jsonPath("$.days.length()").value(2))
+        .andExpect(jsonPath("$.days[0].day_number").value(1))
+        .andExpect(jsonPath("$.days[0].name").value("Push"))
+        .andExpect(jsonPath("$.days[0].exercises.length()").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[0].id").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[0].name").value("Press de banca"))
+        .andExpect(jsonPath("$.days[0].exercises[0].muscle_group").value("CHEST"))
+        .andExpect(jsonPath("$.days[0].exercises[0].position").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[0].number").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[0].repetition").value(10))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[1].number").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[1].repetition").value(8))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[2].number").value(3))
+        .andExpect(jsonPath("$.days[0].exercises[0].sets[2].repetition").value(8))
+        .andExpect(jsonPath("$.days[0].exercises[1].id").value(8))
+        .andExpect(jsonPath("$.days[0].exercises[1].name").value("Press inclinado con mancuernas"))
+        .andExpect(jsonPath("$.days[0].exercises[1].muscle_group").value("CHEST"))
+        .andExpect(jsonPath("$.days[0].exercises[1].position").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets.length()").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[0].number").value(1))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[0].repetition").value(10))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[1].number").value(2))
+        .andExpect(jsonPath("$.days[0].exercises[1].sets[1].repetition").value(10))
+        .andExpect(jsonPath("$.days[1].day_number").value(2))
+        .andExpect(jsonPath("$.days[1].name").value("Pull"))
+        .andExpect(jsonPath("$.days[1].exercises.length()").value(1))
+        .andExpect(jsonPath("$.days[1].exercises[0].id").value(2))
+        .andExpect(jsonPath("$.days[1].exercises[0].name").value("Dominadas"))
+        .andExpect(jsonPath("$.days[1].exercises[0].muscle_group").value("BACK"))
+        .andExpect(jsonPath("$.days[1].exercises[0].position").value(1))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[0].number").value(1))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[0].repetition").value(8))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[1].number").value(2))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[1].repetition").value(8))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[2].number").value(3))
+        .andExpect(jsonPath("$.days[1].exercises[0].sets[2].repetition").value(6));
     }
   }
 

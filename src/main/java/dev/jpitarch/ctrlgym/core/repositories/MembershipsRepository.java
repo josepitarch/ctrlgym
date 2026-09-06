@@ -1,17 +1,15 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.*;
-import dev.jpitarch.ctrlgym.core.entities.MembershipCancellationReasonTranslationEntity;
 import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
+import dev.jpitarch.ctrlgym.core.mappers.MembershipMapper;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipCancellationReasonJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Repository
@@ -21,6 +19,8 @@ public class MembershipsRepository {
   private final MembershipJpaRepository membershipJpaRepository;
 
   private final MembershipCancellationReasonJpaRepository cancellationReasonJpaRepository;
+
+  private final MembershipMapper mapper;
 
   public Membership save(UUID memberId, Integer gymId, String membershipPlanId, String subscriptionId, LocalDate nextBillingDate) {
     var membership = new MembershipEntity();
@@ -32,7 +32,7 @@ public class MembershipsRepository {
     membership.setAutoRenew(Boolean.TRUE);
     membership.setNextBillingDate(nextBillingDate);
 
-    return this.map(membershipJpaRepository.save(membership));
+    return mapper.map(membershipJpaRepository.save(membership));
   }
 
   public Long getIdByStripeSubscriptionId(String subscriptionId) {
@@ -43,7 +43,7 @@ public class MembershipsRepository {
     return membershipJpaRepository
       .findByMemberId(memberId)
       .stream()
-      .map(this::map)
+      .map(mapper::map)
       .toList();
   }
 
@@ -78,27 +78,8 @@ public class MembershipsRepository {
   public List<MembershipCancellationReason> getCancellationReasons(String language) {
     return cancellationReasonJpaRepository.findByLanguageCode(language)
       .stream()
-      .map(this::toDomain)
+      .map(mapper::toDomain)
       .toList();
   }
 
-
-  private MembershipCancellationReason toDomain(MembershipCancellationReasonTranslationEntity translation) {
-    return MembershipCancellationReason.builder()
-      .id(translation.getCancellationReason().getId())
-      .name(translation.getName())
-      .description(translation.getDescription())
-      .build();
-  }
-
-
-  private Membership map(MembershipEntity m) {
-    return Membership.builder()
-      .id(m.getId())
-      .planId(m.getMembershipPlanId())
-      .billingPeriod(MembershipPlan.BillingPeriod.from("MONTHLY")) //TODO
-      .datePeriod(new DatePeriod(m.getStartDate(), m.getEndDate()))
-      .nextBillingDate(m.getNextBillingDate())
-      .build();
-  }
 }

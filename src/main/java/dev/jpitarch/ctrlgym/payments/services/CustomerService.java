@@ -48,7 +48,7 @@ public class CustomerService {
       )*/
       .setAddress(
         CustomerCreateParams.Address.builder()
-          .setCity(member.getAddress().getCity())
+          //.setCity(member.getAddress().getCity())
           .setPostalCode(member.getAddress().getPostalCode().toString())
           .setCountry("ES")
           .build()

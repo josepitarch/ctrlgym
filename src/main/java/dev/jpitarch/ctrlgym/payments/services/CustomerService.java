@@ -64,8 +64,8 @@ public class CustomerService {
     return customer.getId();
   }
 
-  public SetupIntentResponse createSetupIntent(UUID memberId, Integer gymId) throws StripeException {
-    String accountId = stripeBridge.getStripeAccountId(gymId);
+  public SetupIntentResponse createSetupIntent(UUID memberId) throws StripeException {
+    String accountId = stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId());
     String customerId = stripeBridge.getStripeCustomerId(memberId).orElseThrow();
 
     var options = RequestOptions.builder()

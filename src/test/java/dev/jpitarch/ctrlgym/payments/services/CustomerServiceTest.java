@@ -97,7 +97,6 @@ class CustomerServiceTest {
   @DisplayName("create - propagates StripeException")
   void create_propagatesStripeException() throws StripeException {
     try (MockedStatic<Customer> customerMock = mockStatic(Customer.class)) {
-
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
 
       var member = Member.builder()
@@ -139,7 +138,7 @@ class CustomerServiceTest {
       setupIntentMock.when(() -> SetupIntent.create(any(SetupIntentCreateParams.class), any(RequestOptions.class)))
         .thenReturn(mockSetupIntent);
 
-      SetupIntentResponse result = customerService.createSetupIntent(memberId, gymId);
+      SetupIntentResponse result = customerService.createSetupIntent(memberId);
 
       assertThat(result.id()).isEqualTo("seti_test123");
       assertThat(result.clientSecret()).isEqualTo("seti_test123_secret_abc");
@@ -162,8 +161,7 @@ class CustomerServiceTest {
     when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
     when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> customerService.createSetupIntent(memberId, gymId))
-      .isInstanceOf(NoSuchElementException.class);
+    assertThatThrownBy(() -> customerService.createSetupIntent(memberId)).isInstanceOf(NoSuchElementException.class);
   }
 
   @Test
@@ -181,7 +179,7 @@ class CustomerServiceTest {
       setupIntentMock.when(() -> SetupIntent.create(any(SetupIntentCreateParams.class), any(RequestOptions.class)))
         .thenThrow(cardException);
 
-      assertThatThrownBy(() -> customerService.createSetupIntent(memberId, gymId))
+      assertThatThrownBy(() -> customerService.createSetupIntent(memberId))
         .isInstanceOf(StripeException.class);
     }
   }

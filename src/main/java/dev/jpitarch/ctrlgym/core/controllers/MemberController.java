@@ -89,13 +89,13 @@ public class MemberController {
 
   @GetMapping("/{memberId}/memberships")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Optional<Membership>> getMembership(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+  public ResponseEntity<Optional<Membership>> getMembership(@PathVariable UUID memberId) {
     return ResponseEntity.ok(memberUseCase.getMembership(memberId));
   }
 
   @GetMapping(value = "/{memberId}/accesses")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<List<MemberAccess>> getAccesses(@PathVariable UUID memberId, @RequestParam Integer gymId) {
+  public ResponseEntity<List<MemberAccess>> getAccesses(@PathVariable UUID memberId) {
     return ResponseEntity.ok(memberUseCase.getAccesses(memberId));
   }
 

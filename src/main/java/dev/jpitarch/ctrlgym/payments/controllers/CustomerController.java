@@ -12,19 +12,19 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1")
-public class InvoicesController {
+public class CustomerController {
 
   private final CustomerService customerService;
 
   @PostMapping("/members/{memberId}/payment-method")
-  public ResponseEntity<SetupIntentResponse> createSetupIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
-    SetupIntentResponse response = customerService.createSetupIntent(memberId, gymId);
+  public ResponseEntity<SetupIntentResponse> createSetupIntent(@PathVariable UUID memberId) throws StripeException {
+    SetupIntentResponse response = customerService.createSetupIntent(memberId);
 
     return ResponseEntity.ok(response);
   }
 
   @PutMapping("/members/{memberId}/payment-method")
-  public ResponseEntity<Void> updateSetupIntent(@PathVariable UUID memberId, @RequestParam Integer gymId) throws StripeException {
+  public ResponseEntity<Void> updateSetupIntent(@PathVariable UUID memberId) throws StripeException {
     //TODO: revisar coEntity implementar esto
     return ResponseEntity.ok().build();
   }

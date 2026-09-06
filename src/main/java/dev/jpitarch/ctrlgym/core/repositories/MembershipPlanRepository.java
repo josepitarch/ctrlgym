@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.MembershipPlanNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.MembershipPlanEntity;
 import dev.jpitarch.ctrlgym.core.mappers.MembershipPlanMapper;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
@@ -30,7 +31,7 @@ public class MembershipPlanRepository {
   }
 
   public MembershipPlan retrieve(String planId) {
-    return membershipPlanJpaRepository.findById(planId).map(mapper::map).orElseThrow();
+    return membershipPlanJpaRepository.findById(planId).map(mapper::map).orElseThrow(() -> new MembershipPlanNotFoundException(planId));
   }
 
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
@@ -43,7 +44,7 @@ public class MembershipPlanRepository {
 
   public void delete(String planId) {
     MembershipPlanEntity planEntity = membershipPlanJpaRepository.findById(planId)
-      .orElseThrow(() -> new IllegalArgumentException("Membership plan not found"));
+      .orElseThrow(() -> new MembershipPlanNotFoundException(planId));
     planEntity.setDeletedAt(LocalDate.now());
     membershipPlanJpaRepository.save(planEntity);
   }

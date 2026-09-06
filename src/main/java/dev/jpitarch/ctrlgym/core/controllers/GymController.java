@@ -104,6 +104,12 @@ public class GymController {
     return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createMembershipPlan(gymId, plan));
   }
 
+  @GetMapping("/{gymId}/memberships/plans/{planId}")
+  @PreAuthorize("#gymId == authentication.gymId")
+  public ResponseEntity<MembershipPlan> getMembershipPlan(@PathVariable Integer gymId, @PathVariable String planId) {
+    return ResponseEntity.ok(useCase.getMembershipPlan(planId));
+  }
+
   @GetMapping("/{gymId}/memberships/plans")
   @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<MembershipPlan>> getMembershipPlans(@PathVariable Integer gymId, @RequestParam(required = false) Integer gymBranchId) {

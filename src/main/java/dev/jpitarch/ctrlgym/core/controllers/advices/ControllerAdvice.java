@@ -56,6 +56,18 @@ public class ControllerAdvice {
     return problem;
   }
 
+  @ExceptionHandler(MembershipPlanNotFoundException.class)
+  public ProblemDetail handleMembershipPlanNotFoundException(MembershipPlanNotFoundException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    problem.setTitle("Membership Plan Not Found");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.NOT_FOUND, request);
+
+    return problem;
+  }
+
   @ExceptionHandler(MemberWithoutAccessException.class)
   public ProblemDetail handleMemberWithoutAccessException(MemberWithoutAccessException e, HttpServletRequest request) {
     var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());

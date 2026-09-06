@@ -157,6 +157,10 @@ public class GymUseCase {
     return plan;
   }
 
+  public MembershipPlan getMembershipPlan(String planId) {
+    return membershipPlanRepository.retrieve(planId);
+  }
+
   public List<MembershipPlan> getMembershipPlans(GymBranchId gymBranchId) {
     log.debug("Retrieving membership plans for gym with id {}...", gymBranchId);
     return membershipPlanRepository.getMembershipPlans(gymBranchId);

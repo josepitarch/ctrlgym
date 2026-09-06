@@ -360,6 +360,30 @@ class GymControllerTestIT extends BaseIntegrationTest {
       assertThat(membershipPlanJpaRepository.findById("plan_basic")).isEmpty();
       verify(productService).delete(1, "plan_basic");
     }
+
+    @Test
+    @Order(8)
+    @DisplayName("Returns a membership plan by ID")
+    void getMembershipPlan_returnsPlan() throws Exception {
+      mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans/{planId}", gymId, "new_plan_id")
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value("new_plan_id"))
+        .andExpect(jsonPath("$.name").value("Premium Plan"))
+        .andExpect(jsonPath("$.price").value(49.99));
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Returns 404 when membership plan does not exist")
+    void getMembershipPlan_notFound_returns404() throws Exception {
+      mockMvc.perform(get("/v1/gyms/{gymId}/memberships/plans/{planId}", gymId, "non_existent_plan")
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.detail").value("Membership plan with id non_existent_plan does not exists"));
+    }
   }
 
   @Nested

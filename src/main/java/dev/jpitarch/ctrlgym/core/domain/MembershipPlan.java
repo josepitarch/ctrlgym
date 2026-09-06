@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,9 +32,11 @@ public class MembershipPlan {
   private boolean allBranches;
 
   @JsonProperty("start_time")
+  @JsonFormat(pattern = "HH:mm")
   private LocalTime startTime;
 
   @JsonProperty("end_time")
+  @JsonFormat(pattern = "HH:mm")
   private LocalTime endTime;
 
   @JsonProperty("all_day")

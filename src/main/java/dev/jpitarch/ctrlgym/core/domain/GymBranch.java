@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class GymBranch {
 
   private Coordinates coordinates;
 
-  public record PeakHour(LocalTime start, LocalTime end) {
+  public record PeakHour(@JsonFormat(pattern = "HH:mm") LocalTime start, @JsonFormat(pattern = "HH:mm") LocalTime end) {
 
   }
 

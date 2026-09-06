@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
+
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -126,6 +128,54 @@ public class GymsRepository {
       );
   }
 
+
+  public MemberRetention getMemberRetention(UUID memberId) {
+    var sql = """
+      SELECT
+        COALESCE((
+          SELECT SUM(i.total)::int
+          FROM invoices i
+          WHERE i.member_id = :memberId AND i.status = 'PAID'::invoice_status
+        ), 0) AS life_time_value,
+        GREATEST(1, (EXTRACT(EPOCH FROM age(
+          COALESCE(
+            (SELECT MAX(m2.end_date) FROM memberships m2 WHERE m2.member_id = :memberId AND m2.end_date IS NOT NULL),
+            CURRENT_DATE
+          ),
+          (SELECT MIN(m1.start_date) FROM memberships m1 WHERE m1.member_id = :memberId)
+        )) / (30.44 * 86400)))::int AS active_months,
+        CASE
+          WHEN GREATEST(1, (EXTRACT(EPOCH FROM age(
+            COALESCE(
+              (SELECT MAX(m2.end_date) FROM memberships m2 WHERE m2.member_id = :memberId AND m2.end_date IS NOT NULL),
+              CURRENT_DATE
+            ),
+            (SELECT MIN(m1.start_date) FROM memberships m1 WHERE m1.member_id = :memberId)
+          )) / (30.44 * 86400)))::int = 0 THEN 0
+          ELSE COALESCE((
+            SELECT COUNT(*)::int
+            FROM member_accesses a
+            WHERE a.member_id = :memberId AND a.direction = 0
+          ) / GREATEST(1, (EXTRACT(EPOCH FROM age(
+            COALESCE(
+              (SELECT MAX(m2.end_date) FROM memberships m2 WHERE m2.member_id = :memberId AND m2.end_date IS NOT NULL),
+              CURRENT_DATE
+            ),
+            (SELECT MIN(m1.start_date) FROM memberships m1 WHERE m1.member_id = :memberId)
+          )) / (30.44 * 86400)))::int, 0)
+        END AS attendance_avg
+      """;
+
+    var params = Map.of("memberId", memberId);
+
+    return jdbc.queryForObject(sql, params, (rs, rowNum) -> new MemberRetention(
+      memberId,
+      null,
+      rs.getInt("life_time_value"),
+      rs.getInt("active_months"),
+      rs.getInt("attendance_avg")
+    ));
+  }
 
   public Short getCurrentOccupancy(GymBranchId gymBranchId) {
     var sql = """

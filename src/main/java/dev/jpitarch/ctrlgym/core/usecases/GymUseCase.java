@@ -127,7 +127,7 @@ public class GymUseCase {
   }
 
   public MemberRetention getMemberRetention(GymBranchId gymBranchId, UUID memberId) {
-    return new MemberRetention(memberId, 85, 2340, 14, 9);
+    return gymsRepository.getMemberRetention(memberId);
   }
 
   public Page<Invoice> getInvoices(GymBranchId gymBranchId, UUID memberId, Pageable pageable) {

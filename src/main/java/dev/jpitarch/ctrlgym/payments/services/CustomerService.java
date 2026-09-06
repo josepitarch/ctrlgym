@@ -10,14 +10,13 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SetupIntentRetrieveParams;
 import com.stripe.param.SubscriptionUpdateParams;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
+import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -115,17 +114,23 @@ public class CustomerService {
       .addExpand("payment_method")
       .build();
 
-    return stripeBridge.getStripeSetupIntentId(memberId)
-      .flatMap(s -> {
-        try {
-          return Optional.ofNullable(
-            SetupIntent.retrieve(s, params, options).getPaymentMethodObject().getSepaDebit().getLast4()
-          );
-        } catch (StripeException e) {
-          log.warn("Failed to retrieve IBAN last4 for member {}: {}", memberId, e.getMessage(), e);
-          return Optional.empty();
-        }
-      });
+    try {
+      return stripeBridge.getStripeSetupIntentId(memberId)
+        .flatMap(s -> {
+          try {
+            return Optional.ofNullable(
+              SetupIntent.retrieve(s, params, options).getPaymentMethodObject().getSepaDebit().getLast4()
+            );
+          } catch (StripeException e) {
+            log.warn("Failed to retrieve IBAN last4 for member {}: {}", memberId, e.getMessage(), e);
+            return Optional.empty();
+          }
+        });
+    } catch (RuntimeException e) {
+      log.error("Failed to retrieve IBAN last4 for member {}: {}", memberId, e.getMessage(), e);
+      return Optional.empty();
+    }
+
 
   }
 

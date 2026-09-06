@@ -35,7 +35,7 @@ public class MemberController {
   @PreAuthorize("#memberId.toString() == authentication.name")
   public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody CreateMemberRequest body, HttpServletRequest request) throws StripeException {
 
-    Member member = Member.builder()
+    var member = Member.builder()
       .id(memberId)
       .name(body.getName())
       .firstSurname(body.getFirstSurname())
@@ -43,12 +43,6 @@ public class MemberController {
       .gender(body.getGender())
       .birthDate(body.getBirthDate())
       .nif(body.getNif())
-      .address(body.getAddress() != null
-        ? Member.Address.builder()
-          .city(body.getAddress().getCity())
-          .postalCode(body.getAddress().getPostalCode())
-          .build()
-        : null)
       .build();
 
     memberUseCase.createMember(member, body.getAcceptedDocumentVersionIds(), RequestHelper.extractIp(request), request.getHeader("User-Agent"));

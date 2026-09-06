@@ -91,11 +91,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     request.setBirthDate(LocalDate.of(1995, 8, 20));
     request.setNif("12345678Z");
 
-    var address = new CreateMemberRequest.Address();
-    address.setCity("Valencia");
-    address.setPostalCode(46001);
-    request.setAddress(address);
-
     return request;
   }
 

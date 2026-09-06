@@ -28,18 +28,7 @@ public class CreateMemberRequest {
 
   private String nif;
 
-  private Address address;
-
   @JsonProperty("accepted_document_version_ids")
   List<UUID> acceptedDocumentVersionIds;
 
-  @Getter
-  @Setter
-  public static class Address {
-
-    private String city;
-
-    @JsonProperty("postal_code")
-    private Integer postalCode;
-  }
 }

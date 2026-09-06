@@ -107,14 +107,14 @@ public class CustomerService {
   }
 
   public Optional<String> getIbanLast4(UUID memberId) {
-    var options = RequestOptions.builder()
-      .setStripeAccount(stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId()))
-      .build();
-    var params = SetupIntentRetrieveParams.builder()
-      .addExpand("payment_method")
-      .build();
-
     try {
+      var options = RequestOptions.builder()
+        .setStripeAccount(stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId()))
+        .build();
+      var params = SetupIntentRetrieveParams.builder()
+        .addExpand("payment_method")
+        .build();
+
       return stripeBridge.getStripeSetupIntentId(memberId)
         .flatMap(s -> {
           try {

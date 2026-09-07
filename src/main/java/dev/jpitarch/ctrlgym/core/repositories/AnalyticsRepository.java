@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
 import dev.jpitarch.ctrlgym.core.dto.CancellationComment;
+import dev.jpitarch.ctrlgym.core.dto.MemberMetrics;
 import dev.jpitarch.ctrlgym.core.dto.MembershipPlanDistribution;
 import dev.jpitarch.ctrlgym.core.dto.MembersDistribution;
 import dev.jpitarch.ctrlgym.core.dto.RetentionVsChurn;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
@@ -515,6 +517,36 @@ public class AnalyticsRepository {
       rs.getObject("churn_rate") != null ? rs.getBigDecimal("churn_rate") : null,
       rs.getObject("peak_occupancy_pct") != null ? rs.getBigDecimal("peak_occupancy_pct") : null,
       rs.getBigDecimal("overdue_amount"),
+      rs.getBoolean("is_closed")
+    ));
+  }
+
+  public List<MemberMetrics> getMemberMetrics(UUID memberId, YearMonth from, YearMonth to) {
+    var sql = """
+      SELECT
+        TO_CHAR(month, 'YYYY-MM') AS year_month,
+        COALESCE(mmm.attendance, 0)::smallint AS attendance,
+        COALESCE(mmm.is_closed, false) AS is_closed
+      FROM generate_series(
+        :from::date,
+        :to::date,
+        INTERVAL '1 month'
+      ) AS month
+      LEFT JOIN member_metrics_monthly mmm
+        ON mmm.member_id = :memberId
+        AND mmm.year_month = month::date
+      ORDER BY month
+      """;
+
+    var params = Map.of(
+      "memberId", memberId,
+      "from", from.atDay(1).toString(),
+      "to", to.atDay(1).toString()
+    );
+
+    return jdbc.query(sql, params, (rs, rowNum) -> new MemberMetrics(
+      YearMonth.parse(rs.getString("year_month")),
+      rs.getShort("attendance"),
       rs.getBoolean("is_closed")
     ));
   }

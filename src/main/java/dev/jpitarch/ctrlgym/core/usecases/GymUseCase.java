@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
@@ -13,6 +14,7 @@ import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
 import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
 import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
 import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
+import dev.jpitarch.ctrlgym.core.dto.MemberMetrics;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.dto.TimeRange;
 import dev.jpitarch.ctrlgym.core.entities.GymScheduleEntity;
@@ -20,6 +22,7 @@ import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
 import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
+import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
@@ -90,6 +93,8 @@ public class GymUseCase {
   private final OrderRepository orderRepository;
 
   private final GymScheduleJpaRepository gymScheduleJpaRepository;
+
+  private final AnalyticsRepository analyticsRepository;
 
   public GymScheduleResponse getSchedule(Integer gymId) {
     Map<Integer, TimeRange> schedule = gymScheduleJpaRepository.findByGymId(gymId).stream()
@@ -353,6 +358,10 @@ public class GymUseCase {
 
   public List<Order> getOrders(GymBranchId gymBranchId) {
     return orderRepository.findByBranchId(gymBranchId.branchId());
+  }
+
+  public List<MemberMetrics> getMemberMetrics(UUID memberId, YearMonth from, YearMonth to) {
+    return analyticsRepository.getMemberMetrics(memberId, from, to);
   }
 
 }

@@ -765,6 +765,17 @@ create table gym_metrics_monthly
   constraint gym_metrics_monthly_gym_branch_id_fkey foreign KEY (gym_branch_id) references gym_branches (id)
 );
 
+create table member_metrics_monthly
+(
+  member_id          uuid        not null,
+  year_month         date        not null,
+  attendance         smallint    not null default 0,
+  is_closed          boolean     not null default false,
+  calculated_at      timestamp without time zone not null default now(),
+  constraint member_metrics_monthly_pkey primary key (member_id, year_month),
+  constraint member_metrics_monthly_member_id_fkey foreign key (member_id) references users (id)
+);
+
 -- public.employee_workplace definition
 
 CREATE TABLE employee_workplace

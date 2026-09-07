@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
 import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
 import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
 import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
+import dev.jpitarch.ctrlgym.core.dto.MemberMetrics;
 import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
 import dev.jpitarch.ctrlgym.core.dto.TimeRange;
 import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -62,6 +64,12 @@ public class GymController {
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/retention")
   public ResponseEntity<MemberRetention> getMemberRetention(@PathVariable int gymId, @PathVariable int branchId, @PathVariable UUID memberId) {
     return ResponseEntity.ok(useCase.getMemberRetention(GymBranchId.of(gymId, branchId), memberId));
+  }
+
+  @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
+  @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/metrics")
+  public ResponseEntity<List<MemberMetrics>> getMemberMetrics(@PathVariable int gymId, @PathVariable int branchId, @PathVariable UUID memberId, @RequestParam YearMonth from, @RequestParam YearMonth to) {
+    return ResponseEntity.ok(useCase.getMemberMetrics(memberId, from, to));
   }
 
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")

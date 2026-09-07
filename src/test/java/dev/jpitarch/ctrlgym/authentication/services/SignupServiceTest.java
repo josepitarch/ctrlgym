@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidNifException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.LegalDocumentVersion;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
@@ -12,7 +13,9 @@ import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
-import org.junit.jupiter.api.BeforeEach;
+import dev.jpitarch.ctrlgym.verifactu.dtos.NifValidationResult;
+import dev.jpitarch.ctrlgym.verifactu.dtos.ValidateNifResponse;
+import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +58,9 @@ class SignupServiceTest {
   @Mock
   ApplicationEventPublisher eventPublisher;
 
+  @Mock
+  NifValidationService nifValidationService;
+
   @InjectMocks
   SignupService signupService;
 
@@ -69,6 +75,21 @@ class SignupServiceTest {
       "Adult",
       "User",
       null,
+      null,
+      "MALE",
+      LocalDate.of(1995, 8, 20),
+      acceptedDocIds
+    );
+  }
+
+  private SignupRequest adultRequestWithNif(List<UUID> acceptedDocIds, String nif) {
+    return new SignupRequest(
+      "adult@test.com",
+      "Password1!",
+      "Adult",
+      "User",
+      null,
+      nif,
       "MALE",
       LocalDate.of(1995, 8, 20),
       acceptedDocIds
@@ -81,6 +102,7 @@ class SignupServiceTest {
       "Password1!",
       "Minor",
       "User",
+      null,
       null,
       "MALE",
       LocalDate.now().minusYears(16),
@@ -174,6 +196,7 @@ class SignupServiceTest {
       "Password1!",
       "NoBirth",
       "User",
+      null,
       null,
       null,
       null,
@@ -284,5 +307,40 @@ class SignupServiceTest {
       assertThat(acceptance.getUserAgent()).isEqualTo("TestAgent/1.0");
       assertThat(acceptance.getAcceptedAt()).isNotNull();
     }
+  }
+
+  @Test
+  @DisplayName("Signup with invalid NIF throws InvalidNifException")
+  void signup_invalidNif_throwsException() {
+    when(nifValidationService.validateNif(eq(gymId), eq("B99999999"), anyString()))
+      .thenReturn(new ValidateNifResponse("B99999999", "Adult User", NifValidationResult.NO_IDENTIFICADO));
+
+    var request = adultRequestWithNif(List.of(termsVersionId, privacyVersionId), "B99999999");
+
+    assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
+      .isInstanceOf(InvalidNifException.class);
+
+    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("Signup with valid NIF proceeds normally")
+  void signup_validNif_proceedsNormally() {
+    when(nifValidationService.validateNif(eq(gymId), eq("B86561412"), anyString()))
+      .thenReturn(new ValidateNifResponse("B86561412", "Adult User", NifValidationResult.IDENTIFICADO));
+    when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
+      .thenReturn(activeMandatoryVersions());
+    when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
+    when(userRepository.create(anyString(), anyString(), eq(gymId), anyString(), anyString(), any(), any(), any()))
+      .thenReturn(buildCreatedUser());
+    when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
+    when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
+
+    var request = adultRequestWithNif(List.of(termsVersionId, privacyVersionId), "B86561412");
+    AuthResponse response = signupService.signup(request, gymId, "127.0.0.1", "Mozilla");
+
+    assertThat(response.accessToken()).isEqualTo("access-token");
+    verify(nifValidationService).validateNif(eq(gymId), eq("B86561412"), anyString());
+    verify(userRepository).save(any(UserEntity.class));
   }
 }

@@ -13,7 +13,8 @@ public record SignupRequest(
   String name,
   @JsonProperty("first_surname") String firstSurname,
   @Nullable @JsonProperty("second_surname") String secondSurname,
-  @Nullable String gender,
-  @Nullable @JsonProperty("birth_date") LocalDate birthDate,
-  @Nullable @JsonProperty("accepted_document_version_ids") List<UUID> acceptedDocumentVersionIds) {
+  String nif,
+  String gender,
+  @JsonProperty("birth_date") LocalDate birthDate,
+  @JsonProperty("accepted_document_version_ids") List<UUID> acceptedDocumentVersionIds) {
 }

@@ -176,7 +176,7 @@ public class GenerateInvoiceReportService {
         .replace("{{INVOICE_SUBTOTAL}}", decimalFormat.format(invoice.getSubtotal()))
         .replace("{{INVOICE_TAX}}", decimalFormat.format(invoice.getTax()))
         .replace("{{INVOICE_TOTAL}}", decimalFormat.format(invoice.getTotal()))
-        .replace("{{QR_CODE_BASE64}}", qrUrl != null ? qrUrl.getQr() : "");
+        .replace("{{QR_CODE_BASE64}}", qrUrl != null ? qrUrl.qr() : "");
       var builder = new PdfRendererBuilder();
       builder.withHtmlContent(html, null);
       builder.toStream(os);

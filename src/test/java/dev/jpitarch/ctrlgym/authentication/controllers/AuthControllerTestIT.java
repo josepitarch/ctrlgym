@@ -10,6 +10,7 @@ import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.controllers.BaseIntegrationTest;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
+import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,9 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @MockitoBean
   EmailService emailService;
 
+  @MockitoBean
+  NifValidationService nifValidationService;
+
   @BeforeEach
   void setUp() {
     when(emailTemplateComponent.build(anyString(), any())).thenReturn("<html></html>");
@@ -70,6 +74,7 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
       "Password1!",
       "New",
       "User",
+      null,
       null,
       null,
       null,

@@ -1,0 +1,3687 @@
+openapi: 3.0.3
+servers:
+  - url: https://api.verifacti.com/
+info:
+  title: Documentación de la API para gestionar NIFs
+  contact:
+    email: info@verifacti.com
+    name: Contacto
+    url: https://www.verifacti.com
+  description: >
+
+    # Funcionamiento básico
+
+
+    Aquí encontrarás la documentación técnica de nuestra API para la gestión
+    general de tus NIFs en nuestro sistema. En particular,
+
+    se puede utilizar para dar de alta y de baja diferentes NIFs tanto en
+    Verifactu como en TicketBai, el análogo a Verifactu en
+
+    el País Vasco. Se pueden dar de alta NIFs en el entorno de test y de
+    producción. Los NIFs de test envían facturas al entorno
+
+    de test de la administración y no se contabilizan para la factura.
+
+
+    &nbsp;
+
+
+    Para un número pequeño de NIFs es posible crearlos, modificarlos y darlos de
+    baja a mano usando nuestra plataforma.
+
+    Sin embargo, para un gran volumen de NIFs esto se vuelve poco práctico, por
+    lo que ponemos a vuestra disposición esta sencilla API
+
+    para gestionarlos. Está incluida en el precio y se puede utilizar por
+    cualquier usuario con una suscripción activa.
+
+
+    &nbsp;
+
+
+    La documentación de la API de Verifactu se encuentra en <a
+    href="https://www.verifacti.com/docs">aquí</a>. Para TicketBai, disponemos
+
+    de una API separada pero completamente análoga a la de Verifactu. Su
+    documentación está <a href="https://www.verifacti.com/tb-docs">aquí</a>.
+
+
+    &nbsp;
+
+
+    En nuestra plataforma, encontrarás una API key para realizar todas tus
+    llamadas a esta API, en https://app.verifacti.com/ajustes?tab=api-key. El
+    endpoint más importante es el
+
+    de crear un NIF, para lo cual hay que especificar los datos básicos así como
+    la hacienda a la que se quiere vincular y el entorno.
+
+
+    &nbsp;
+
+
+    También se permite la creación de webhooks para recibir el resultado de la
+    creación de registros de facturación.
+
+
+    &nbsp;
+
+
+    <a
+      href="https://storage.googleapis.com/verifacti_non_sensitive/postman_nifs.json"
+      download="nifs-docs.json"
+      style="
+        display: inline-block;
+        padding: 6px 12px;
+        background-color: #FF6C37;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">
+      Colección de Postman
+    </a>
+
+
+    &nbsp;
+tags:
+  - name: NIFs
+    description: >
+      Se pueden crear NIFs en el entorno de test, que se comunican con el
+      entorno de test de la administración. Estos están disponibles
+
+      sin coste adicional y en ningún caso se contabilizan para la factura.
+      También se pueden crear NIFs en el entorno de producción, que
+
+      se comunican con el entorno de producción de la administración. Estos son
+      los que se tienen en cuenta de cara a la facturación.
+
+
+      &nbsp;
+
+
+      Cuando se añade un NIF nuevo, éste se encuentra en estado "activo" y se
+      puede empezar a usar para hacer llamadas a la administración.
+
+      En cualquier momento, se puede activar o desactivar un NIF mediante el
+      endpoint correspondiente. Los NIFs desactivados quedan
+
+      guardados en nuestro sistema y no se seguirá cobrando por ellos. Se pueden
+      activar en cualquier momento para continuar enviando facturas
+
+      a la agencia tributaria en su nombre.
+  - name: Validación
+    description: >
+
+      Existen muchas circunstancias en las que resulta útil validar que un NIF
+      es correcto y está registrado en la administración, tanto para
+
+      empresas (CIF) como ciudadanos nacionales (DNI) y residentes extranjeros
+      (NIE). Para ello, disponemos de un endpoint específico que permite
+
+      conocer el estado de un NIF en la administración.
+
+
+      Además, proporcionamos un endpoint para comprobar la validez de IVAs
+      intracomunitarios en el censo VIES.
+
+
+      &nbsp;
+
+
+      Estos endpoints de validación son los únicos que se pueden utilizar con
+      una API de gestión de NIFs (vfn_...) o una de una empresa específica
+
+      (vf_...).
+  - name: Modelo de representación
+    description: >
+      Para generar y enviar facturas al entorno de producción usando nuestra
+      API, es necesario
+
+      rellenar un modelo de otorgamiento de representación
+
+      y <span style="font-weight: bold; text-decoration: underline">el NIF
+      emisor de las facturas</span> debe firmarlo digitalmente.
+
+      Es un requisito común a <strong>Veri*Factu</strong> (AEAT) y a
+      <strong>TicketBai</strong>
+
+      (Haciendas Forales de Álava, Bizkaia y Gipuzkoa): el mismo modelo sirve
+      para las cuatro
+
+      administraciones y solo hay que gestionarlo una vez por NIF.
+
+
+      &nbsp;
+
+
+      Existen dos métodos distintos e independientes para firmar el modelo de
+      representación; solo es necesario
+
+      completar uno de ellos:
+
+      <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+        <li>
+          <strong>Firma online:</strong> el titular del NIF firma desde el navegador, con verificación de identidad y
+          sin necesidad de certificado electrónico. Solo para personas físicas. Coste: 2,90 € + IVA por proceso de firma.
+        </li>
+        <li>
+          <strong>Certificado electrónico:</strong> se descarga el PDF rellenado, se firma con el certificado
+          electrónico del NIF emisor y se sube a la plataforma. Gratuito. Para personas físicas y jurídicas.
+        </li>
+      </ul>
+
+
+      <div style="margin-top: 32px; margin-bottom: 12px; font-size: 18px;
+      font-weight: bold;">
+        Método 1: Firma online (solo personas físicas)
+      </div>
+
+
+      <div style="margin-left: 18px;">
+        Todo el método se realiza con una única llamada a la API:
+        <ol style="list-style: decimal; margin-top: 6px; margin-bottom: 0px;">
+          <li>Se llama a POST <code>/representacion/firma_remota/:nif</code> con los datos del titular (nombre, apellidos, municipio, calle, número) y su email.</li>
+          <li>La respuesta contiene el enlace de firma (<code>url</code>), que el firmante también recibe por email.</li>
+          <li>El titular del NIF abre el enlace, completa la verificación de identidad y firma desde el navegador, sin instalar nada y sin certificado electrónico.</li>
+          <li>Al completarse la firma, el estado de la representación pasa automáticamente a Correcto y el NIF ya puede enviar facturas al entorno de producción.</li>
+        </ol>
+
+        &nbsp;
+
+        Puedes ver el proceso completo que sigue el firmante, paso a paso y con capturas, en la guía
+        <a href="https://verifacti.com/firma-online">Firma online del modelo de representación</a>.
+
+        &nbsp;
+
+        Mientras la firma está en curso, GET <code>/representacion/estado/:nif</code> devuelve el estado Pendiente junto
+        con el enlace de firma, de forma que el firmante puede retomar el proceso en cualquier momento. Con
+        PUT <code>/representacion/cancelar/:nif</code> se puede cancelar un proceso en curso.
+
+        &nbsp;
+
+        Cada proceso de firma online tiene un coste de 2,90 € + IVA que se añade a la próxima factura; el coste se aplica
+        al crear el proceso, aunque la firma no llegue a completarse. Si el proceso caduca o se cancela, se puede
+        iniciar uno nuevo, que se cobra como una firma nueva.
+      </div>
+
+
+      <div style="margin-top: 32px; margin-bottom: 12px; font-size: 18px;
+      font-weight: bold;">
+        Método 2: Certificado electrónico (gratuito)
+      </div>
+
+
+      <div style="margin-left: 18px;">
+        Este método requiere disponer del certificado electrónico del NIF emisor de las facturas y consta de tres
+        pasos: rellenar el PDF, firmarlo y subirlo a la plataforma.
+      </div>
+
+
+      <div style="margin-top: 24px; margin-bottom: 6px; margin-left: 18px;
+      font-size: 16px; font-weight: bold;">
+        1. Rellenar los datos del documento en PDF
+      </div>
+
+
+      <div style="margin-left: 36px;">
+        El primer paso es descargarse el documento de otorgamiento de representación en PDF. Para ello,
+        disponemos del endpoint POST <code>/representacion/generar/:nif</code> al que se le pasan los datos relevantes y devuelve el PDF ya rellenado.
+        Existe la posibilidad de generar el PDF para una persona física o una persona jurídica.
+      </div>
+
+
+      <div style="margin-top: 24px; margin-bottom: 6px; margin-left: 18px;
+      font-size: 16px; font-weight: bold;">
+        2. Firmar el documento usando un certificado electrónico
+      </div>
+
+
+      <div style="margin-left: 36px;">
+        Una vez obtenido el PDF con los datos rellenados, <span style="font-weight: bold; text-decoration: underline">el NIF emisor de las facturas</span> debe firmarlo usando un certificado electrónico. Para personas físicas,
+        se utilizará un certificado de ciudadano y para personas jurídicas se utilizará un certificado de representante de entidad.
+        Dichos certificados son archivos en formato .p12 o .pfx que, junto con una clave, permiten firmar electrónicamente documentos.
+        En caso de no disponer de uno, se puede solicitar a varios organismos certificadores como, por ejemplo,
+        la <a target="_blank" href="https://www.sede.fnmt.gob.es/">FNMT</a> o <a target="_blank" href="https://www.izenpe.eus/">Izenpe</a>.
+      </div>
+
+
+      <div style="margin-top: 24px; margin-bottom: 6px; margin-left: 18px;
+      font-size: 16px; font-weight: bold;">
+        3. Subir el documento firmado a nuestra plataforma
+      </div>
+
+
+      <div style="margin-left: 36px;">
+        Una vez obtenido el PDF firmado, se debe subir a nuestra plataforma. Para ello, disponemos del endpoint POST
+        <code>/representacion/enviar/:nif</code> al que se le pasa el PDF firmado y devuelve el estado de la operación. La firma se valida
+        de forma programática por nuestro lado y se comprueba que el NIF del documento coincida con el NIF del certificado. Para personas
+        jurídicas se valida además el NIF del representante.
+      </div>
+  - name: Webhooks
+    description: >
+      Nuestra plataforma permite el uso de webhooks para recibir notificaciones
+      automáticas cuando se genera un registro de facturación.
+
+      Esta funcionalidad está diseñada para evitar consultas constantes a la
+      API, permitiendo que tu sistema sea notificado de forma inmediata y
+
+      eficiente cuando se dispone del resultado.
+
+
+      &nbsp;
+
+
+      Cada registro de facturación está vinculado a un NIF, y los webhooks
+      pueden configurarse
+
+      para escuchar eventos relacionados con uno o varios NIFs. Asimismo, un
+      mismo NIF
+
+      puede estar asociado a múltiples webhooks.
+
+
+      &nbsp;
+
+
+      La API proporciona endpoints para:
+
+      <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+        <li>Crear nuevos webhooks</li>
+        <li>Consultar webhooks existentes</li>
+        <li>Modificar su configuración</li>
+        <li>Eliminar webhooks</li>
+        <li>Asociar y desasociar NIFs a webhooks</li>
+      </ul>
+
+
+      &nbsp;
+
+
+      **Firma de notificaciones**
+
+
+      Para mayor seguridad, es posible definir un valor `secret` al crear un
+      webhook.
+
+      Este secreto se utiliza para generar una firma digital (HMAC con el
+      algoritmo SHA-256)
+
+      que se incluye en cada notificación, dentro del header HTTP
+      `X-Webhook-Signature`.
+
+
+      &nbsp;
+
+
+      Esta firma permite al receptor del webhook verificar que:
+
+      <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+        <li>El mensaje fue enviado por nuestra API</li>
+        <li>El contenido no fue modificado durante la transmisión</li>
+      </ul>
+
+
+      &nbsp;
+
+
+      Para verificar la firma:
+
+      <ol style="list-style: decimal; margin-top: 6px; margin-bottom: 0px;">
+        <li>Debes obtener el cuerpo exacto del mensaje recibido (sin alterar).</li>
+        <li>Usar el mismo secreto asociado al webhook para calcular una firma HMAC-SHA256 (en hexadecimal).</li>
+        <li>Comparar la firma generada con la contenida en el header `X-Webhook-Signature`.</li>
+      </ol>
+
+
+      &nbsp;
+
+
+      Si ambas firmas coinciden, puedes confiar en que el mensaje es auténtico.
+
+
+      &nbsp;
+
+
+      **Clave de idempotencia**
+
+
+      Cada notificación incluye también el header `X-Webhook-Id`, cuyo valor es
+      un identificador único (UUID v4) generado por nuestra API para esa
+      notificación concreta. Este identificador es **estable a través de
+      reintentos**: si una notificación es reintentada, todos los intentos
+      llevan el mismo valor en `X-Webhook-Id`. Recomendamos utilizarlo como
+      clave de idempotencia en tu sistema para evitar procesar dos veces la
+      misma notificación.
+
+
+      &nbsp;
+
+
+      **Tiempo de respuesta**
+
+
+      Tu endpoint debe responder con un código `2xx` en **menos de 10
+      segundos**. Procesa la notificación de forma asíncrona: confirma la
+      recepción de inmediato y realiza el trabajo pesado después. Si tardas más
+      de 10 segundos, la entrega se considera fallida aunque acabes respondiendo
+      `2xx`.
+
+
+      &nbsp;
+
+
+      **Reintentos**
+
+
+      Si tu endpoint responde con un código distinto de `2xx` (o no responde
+      dentro del tiempo de espera), la notificación se reintentará
+      automáticamente. La política actual es:
+
+
+      <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+        <li>Hasta <strong>3 reintentos</strong> (4 intentos en total).</li>
+        <li>Esperas crecientes de <strong>1 minuto</strong>, <strong>6 minutos</strong> y <strong>30 minutos</strong>.</li>
+        <li>Los errores <strong><code>4xx</code></strong> se consideran permanentes y no se reintentan.</li>
+      </ul>
+
+
+      &nbsp;
+
+
+      **Desactivación automática**
+
+
+      Si un endpoint falla de forma reiterada, desactivamos el webhook
+      automáticamente (`activo: false`) y te avisamos por correo electrónico. No
+      hay reactivación automática: deberás volver a activarlo manualmente desde
+      tu panel o mediante `PUT /webhooks/:id` con `activo: true` una vez
+      corregido el problema. Al reactivarlo se reinician los contadores de
+      fallos.
+
+
+      &nbsp;
+
+
+      **Estructura del payload**
+
+
+      El cuerpo de la petición es un array JSON. Cada elemento corresponde con
+      el resultado que devolvería el
+
+      endpoint `Estado registro` de las APIs de Verifactu o TicketBai, según el
+      tipo de NIF. Algunos campos solo
+
+      están presentes para una de las dos APIs; el campo `estado` indica si los
+      campos de error son aplicables.
+
+      A la derecha se muestra un ejemplo de notificación con dos registros de
+      facturación.
+
+
+      <SchemaDefinition schemaRef="#/components/schemas/WebhookNotification" />
+paths:
+  /nifs:
+    get:
+      summary: Listar NIFs
+      tags:
+        - NIFs
+      description: >
+        Este endpoint devuelve una lista de todos los NIFs. Por defecto,
+        devuelve tanto los activos como los inactivos en ambos entornos
+
+        aunque permite filtrar solamente los activos o inactivos y el entorno.
+      parameters:
+        - in: query
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          description: Parámetro que permite filtrar los NIFs dependiendo del entorno. En
+            caso de que no se incluya, se devolverán todos los NIFs.
+          example: prod
+        - in: query
+          name: activos
+          schema:
+            type: boolean
+          description: Parámetro que permite filtrar los NIFs activos o inactivos. En caso
+            de que no se incluya, se devolverán todos los NIFs.
+          example: true
+        - in: query
+          name: limite
+          schema:
+            type: integer
+            maximum: 100
+            minimum: 1
+            default: 40
+          description: Parámetro que permite limitar la cantidad de NIFs devueltos. El
+            valor por defecto es 40 y el máximo es 100.
+          example: 50
+        - in: query
+          name: pagina
+          schema:
+            type: integer
+            default: 1
+          description: Parámetro que permite paginar la lista de NIFs.
+          example: 3
+        - in: query
+          name: label
+          schema:
+            type: string
+          description: >
+            Parámetro que permite filtrar los NIFs por etiqueta. Solo se
+            devolverán los NIFs cuya etiqueta coincida exactamente.
+
+
+            El valor debe enviarse codificado en URL (`encodeURIComponent` o
+            equivalente), ya que las etiquetas pueden contener espacios o
+            caracteres especiales (p. ej. `Cliente & Cía` →
+            `Cliente%20%26%20C%C3%ADa`).
+          example: Cliente A
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs?entorno=test&activos=true"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Lista de NIFs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    nif:
+                      description: NIF.
+                      type: string
+                    entorno:
+                      description: Entorno del NIF. Puede ser "test" o "prod".
+                      type: string
+                    hacienda:
+                      description: >
+                        Hacienda a la que está vinculado el NIF. Los valores
+                        posibles son:
+
+                        <ol style="list-style-type: disc">
+                          <li>verifactu</li>
+                          <li>alava</li>
+                          <li>guipuzcoa</li>
+                          <li>vizcaya</li>
+                        </ol>
+                      type: string
+                    nombre:
+                      description: Nombre y apellidos o razón social del NIF.
+                      type: string
+                    activo:
+                      description: Indica si el NIF está activo o no.
+                      type: boolean
+                    representacion:
+                      enum:
+                        - Correcto
+                        - Rechazado
+                        - Pendiente
+                        - Caducado
+                        - Cancelado
+                        - Inexistente
+                      description: >
+                        Indica el estado del modelo de representación del NIF.
+                        Los valores posibles son:
+
+                        <ol style="list-style-type: disc">
+                          <li>Correcto: El modelo de representación se ha recibido y se ha validado correctamente.</li>
+                          <li>Rechazado: El modelo de representación ha sido recibido pero no se ha podido validar.</li>
+                          <li>Pendiente: Hay una firma online en curso.</li>
+                          <li>Caducado: El proceso de firma online ha caducado o el firmante lo ha rechazado.</li>
+                          <li>Cancelado: La representación se ha cancelado.</li>
+                          <li>Inexistente: No se ha recibido el modelo de representación firmado.</li>
+                        </ol>
+
+
+                        Para NIFs de producción se requiere que el estado de la
+                        representación sea "Correcto" para poder
+
+                        enviar facturas.
+                      type: string
+                    fecha_creacion:
+                      description: Fecha de creación del NIF.
+                      type: string
+                    webhooks:
+                      description: Lista de identificadores de los webhooks a los que esta asociado el
+                        NIF.
+                      type: array
+                      items:
+                        type: string
+                    label:
+                      description: Etiqueta asociada al NIF. Puede ser `null` si no se ha asignado
+                        ninguna.
+                      type: string
+                    pagado_hasta:
+                      type: string
+                      description: >
+                        Campo solo disponible para NIFs de producción, ya que
+                        son los únicos por los que hay que pagar.
+
+                        Este campo indica la fecha hasta la que se ha pagado el
+                        NIF. En caso de que llegada esa fecha el NIF esté
+                        activo,
+
+                        entonces se renovará automáticamente y dicha fecha se
+                        actualizará automáticamente.
+                example:
+                  - nif: B86561412
+                    entorno: test
+                    hacienda: verifactu
+                    nombre: Mi empresa SL
+                    activo: true
+                    fecha_creacion: 2024-12-01T12:18:21.671Z
+                    representacion: Inexistente
+                    webhooks:
+                      - 17067405-8c32-4efe-a7cb-8fad93403997
+                    label: Cliente A
+                  - nif: C01345232
+                    entorno: test
+                    hacienda: alava
+                    nombre: Mi empresa 2 SL
+                    activo: true
+                    fecha_creacion: 2025-01-01T09:08:41.645Z
+                    representacion: Correcto
+                    webhooks: []
+                    label: null
+        "400":
+          description: Parámetros de consulta inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    post:
+      summary: Añadir NIFs
+      tags:
+        - NIFs
+      description: >
+        Mediante este endpoint se añaden nuevos NIFs.
+
+
+        &nbsp;
+
+
+        Si se quiere activar un NIF que ha sido previamente desactivado, se debe
+        utilizar el endpoint correspondiente para
+
+        ello y no crear uno nuevo. En caso de intentarlo, se devolverá un error
+        409.
+
+
+        &nbsp;
+
+
+        <span style="color: red">IMPORTANTE</span>: Para suscripciones anuales,
+        al añadir nuevos NIFs en entorno de producción
+
+        se abonará la cantidad correspondiente al momento y se generará una
+        nueva factura que puede consultarse en nuestra plataforma,
+
+        en la sección de facturación. Para evitar generar múltiples facturas, se
+        pueden añadir varios NIFs a la vez y se abonarán todos juntos.
+
+        Para suscripciones mensuales, se abonará la cantidad correspondiente a
+        los nuevos NIFs en la siguiente factura mensual.
+
+
+        &nbsp;
+
+
+        Los NIFs de tipo `test` no se contabilizarán para la factura.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: |-
+            import java.net.URI;
+            import java.net.http.HttpClient;
+            import java.net.http.HttpRequest;
+            import java.net.http.HttpResponse;
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            [
+                              {
+                                "nif": "B86561412",
+                                "entorno": "test",
+                                "hacienda": "verifactu",
+                                "nombre": "Mi empresa SL",
+                                "direccion": "Calle Mayor 15",
+                                "cp": "28040",
+                                "poblacion": "Madrid",
+                                "provincia": "Madrid"
+                              },
+                              {
+                                "nif": "B01345232",
+                                "entorno": "prod",
+                                "hacienda": "verifactu",
+                                "nombre": "Mi otra empresa SL",
+                                "direccion": "Gran Vía 22",
+                                "cp": "28040",
+                                "poblacion": "Madrid",
+                                "provincia": "Madrid"
+                              }
+                            ]
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 400
+              items:
+                type: object
+                required:
+                  - nif
+                  - entorno
+                  - nombre
+                properties:
+                  nif:
+                    description: >
+                      NIF. En el array de NIFs, no puede haber duplicados.
+                      Tampoco se podrán intentar añadir NIFs que ya se han
+                      añadido previamente,
+
+                      incluso si están desactivados. Finalmente, se comprobará
+                      el que el formato del NIF es el correcto, pero no que el
+                      NIF está
+
+                      registrado en la agencia tributaria. Se dispone de un
+                      endpoint específico para ello y se recomienda hacerlo
+                      antes de intentar
+
+                      añadir un NIF.
+                    type: string
+                  nombre:
+                    description: Nombre y apellidos o razón social del NIF.
+                    type: string
+                  entorno:
+                    description: >
+                      Entorno al que está vinculado el NIF. Los valores posibles
+                      son:
+
+                      <ol style="list-style-type: disc">
+                        <li>test: se utilizan para enviar facturas al entorno de pruebas de la administración y son gratuitos.</li>
+                        <li>
+                          prod: se utilizan para enviar facturas al entorno de producción de la administración y se abonará
+                          la cantidad correspondiente en el momento de la creación.
+                        </li>
+                      </ol>
+                    type: string
+                    enum:
+                      - test
+                      - prod
+                  hacienda:
+                    description: >
+                      Hacienda a la que estaré vinculado el NIF. En caso de no
+                      incluirlo, se asumirá la hacienda `verifactu`. Los valores
+                      posibles son:
+
+                      <ol style="list-style-type: disc">
+                        <li>verifactu</li>
+                        <li>alava</li>
+                        <li>guipuzcoa</li>
+                        <li>vizcaya</li>
+                      </ol>
+                    type: string
+                    default: verifactu
+                  validar_nif:
+                    description: >
+                      Parámetro opcional. Indica si se debe validar que el NIF
+                      está registrado en la administración antes de añadirlo.
+
+                      Por defecto se tomará como `true` y en caso de que se
+                      intente añadir un NIF no registrado, se devolverá un error
+                      400.
+
+                      Se puede desactivar esta opción cuando `entorno=test` y
+                      dar de alta NIFs no registrados para hacer pruebas. La
+                      administración no aceptará
+
+                      facturas enviadas desde NIFs no registrados, incluso en el
+                      entorno de test.
+                    type: boolean
+                    default: true
+                  webhooks:
+                    description: >
+                      Parámetro opcional. Lista de identificadores de los
+                      webhooks a los que estará vinculado el NIF.
+                    type: array
+                    items:
+                      type: string
+                  label:
+                    description: Parámetro opcional. Etiqueta asociada al NIF para organizarlo y
+                      filtrarlo.
+                    type: string
+                  direccion:
+                    description: Dirección del NIF.
+                    type: string
+                  cp:
+                    description: Código postal del NIF.
+                    type: string
+                  poblacion:
+                    description: Población del NIF.
+                    type: string
+                  provincia:
+                    description: Provincia del NIF.
+                    type: string
+                  persona_fisica:
+                    description: >
+                      Únicamente permitido para Vizcaya. Indica si el NIF debe
+                      presentar el modelo 140 (`true`) o el modelo 240
+                      (`false`).
+
+                      En el sistema Batuz, el modelo 140 es para personas
+                      físicas (autónomos), comunidades de bienes y sociedades
+                      civiles.
+
+                      Al enviar facturas dentro del modelo 140 se debe incluir
+                      el campo `detalle_renta`.
+
+                      Por defecto se tomará como `false`.
+                    type: boolean
+                    default: false
+              example:
+                - nif: B86561412
+                  entorno: test
+                  hacienda: verifactu
+                  nombre: Mi empresa SL
+                  direccion: Calle Mayor 15
+                  cp: "28040"
+                  poblacion: Madrid
+                  provincia: Madrid
+                - nif: B01345232
+                  entorno: prod
+                  hacienda: verifactu
+                  nombre: Mi otra empresa SL
+                  direccion: Gran Vía 22
+                  cp: "28040"
+                  poblacion: Madrid
+                  provincia: Madrid
+      responses:
+        "200":
+          description: NIF
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nif:
+                      description: NIF.
+                      type: string
+                    nombre:
+                      description: Nombre y apellidos o razón social del NIF.
+                      type: string
+                    activo:
+                      description: Indica si el NIF está activo o no.
+                      type: boolean
+                    direccion:
+                      description: Dirección del NIF.
+                      type: string
+                    cp:
+                      description: Código postal del NIF.
+                      type: string
+                    poblacion:
+                      description: Población del NIF.
+                      type: string
+                    provincia:
+                      description: Provincia del NIF.
+                      type: string
+                    fecha_creacion:
+                      description: Fecha de creación del NIF.
+                      type: string
+                    fecha_modificacion:
+                      description: Fecha de la última modificación del NIF.
+                      type: string
+                example:
+                  - nif: B86561412
+                    nombre: Mi empresa SL
+                    hacienda: verifactu
+                    webhooks: []
+                    activo: true
+                    direccion: Calle Mayor 15
+                    cp: "28040"
+                    poblacion: Madrid
+                    provincia: Madrid
+                    fecha_creacion: 2025-01-12T00:00:00.000Z
+                    fecha_modificacion: 2025-12-01T00:00:00.000Z
+                  - nif: B01345232
+                    nombre: Mi otra empresa SL
+                    hacienda: verifactu
+                    webhooks: []
+                    activo: true
+                    direccion: Gran Vía 22
+                    cp: "28040"
+                    poblacion: Madrid
+                    provincia: Madrid
+                    fecha_creacion: 2025-01-12T00:00:00.000Z
+                    fecha_modificacion: 2025-12-01T00:00:00.000Z
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "409":
+          description: NIF ya existe
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /nifs/{entorno}/{nif}:
+    get:
+      summary: Información de NIF
+      tags:
+        - NIFs
+      parameters:
+        - in: path
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          required: true
+          description: Entorno del NIF
+          example: test
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: Este endpoint devuelve la información de un NIF concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/test/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/nifResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    put:
+      summary: Modificar NIF
+      tags:
+        - NIFs
+      parameters:
+        - in: path
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          required: true
+          description: Entorno del NIF
+          example: test
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: Este endpoint permite modificar la información de un NIF concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            {
+                              "nombre": "Mi empresa SL",
+                              "webhooks": ["17067405-8c32-4efe-a7cb-8fad93403997"],
+                              "direccion": "Calle Mayor 15",
+                              "cp": "28040",
+                              "poblacion": "Madrid",
+                              "provincia": "Madrid",
+                            }
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/test/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .PUT(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  description: Nombre y apellidos o razón social del NIF.
+                  type: string
+                  example: Mi empresa SL
+                direccion:
+                  description: Dirección del NIF.
+                  type: string
+                  example: Calle Mayor 15
+                cp:
+                  description: Código postal del NIF.
+                  type: string
+                  example: "28040"
+                poblacion:
+                  description: Población del NIF.
+                  type: string
+                  example: Madrid
+                provincia:
+                  description: Provincia del NIF.
+                  type: string
+                  example: Madrid
+                webhooks:
+                  description: >
+                    Lista de identificadores de los webhooks a los que estará
+                    vinculado el NIF.
+                  type: array
+                  items:
+                    type: string
+                    example: 17067405-8c32-4efe-a7cb-8fad93403997
+                label:
+                  description: Etiqueta asociada al NIF. Enviar una cadena vacía elimina la
+                    etiqueta existente.
+                  type: string
+                  example: Cliente A
+      responses:
+        "200":
+          $ref: "#/components/responses/nifResponse"
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    delete:
+      summary: Desactivar NIF
+      tags:
+        - NIFs
+      parameters:
+        - in: path
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          required: true
+          description: Entorno del NIF
+          example: test
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: >
+        Este endpoint permite desactivar un NIF. Esto significa que ya no se
+        podrán hacer llamadas a nuestra API para enviar facturas
+
+        a la Hacienda correspondiente para el NIF desactivado.
+
+
+        Dejará de cobrarse lo correspondiente al NIF desactivado en caso de que
+        se trate de un NIF en el entorno de producción. Cualquier NIF
+
+        desactivado puede reactivarse en cualquier momento para seguir enviando
+        facturas a la Hacienda correspondiente.
+
+
+        &nbsp;
+
+
+        <span style="color: red">IMPORTANTE</span>: Al desactivar un NIF,
+        <u><strong>se borrarán los registros de facturación</strong></u> de
+        dicho NIF 30 días después de haberlo desactivado.
+
+        Si se reactiva antes de dicho período, entonces no se perderán los
+        registros de facturación. Incluso aunque se borren los datos de
+        facturación, se puede reactivar
+
+        el NIF en cualquier momento y se podrán enviar facturas sin romper el
+        encadenamiento. Recordamos que existen los endpoints de exportar XMLs en
+        caso de querer
+
+        conservar los datos de facturación.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/test/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .DELETE()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/okResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "403":
+          description: NIF ya está inactivo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /nifs/{entorno}/{nif}/permanent:
+    delete:
+      summary: Eliminar NIF
+      tags:
+        - NIFs
+      parameters:
+        - in: path
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          required: true
+          description: Entorno del NIF
+          example: test
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: >
+        Este endpoint permite eliminar <u><strong>permanentemente</strong></u>
+        un NIF. Se borrará toda la información asociada al NIF, incluyendo los
+        registros de facturación,
+
+        de manera inmediata y permanente. Esto no incluye el modelo de
+        representación.
+
+
+        &nbsp;
+
+
+        Dejará de cobrarse lo correspondiente al NIF eliminado en caso de que se
+        trate de un NIF en el entorno de producción. Cualquier NIF
+
+        eliminado no podrá reactivarse ni utilizarse para enviar facturas a la
+        Hacienda correspondiente. Sin embargo, se podrá crear de nuevo
+
+        el NIF pero se tratará como un NIF completamente nuevo. Dicho nuevo NIF
+        tendrá su propia cadena de facturación independiente del NIF eliminado.
+
+
+        &nbsp;
+
+
+        <span style="color: red">IMPORTANTE</span>: Al eliminar un NIF,
+        <u><strong>se borrarán los registros de facturación</strong></u>
+        asociados.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/test/B86561412/permanent"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .DELETE()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/okResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /nifs/activate/{entorno}/{nif}:
+    put:
+      summary: Activar NIF
+      tags:
+        - NIFs
+      parameters:
+        - in: path
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          required: true
+          description: Entorno del NIF
+          example: test
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: >
+        Este endpoint permite activar un NIF que ha sido desactivado
+        previamente.
+
+
+        &nbsp;
+
+
+        <span style="color: red">IMPORTANTE</span>: Al activar un NIF de
+        producción cuya fecha `pagado_hasta` sea anterior a la fecha actual,
+
+        se abonará la cantidad correspondiente inmediatamente y se generará la
+        factura correspondiente.
+
+        Ésta puede consultarse con el la plataforma, en la sección de
+        facturación. Para aquellos NIFs de producción cuya fecha `pagado_hasta`
+
+        sea posterior a la fecha actual, no se cobrará nada, ya que ya se ha
+        pagado por el para el periodo actual.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/activate/test/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .PUT(HttpRequest.BodyPublishers.noBody())
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/okResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "403":
+          description: NIF ya está activo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /nifs/keys/{entorno}/{nif}:
+    get:
+      summary: API key de NIF
+      tags:
+        - NIFs
+      parameters:
+        - in: path
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          required: true
+          description: Entorno
+          example: test
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: >
+        Este endpoint devuelve la API key de un NIF concreto y en un entorno
+        concreto. Con esta API key se pueden hacer llamadas a nuestra API de
+        Verifactu o TicketBai,
+
+        según corresponda, para enviar facturas a la agencia tributaria. En caso
+        de que el NIF esté desactivado, se devuelve un error 404.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/keys/test/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_key:
+                    description: API key para el NIF y el entorno correspondientes.
+                    type: string
+                    example: B86561412
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /nifs/validar:
+    post:
+      summary: Validar NIF en la AEAT
+      tags:
+        - Validación
+      description: >
+        Este endpoint permite validar que un NIF de una persona física o
+        jurídica está identificado en la agencia tributaria. Este endpoint
+
+        realiza una consulta al servicio que la agencia tributaria tiene para
+        esta finalidad.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nif
+              properties:
+                nif:
+                  description: NIF de la persona física o jurídica sobre la que se quiere efectuar
+                    la consulta de verificación.
+                  type: string
+                  example: B86561412
+                nombre:
+                  type: string
+                  example: Mi empresa SL
+                  description: >
+                    Apellidos y nombre de la persona física o razón social de la
+                    persona jurídica sobre la que se
+
+                    quiere efectuar la consulta de verificación. Obligatorio
+                    para personas físicas. Opcional en personas jurídicas.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            {"nif": "B86561412", "nombre": "Mi empresa SL"}
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/validar"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Respuesta de la AEAT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nif:
+                    description: NIF de la persona física o jurídica sobre la que se efectúa la
+                      consulta.
+                    type: string
+                    example: B86561412
+                  nombre:
+                    description: Apellidos y nombre o razón social del NIF de la persona física o
+                      jurídica.
+                    type: string
+                    example: Mi empresa SL
+                  resultado:
+                    type: string
+                    example: IDENTIFICADO
+                    description: >
+                      Indica si el NIF está identificado o no. Para el caso de
+                      personas físicas existen tres
+
+                      casos posibles:
+                        <ol style="list-style-type: disc">
+                          <li>
+                            IDENTIFICADO: Si el contribuyente se identifica con los datos identificativos aportados.
+                            Se devuelven los datos de apellidos y nombre asociados al NIF.
+                          </li>
+                          <li>
+                            NO IDENTIFICADO-SIMILAR: Si el contribuyente no se identifica con los datos identificativos
+                            aportados por diferencias menores en los apellidos y nombre. Se devuelven los datos de apellidos
+                            y nombre asociados al NIF.
+                          </li>
+                          <li>
+                            NO IDENTIFICADO: Si el contribuyente no se identifica con los datos identificativos aportados.
+                          </li>
+                        </ol>
+
+                      En el caso de entidades, no existe el resultado NO
+                      IDENTIFICADO-SIMILAR pero se añaden estos dos resultados:
+                        <ol style="list-style-type: disc">
+                          <li>
+                            IDENTIFICADO-BAJA: Si el contribuyente se identifica con el NIF aportado y está en estado baja.
+                            Se devuelve el NIF actual y su razón social.
+                          </li>
+                          <li>
+                            IDENTIFICADO-REVOCADO: Si el contribuyente se identifica con el NIF aportado y está en estado
+                            baja por revocación del NIF. Se devuelve el NIF actual y su razón social.
+                          </li>
+                        </ol>
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          description: Error interno del servidor o servicio de la AEAT no disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /nifs/validar_lotes:
+    post:
+      summary: Validar NIFs en lote
+      tags:
+        - Validación
+      description: >
+        Este endpoint permite validar hasta 20000 NIFs en una única llamada,
+        comprobando si cada NIF de una persona física o jurídica existe.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 20000
+              items:
+                type: object
+                description: Cada elemento del array tiene el formato descrito en el endpoint de
+                  validar NIF en la AEAT.
+              example:
+                - nif: B86561412
+                  nombre: Mi empresa SL
+                - nif: C01345232
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            [{"nif": "B86561412", "nombre": "Mi empresa SL"}, {"nif": "C01345232"}]
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/validar_lotes"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Respuesta de la AEAT
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nif:
+                      description: NIF de la persona física o jurídica sobre la que se efectúa la
+                        consulta.
+                      type: string
+                      example: B86561412
+                    nombre:
+                      description: Apellidos y nombre o razón social del NIF de la persona física o
+                        jurídica.
+                      type: string
+                      example: Mi empresa SL
+                    resultado:
+                      type: string
+                      example: IDENTIFICADO
+                      enum:
+                        - IDENTIFICADO
+                        - NO IDENTIFICADO
+                        - NO IDENTIFICADO-SIMILAR
+                        - IDENTIFICADO-BAJA
+                        - IDENTIFICADO-REVOCADO
+                        - ERROR
+                      description: >
+                        Indica si el NIF está identificado o no. Los valores
+                        posibles son:
+
+                        <ol style="list-style-type: disc">
+                          <li>IDENTIFICADO: El NIF está identificado con los datos aportados.</li>
+                          <li>NO IDENTIFICADO: El NIF no está identificado.</li>
+                          <li>NO IDENTIFICADO-SIMILAR: El NIF no está identificado por diferencias menores (solo personas físicas).</li>
+                          <li>IDENTIFICADO-BAJA: El NIF está identificado pero en estado de baja (solo entidades).</li>
+                          <li>IDENTIFICADO-REVOCADO: El NIF está identificado pero revocado (solo entidades).</li>
+                          <li>ERROR: No se ha podido obtener el resultado para este NIF.</li>
+                        </ol>
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          description: Error interno del servidor o servicio de la AEAT no disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /nifs/validar/vies:
+    post:
+      summary: Validar IVA en VIES
+      tags:
+        - Validación
+      description: Este endpoint permite validar que un número de IVA intracomunitario
+        se encuentra en el censo VIES.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - codigo_pais
+                - iva
+              properties:
+                codigo_pais:
+                  description: Código de país al que pertenece el IVA.
+                  type: string
+                  example: DE
+                iva:
+                  description: Número de IVA intracomunitario.
+                  type: string
+                  example: DE123456789
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            {"codigo_pais": "DE", "iva": "DE123456789"}
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/nifs/validar/vies"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Respuesta del censo VIES
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  iva:
+                    description: Número de IVA intracomunitario sobre el que se realiza la consulta.
+                    type: string
+                    example: DE123456789
+                  resultado:
+                    type: string
+                    example: IDENTIFICADO
+                    description: >
+                      Indica si el número de IVA está identificado o no. Esta
+                      API devuelve en algunas ocasiones el resultado ERROR API
+                      VIES, que ocurre cuando
+
+                      las propias APIs de validación de cada país alcanzan el
+                      límite de peticiones. Es un límite global y no es para la
+                      IP de Verifacti ni nada
+
+                      por el estilo.
+                    enum:
+                      - IDENTIFICADO
+                      - NO IDENTIFICADO
+                      - ERROR API VIES
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /representacion/firma_remota/{nif}:
+    post:
+      summary: Iniciar firma online
+      x-badges:
+        - name: BETA
+          position: after
+      tags:
+        - Modelo de representación
+      parameters:
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF correspondiente al emisor de las facturas. Debe ser un DNI o
+            NIE (personas físicas).
+          example: 16085921K
+      description: >
+        Inicia un proceso de <strong>firma online</strong> del documento de
+        otorgamiento de representación, con
+
+        verificación de identidad y sin necesidad de certificado electrónico.
+        Disponible únicamente para personas
+
+        físicas (el NIF debe ser un DNI o NIE).
+
+
+        &nbsp;
+
+
+        Puedes ver el proceso completo que sigue el firmante, paso a paso y con
+        capturas, en la guía
+
+        <a href="https://verifacti.com/firma-online">Firma online del modelo de
+        representación</a>.
+
+
+        &nbsp;
+
+
+        La verificación de identidad durante la firma se realiza con <strong>DNI
+        o pasaporte</strong> (no con NIE).
+
+        Un titular cuyo NIF sea un NIE puede firmar igualmente: debe
+        identificarse con su <strong>pasaporte</strong>.
+
+        En todos los casos, el nombre verificado durante la firma debe
+        corresponder al titular del NIF según la AEAT;
+
+        si no coincide, la firma se rechaza y la representación no queda
+        validada.
+
+
+        &nbsp;
+
+
+        La respuesta es un JSON con el enlace de firma (<code>url</code>) para
+        el titular del NIF, que también recibe el enlace por email. El estado
+        del proceso se
+
+        puede consultar con GET <code>/representacion/estado/:nif</code>, que
+        mientras la firma está en curso también
+
+        devuelve el enlace y la fecha de caducidad del proceso
+        (<code>fecha_expiracion</code>); con
+
+        PUT <code>/representacion/cancelar/:nif</code> se puede cancelar.
+
+
+        &nbsp;
+
+
+        La ceremonia de firma y el email de notificación se muestran en español
+        por defecto; con el campo opcional
+
+        <code>idioma</code> (<code>es</code> o <code>en</code>) se puede cambiar
+        a inglés.
+
+
+        &nbsp;
+
+
+        Cada proceso de firma online tiene un coste de 2,90 € + IVA que se añade
+        a la próxima factura; el coste se
+
+        aplica al crear el proceso, aunque la firma no llegue a completarse. Si
+        el proceso caduca o se cancela, se
+
+        puede iniciar uno nuevo, que se cobra como una firma nueva.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nombre
+                - apellidos
+                - municipio
+                - calle
+                - numero
+                - email
+              properties:
+                nombre:
+                  type: string
+                  description: Obligatorio. Nombre de pila del firmante (titular del NIF). El
+                    documento se rellena con el nombre completo, la
+                    concatenación de <code>nombre</code> y
+                    <code>apellidos</code>.
+                apellidos:
+                  type: string
+                  description: Obligatorio. Apellidos del firmante.
+                municipio:
+                  type: string
+                  description: Obligatorio. Municipio de residencia del emisor de las facturas.
+                calle:
+                  type: string
+                  description: Obligatorio. Calle de residencia del emisor de las facturas.
+                numero:
+                  type: string
+                  description: Obligatorio. Número de residencia del emisor de las facturas.
+                email:
+                  type: string
+                  description: Obligatorio. Email del firmante. Recibirá en esta dirección la
+                    notificación con el enlace de firma.
+                idioma:
+                  type: string
+                  enum:
+                    - es
+                    - en
+                  default: es
+                  description: Opcional. Idioma de la ceremonia de firma y del email de
+                    notificación que recibe el firmante (<code>es</code> o
+                    <code>en</code>). Si se omite, se utiliza el español.
+                notificacion:
+                  type: object
+                  description: Opcional. Personalización del email de notificación que recibe el
+                    firmante. Si se omite, se utilizan los valores por defecto
+                    de Verifacti.
+                  properties:
+                    remitente:
+                      type: string
+                      maxLength: 200
+                      default: Verifacti
+                      description: Nombre del remitente que se muestra en el email (máximo 200
+                        caracteres).
+                    asunto:
+                      type: string
+                      maxLength: 300
+                      default: Firma del modelo de representación
+                      description: Asunto del email (máximo 300 caracteres).
+                    mensaje:
+                      type: string
+                      default: Para poder enviar facturas a Hacienda es necesario firmar el modelo de
+                        representación. Pulsa el enlace para identificarte y
+                        firmar.
+                      description: Mensaje del cuerpo del email.
+              example:
+                nombre: Pablo
+                apellidos: García Gómez
+                municipio: Madrid
+                calle: Gran Vía
+                numero: "43"
+                email: pablo@example.com
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = "{\"nombre\": \"Pablo\", \"apellidos\": \"García Gómez\", \"municipio\": \"Madrid\", \"calle\": \"Gran Vía\", \"numero\": \"43\", \"email\": \"pablo@example.com\"}";
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/representacion/firma_remota/16085921K"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Proceso de firma online creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: Enlace de firma para el titular del NIF. También se le envía por
+                      email. Si se pierde, se puede recuperar con GET
+                      <code>/representacion/estado/:nif</code>.
+                example:
+                  url: https://saas.esignanywhere.net/workstepredirector/go#...
+        "400":
+          description: Datos de entrada inválidos, el NIF no es un DNI/NIE, o ya existe
+            una representación correcta o una firma en curso para el NIF
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "402":
+          description: >
+            Pago requerido: la cuenta acumula firmas online pendientes de cobro
+            y no se ha podido realizar el cargo
+
+            con el método de pago de la suscripción. No se ha creado ningún
+            proceso de firma. Revisa el método de
+
+            pago y vuelve a intentarlo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: No se han podido cobrar las firmas de representacion pendientes. Revisa
+                  el metodo de pago de tu suscripcion e intentalo de nuevo.
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+        "502":
+          description: >
+            Error temporal al iniciar la firma online (proveedor de firma o
+            procesamiento del cobro). No queda ningún
+
+            proceso a medias; se puede reintentar pasados unos minutos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: No se ha podido iniciar la firma remota. Intentalo de nuevo en unos
+                  minutos.
+  /representacion/generar/{nif}:
+    post:
+      summary: Generar PDF de representación
+      tags:
+        - Modelo de representación
+      parameters:
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF correspondiente al emisor de las facturas
+          example: B86561412
+      description: >
+        Este endpoint permite descargar el documento PDF de otorgamiento de
+        representación de un NIF.
+
+        <strong>No debe modificarse el contenido del documento descargado.
+        Simplemente se debe firmar.</strong>
+
+
+        &nbsp;
+
+
+        Para la firma online sin certificado (solo personas físicas), consulta
+        POST <code>/representacion/firma_remota/:nif</code>.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tipo_entidad:
+                  description: Tipo de entidad, personas físicas o jurídicas.
+                  enum:
+                    - fisica
+                    - juridica
+                  example: juridica
+                nombre:
+                  type: string
+                  description: Obligatorio para personas físicas. Nombre y apellidos del emisor de
+                    las facturas.
+                municipio:
+                  type: string
+                  description: Obligatorio para personas físicas. Municipio de residencia del
+                    emisor de las facturas.
+                calle:
+                  type: string
+                  description: Obligatorio para personas físicas. Calle de residencia del emisor
+                    de las facturas.
+                numero:
+                  type: string
+                  description: Obligatorio para personas físicas. Número de residencia del emisor
+                    de las facturas.
+                nombre_entidad:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Nombre de la entidad.
+                municipio_entidad:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Municipio del domicilio social
+                    de la entidad.
+                calle_entidad:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Calle del domicilio social de
+                    la entidad.
+                numero_entidad:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Número del domicilio social de
+                    la entidad.
+                nombre_representante:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Nombre y apellidos del
+                    representante de la entidad.
+                nif_representante:
+                  type: string
+                  description: Obligatorio para personas jurídicas. NIF del representante de la
+                    entidad.
+                municipio_representante:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Municipio de residencia del
+                    representante de la entidad.
+                calle_representante:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Calle de residencia del
+                    representante de la entidad.
+                numero_representante:
+                  type: string
+                  description: Obligatorio para personas jurídicas. Número de residencia del
+                    representante de la entidad.
+              example:
+                tipo_entidad: juridica
+                nombre_entidad: Mi empresa SL
+                municipio_entidad: Madrid
+                calle_entidad: Calle Mayor
+                numero_entidad: "15"
+                nombre_representante: Pablo García Gómez
+                nif_representante: 16085921K
+                municipio_representante: Madrid
+                calle_representante: Gran Vía
+                numero_representante: "43"
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+            import java.nio.file.Files;
+
+            import java.nio.file.Path;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = "{\"tipo_entidad\": \"juridica\", \"nombre_entidad\": \"Mi empresa SL\", \"municipio_entidad\": \"Madrid\", \"calle_entidad\": \"Calle Mayor\", \"numero_entidad\": \"15\", \"nombre_representante\": \"Pablo García Gómez\", \"nif_representante\": \"16085921K\", \"municipio_representante\": \"Madrid\", \"calle_representante\": \"Gran Vía\", \"numero_representante\": \"43\"}";
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/representacion/generar/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<byte[]> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofByteArray());
+
+                    Files.write(Path.of("modelo_representacion.pdf"), response.body());
+                    System.out.println(response.statusCode());
+                }
+            }
+      responses:
+        "200":
+          description: Documento PDF de otorgamiento de representación
+          headers:
+            Content-Disposition:
+              description: Encabezado Content-Disposition
+              schema:
+                type: string
+                example: attachment; filename="modelo_representacion.pdf"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Datos de entrada inválidos o ya existe una representación correcta
+            para el NIF
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /representacion/enviar/{nif}:
+    post:
+      summary: Enviar PDF firmado
+      tags:
+        - Modelo de representación
+      parameters:
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF correspondiente al emisor de las facturas
+          example: B86561412
+      description: >
+        Mediante este endpoint se envía el documento PDF de otorgamiento de
+        representación de un NIF.
+
+        Una vez enviado un documento de representación que se haya aceptado, no
+        podrá ser reenviado.
+      requestBody:
+        description: The PDF file to be processed
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+              format: binary
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.io.IOException;
+
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+            import java.nio.file.Files;
+
+            import java.nio.file.Path;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+                    String boundary = "----FormBoundary" + System.currentTimeMillis();
+                    Path filePath = Path.of("/ruta/pdf.pdf");
+                    byte[] fileBytes = Files.readAllBytes(filePath);
+
+                    String body = "--" + boundary + "\r\n"
+                        + "Content-Disposition: form-data; name=\"file\"; filename=\"pdf.pdf\"\r\n"
+                        + "Content-Type: application/pdf\r\n\r\n";
+                    String end = "\r\n--" + boundary + "--\r\n";
+
+                    byte[] bodyBytes = body.getBytes();
+                    byte[] endBytes = end.getBytes();
+                    byte[] requestBody = new byte[bodyBytes.length + fileBytes.length + endBytes.length];
+                    System.arraycopy(bodyBytes, 0, requestBody, 0, bodyBytes.length);
+                    System.arraycopy(fileBytes, 0, requestBody, bodyBytes.length, fileBytes.length);
+                    System.arraycopy(endBytes, 0, requestBody, bodyBytes.length + fileBytes.length, endBytes.length);
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/representacion/enviar/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                        .POST(HttpRequest.BodyPublishers.ofByteArray(requestBody))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: PDF enviado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    description: >
+                      Estado de la representación. Los valores posibles son:
+
+                      <ul style="list-style-type: disc">
+                        <li>Correcto: El modelo de representación se ha recibido y se ha validado correctamente.</li>
+                        <li>Rechazado: El modelo de representación ha sido recibido pero no se ha podido validar.</li>
+                        <li>Inexistente: No se ha recibido el modelo de representación firmado.</li>
+                      </ul>
+                    enum:
+                      - Correcto
+                      - Rechazado
+                      - Inexistente
+                    type: string
+                  error:
+                    description: Mensaje de error cuando <code>estado=Rechazado</code>
+                    type: string
+                example:
+                  estado: Correcto
+        "400":
+          description: PDF no enviado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: Mensaje de error
+                    type: string
+                    example: Falta adjuntar fichero PDF
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          description: Error interno del servidor o fallo al procesar el PDF
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /representacion/cancelar/{nif}:
+    put:
+      summary: Cancelar PDF firmado
+      tags:
+        - Modelo de representación
+      parameters:
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF correspondiente al emisor de las facturas
+          example: B86561412
+      description: >
+        Mediante este endpoint se cancela el documento PDF de otorgamiento de
+        representación de un NIF.
+
+        Si se cancela el documento de representación, no se podrán enviar
+        facturas al entorno de producción para ese NIF.
+
+        Si hay una firma online en curso para el NIF, el proceso de firma
+        también se cancela. El coste de los procesos de
+
+        firma online ya creados no se reembolsa, e iniciar un proceso nuevo se
+        cobra como una firma nueva.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/representacion/cancelar/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .PUT(HttpRequest.BodyPublishers.noBody())
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: PDF cancelado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    description: Estado de la representación
+                    type: string
+                example:
+                  estado: Cancelado
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: Modelo de representación no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: Representación no encontrada
+                    type: string
+                    example: Representación no encontrada
+        "500":
+          description: Error interno del servidor al procesar la cancelación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /representacion/descargar/{nif}:
+    get:
+      summary: Descargar PDF firmado
+      tags:
+        - Modelo de representación
+      parameters:
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF correspondiente al NIF emisor de las facturas
+          example: B86561412
+      description: >
+        Mediante este endpoint se puede descargar el documento PDF de
+        otorgamiento de representación firmado de un NIF.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/representacion/descargar/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: PDF descargado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    description: URL donde se encuentra alojado el PDF. Esta URL tiene una caducidad
+                      de 15 minutos.
+                    type: string
+                    example: https://bucket.com/B86561412
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: PDF no encontrado para el NIF indicado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /representacion/estado/{nif}:
+    get:
+      summary: Estado de representación
+      tags:
+        - Modelo de representación
+      parameters:
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF correspondiente al emisor de las facturas
+          example: B86561412
+        - in: query
+          name: refresh
+          schema:
+            type: boolean
+          required: false
+          description: >
+            Solo aplica cuando hay una firma online en curso (estado
+            <code>Pendiente</code> con <code>firma_remota: true</code>).
+
+            Con <code>refresh=true</code> se reemite un enlace de firma nuevo
+            para el mismo proceso (útil si el enlace devuelto
+
+            anteriormente ha dejado de funcionar). Reutiliza el mismo proceso:
+            no crea un proceso de firma nuevo, no se
+
+            factura y no modifica la fecha de caducidad
+            (<code>fecha_expiracion</code>).
+      description: >
+        Mediante este endpoint se puede obtener el estado de la representación
+        para un NIF. Cuando hay una firma online
+
+        en curso, la respuesta incluye además el enlace de firma, de forma que
+        el titular pueda retomar el mismo proceso
+
+        sin crear (y facturar) uno nuevo.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/representacion/estado/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Estado de la representación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    description: >
+                      Estado de la representación. Los valores posibles son:
+
+                      <ul style="list-style-type: disc">
+                        <li>Correcto: El modelo de representación se ha recibido y se ha validado correctamente.</li>
+                        <li>Rechazado: El modelo de representación ha sido recibido pero no se ha podido validar.</li>
+                        <li>Pendiente: Hay una firma online en curso (<code>firma_remota: true</code>).</li>
+                        <li>Caducado: El proceso de firma online ha caducado o el firmante lo ha rechazado. Se puede iniciar un proceso nuevo.</li>
+                        <li>Cancelado: La representación se ha cancelado. Se puede iniciar un proceso nuevo.</li>
+                        <li>Inexistente: No se ha recibido el modelo de representación firmado.</li>
+                      </ul>
+                    enum:
+                      - Correcto
+                      - Rechazado
+                      - Pendiente
+                      - Caducado
+                      - Cancelado
+                      - Inexistente
+                    type: string
+                  error:
+                    description: Mensaje de error cuando <code>estado=Rechazado</code>
+                    type: string
+                  firma_remota:
+                    description: >
+                      Presente con valor <code>true</code> cuando el estado
+                      <code>Pendiente</code> corresponde a una firma
+
+                      online en curso.
+                    type: boolean
+                  url:
+                    description: >
+                      Enlace de firma para continuar el proceso de firma online
+                      en curso. Presente solo cuando el estado es
+
+                      <code>Pendiente</code> con <code>firma_remota:
+                      true</code>. Si el enlace almacenado no está disponible
+
+                      se reemite uno nuevo automáticamente; con el parámetro
+                      <code>refresh=true</code> se fuerza la reemisión.
+
+                      No se devuelve en estados terminales.
+                    type: string
+                  fecha_expiracion:
+                    description: >
+                      Fecha y hora (ISO 8601) en la que caduca el proceso de
+                      firma online en curso. Si el titular no
+
+                      completa la firma antes de esta fecha, el estado pasará a
+                      <code>Caducado</code> y será necesario
+
+                      iniciar un proceso nuevo. Presente solo cuando el estado
+                      es <code>Pendiente</code> con
+
+                      <code>firma_remota: true</code>. No se devuelve en estados
+                      terminales.
+                    type: string
+                    format: date-time
+              examples:
+                correcto:
+                  summary: Representación firmada
+                  value:
+                    estado: Correcto
+                firma_online_en_curso:
+                  summary: Firma online en curso
+                  value:
+                    estado: Pendiente
+                    firma_remota: true
+                    url: https://saas.esignanywhere.net/workstepredirector/go#...
+                    fecha_expiracion: 2026-07-11T10:30:00.000Z
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /webhooks:
+    get:
+      summary: Listar webhooks
+      tags:
+        - Webhooks
+      description: >
+        Este endpoint devuelve una lista de todos los webhooks configurados. Por
+        defecto, devuelve tanto los activos como los inactivos en ambos entornos
+
+        aunque permite filtrar solamente los activos o inactivos y el entorno.
+      parameters:
+        - in: query
+          name: entorno
+          schema:
+            type: string
+            enum:
+              - test
+              - prod
+          description: Parámetro que permite filtrar los webhooks dependiendo del entorno.
+            En caso de que no se incluya, se devolverán todos los webhooks.
+          example: test
+        - in: query
+          name: activos
+          schema:
+            type: boolean
+          description: Parámetro que permite filtrar los webhooks dependiendo de si están
+            activos o inactivos. En caso de que no se incluya, se devolverán
+            todos los webhooks.
+          example: true
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks?entorno=test&activos=true"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          description: Lista de webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      description: Identificador del webhook.
+                      type: string
+                    url:
+                      description: URL a la que se hará la llamada cuando se dispare el webhook.
+                      type: string
+                    entorno:
+                      description: Entorno del webhook. Puede ser "test" o "prod".
+                      type: string
+                    activo:
+                      description: Indica si el webhook está activo o no.
+                      type: boolean
+                    nifs:
+                      type: array
+                      description: >
+                        Lista de NIFs. Cuando se envían registros de facturación
+                        para cualquiera de estos NIFs, se dispara el webhook con
+                        el resultado
+
+                        de hacienda una vez obtenido.
+                      items:
+                        type: string
+                example:
+                  - id: 17067405-8c32-4efe-a7cb-8fad93403997
+                    url: https://api.webdelcliente.com/webhook
+                    entorno: test
+                    activo: true
+                    nifs:
+                      - B12345678
+                      - B87654321
+                  - id: 17067405-8c32-4efe-a7cb-8fad93403997
+                    url: https://api.otraweb.com/webhook
+                    entorno: test
+                    activo: true
+                    nifs:
+                      - C12345678
+        "400":
+          description: Parámetros de consulta inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    post:
+      summary: Añadir webhook
+      tags:
+        - Webhooks
+      description: Mediante este endpoint se puede registrar un webhook.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: |-
+            import java.net.URI;
+            import java.net.http.HttpClient;
+            import java.net.http.HttpRequest;
+            import java.net.http.HttpResponse;
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            {
+                              "url": "https://api.webdelcliente.com/webhook",
+                              "entorno": "test",
+                              "secret": "mi-secreto",
+                              "nifs": [
+                                "B86561412",
+                                "B01345232"
+                              ]
+                            }
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - entorno
+              properties:
+                url:
+                  description: URL a la que se hará la llamada cuando se dispare el webhook.
+                  type: string
+                entorno:
+                  description: Entorno del webhook. Puede ser "test" o "prod".
+                  type: string
+                  enum:
+                    - test
+                    - prod
+                secret:
+                  description: >
+                    Parámetro opcional. Una clave secreta que se comparte entre
+                    nuestra API y el receptor del webhook. Se utiliza para
+                    generar la
+
+                    firma HMAC que acompaña a cada notificación. Al recibir un
+                    webhook, el receptor puede usar esta clave para recalcular
+                    la firma del
+
+                    mensaje y compararla con la firma proporcionada en el header
+                    `X-Webhook-Signature`. Si ambas firmas coinciden, se
+                    confirma que el
+
+                    mensaje es auténtico y no ha sido modificado.
+                nifs:
+                  description: >
+                    Lista de NIFs. Cuando se envíen registros de facturación
+                    para cualquiera de estos NIFs, se disparará el webhook con
+                    el resultado
+
+                    de hacienda una vez obtenido. Dichos NIFs debern estar dados
+                    de alta en el entorno en que se está creando el webhook.
+              example:
+                url: https://api.webdelcliente.com/webhook
+                entorno: test
+                secret: mi-secreto
+                nifs:
+                  - B86561412
+                  - B01345232
+      responses:
+        "200":
+          $ref: "#/components/responses/webhookResponse"
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "409":
+          description: Webhook ya existe con esa URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /webhooks/{webhook_id}:
+    get:
+      summary: Información de webhook
+      tags:
+        - Webhooks
+      parameters:
+        - in: path
+          name: webhook_id
+          schema:
+            type: string
+          required: true
+          description: Identificador del webhook
+          example: 17067405-8c32-4efe-a7cb-8fad93403997
+      description: Este endpoint devuelve la información de un webhook concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks/17067405-8c32-4efe-a7cb-8fad93403997"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .GET()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/webhookResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: Webhook no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    put:
+      summary: Modificar webhook
+      tags:
+        - Webhooks
+      parameters:
+        - in: path
+          name: webhook_id
+          schema:
+            type: string
+          required: true
+          description: Identificador del webhook
+          example: 17067405-8c32-4efe-a7cb-8fad93403997
+      description: Este endpoint permite modificar un webhook concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    String body = """
+                            {
+                              "url": "https://api.webdelcliente.com/webhook",
+                              "secret": "mi-secreto",
+                              "nifs": [
+                                "B86561412",
+                                "B01345232"
+                              ]
+                            }
+                            """;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks/17067405-8c32-4efe-a7cb-8fad93403997"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .header("Content-Type", "application/json")
+                        .PUT(HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: URL a la que se hará la llamada cuando se dispare el webhook.
+                  example: https://api.webdelcliente.com/webhook
+                secret:
+                  type: string
+                  description: Clave para generar la firma HMAC.
+                  example: mi-secreto
+                activo:
+                  type: boolean
+                  description: Indica si el webhook estará activo o no.
+                  example: true
+                nifs:
+                  type: array
+                  description: >
+                    Lista de NIFs. Cuando se envíen registros de facturación
+                    para cualquiera de estos NIFs, se disparará el webhook con
+                    el resultado
+
+                    de hacienda una vez obtenido. Dichos NIFs debern estar dados
+                    de alta en el entorno del webhook.
+                  items:
+                    type: string
+                    example:
+                      - B86561412
+                      - B01345232
+      responses:
+        "200":
+          $ref: "#/components/responses/webhookResponse"
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: Webhook no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "409":
+          description: URL de webhook en conflicto con otro existente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    delete:
+      summary: Eliminar webhook
+      tags:
+        - Webhooks
+      parameters:
+        - in: path
+          name: webhook_id
+          schema:
+            type: string
+          required: true
+          description: Identificador del webhook
+          example: 17067405-8c32-4efe-a7cb-8fad93403997
+      description: Este endpoint permite eliminar un webhook concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks/17067405-8c32-4efe-a7cb-8fad93403997"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .DELETE()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/okResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: Webhook no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+  /webhooks/{webhook_id}/nifs/{nif}:
+    post:
+      summary: Asociar NIF a webhook
+      tags:
+        - Webhooks
+      parameters:
+        - in: path
+          name: webhook_id
+          schema:
+            type: string
+          required: true
+          description: Identificador del webhook
+          example: 17067405-8c32-4efe-a7cb-8fad93403997
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: Este endpoint permite asociar un NIF concreto a un webhook concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks/17067405-8c32-4efe-a7cb-8fad93403997/nifs/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/okResponse"
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: Webhook o NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+    delete:
+      summary: Desasociar NIF a webhook
+      tags:
+        - Webhooks
+      parameters:
+        - in: path
+          name: webhook_id
+          schema:
+            type: string
+          required: true
+          description: Identificador del webhook
+          example: 17067405-8c32-4efe-a7cb-8fad93403997
+        - in: path
+          name: nif
+          schema:
+            type: string
+          required: true
+          description: NIF
+          example: B86561412
+      description: Este endpoint permite desasociar un NIF concreto a un webhook concreto.
+      x-codeSamples:
+        - lang: Java
+          label: Java
+          source: >-
+            import java.net.URI;
+
+            import java.net.http.HttpClient;
+
+            import java.net.http.HttpRequest;
+
+            import java.net.http.HttpResponse;
+
+
+            public class Main {
+                public static void main(String[] args) throws Exception {
+                    HttpClient client = HttpClient.newHttpClient();
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.verifacti.com/webhooks/17067405-8c32-4efe-a7cb-8fad93403997/nifs/B86561412"))
+                        .header("Authorization", "Bearer <API_KEY>")
+                        .DELETE()
+                        .build();
+
+                    HttpResponse<String> response = client.send(request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println(response.statusCode());
+                    System.out.println(response.body());
+                }
+            }
+      responses:
+        "200":
+          $ref: "#/components/responses/okResponse"
+        "204":
+          description: NIF desasociado del webhook correctamente (sin contenido)
+        "401":
+          $ref: "#/components/responses/unauthorizedResponse"
+        "404":
+          description: Webhook o NIF no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          $ref: "#/components/responses/serverErrorResponse"
+components:
+  schemas:
+    WebhookNotification:
+      type: array
+      description: >
+        Cuerpo enviado a la URL del webhook. Es un array con un elemento por
+        cada registro de facturación
+
+        incluido en el envío que generó la notificación.
+      items:
+        $ref: "#/components/schemas/WebhookNotificationItem"
+      example:
+        - uuid: b018ced3-b362-4494-8776-9eefff1c160c
+          nif: A15022510
+          serie: A
+          numero: "34547"
+          fecha_expedicion: 13-02-2026
+          operacion: Alta
+          url: https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=A34547&fecha=13-02-2026&importe=242
+          estado: Correcto
+        - uuid: f4504c29-78ca-4491-9a10-b6b727a20c36
+          nif: A15022510
+          serie: A
+          numero: "34548"
+          fecha_expedicion: 13-02-2026
+          operacion: Alta
+          url: https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=A34548&fecha=13-02-2026&importe=751
+          estado: Aceptado con errores
+          codigo_error: "2005"
+          mensaje_error: El campo ImporteTotal tiene un valor incorrecto para el valor de
+            los campos BaseImponibleOimporteNoSujeto, CuotaRepercutida y
+            CuotaRecargoEquivalencia suministrados.
+    WebhookNotificationItem:
+      type: object
+      description: >
+        Resultado de un registro de facturación. La forma es idéntica a la que
+        devolvería el endpoint
+
+        `Estado registro` de las APIs de Verifactu o TicketBai.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: Identificador del registro de facturación en nuestra plataforma.
+          example: b018ced3-b362-4494-8776-9eefff1c160c
+        nif:
+          type: string
+          description: NIF del emisor al que pertenece el registro.
+          example: A15022510
+        serie:
+          type: string
+          description: Serie de la factura.
+          example: A
+        numero:
+          type: string
+          description: Número de la factura.
+          example: "34547"
+        fecha_expedicion:
+          type: string
+          description: Fecha de expedición de la factura en formato `DD-MM-YYYY`.
+          example: 13-02-2026
+        operacion:
+          type: string
+          description: >
+            Tipo de operación realizada sobre el registro. En las notificaciones
+            de Verifactu los valores posibles son:
+
+            <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+              <li>Alta</li>
+              <li>Subsanacion</li>
+              <li>Anulación</li>
+              <li>Alta (rechazo previo)</li>
+              <li>Alta (rechazo previo de subsanacion)</li>
+              <li>Anulación (rechazo previo)</li>
+              <li>Anulación (sin registro)</li>
+              <li>Anulación (rechazo previo sin registro)</li>
+            </ul>
+
+
+            En las notificaciones de TicketBai los valores posibles son:
+
+            <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+              <li>Alta</li>
+              <li>Subsanacion</li>
+              <li>Modificacion</li>
+              <li>Anulación</li>
+              <li>Anulación (rechazo previo)</li>
+            </ul>
+          example: Alta
+        estado:
+          type: string
+          description: >
+            Estado del registro de facturación. Los valores posibles coinciden
+            con los del endpoint `Estado registro`:
+
+            <ul style="list-style: disc; margin-top: 6px; margin-bottom: 0px;">
+              <li>Pendiente: Registro encolado y no procesado aún.</li>
+              <li>Correcto: Registro procesado correctamente por hacienda.</li>
+              <li>Aceptado con errores: Aceptado con errores; se requiere subsanación o rectificativa.</li>
+              <li>Incorrecto: Rechazado por hacienda; se requiere subsanación o rectificativa.</li>
+              <li>Duplicado: No aceptado por existir un registro con la misma (serie, numero, fecha_expedicion).</li>
+              <li>Anulado: Registro de anulación procesado correctamente.</li>
+              <li>Factura inexistente: Anulación no aceptada por no existir la factura.</li>
+              <li>No registrado: Rechazado por hacienda.</li>
+              <li>Error servidor AEAT: Error transitorio en hacienda; se reintentará automáticamente.</li>
+            </ul>
+          example: Correcto
+        url:
+          type: string
+          description: URL de verificación del código QR.
+          example: https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=A15022510&numserie=A34547&fecha=13-02-2026&importe=242
+        codigo_error:
+          type: string
+          description: >
+            Código de error tal y como aparece en el sistema de hacienda. Solo
+            presente en notificaciones de Verifactu y
+
+            cuando `estado` indica error (`Aceptado con errores`, `Incorrecto`,
+            `No registrado`, etc.).
+          example: "2005"
+        mensaje_error:
+          type: string
+          description: >
+            Descripción del error tal y como aparece en el sistema de hacienda.
+            Presente cuando `estado` indica error.
+          example: El campo ImporteTotal tiene un valor incorrecto para el valor de los
+            campos suministrados.
+        estado_registro_duplicado:
+          type: string
+          description: >
+            Estado del registro previamente existente. Solo presente en
+            notificaciones de Verifactu cuando
+
+            `estado` es `Duplicado`.
+        tbai:
+          type: string
+          description: >
+            Huella (hash) del registro TicketBai. Solo presente en
+            notificaciones de TicketBai.
+  responses:
+    unauthorizedResponse:
+      description: No autorizado — API key inválida o ausente.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    serverErrorResponse:
+      description: Error interno del servidor.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    okResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Mensaje.
+                type: string
+                example: OK
+    nifResponse:
+      description: NIF
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              nif:
+                description: NIF.
+                type: string
+                example: B86561412
+              entorno:
+                description: Entorno del NIF.
+                type: string
+                example: test
+              hacienda:
+                description: >
+                  Hacienda a la que está vinculado el NIF. Los valores posibles
+                  son:
+
+                  <ol style="list-style-type: disc">
+                    <li>verifactu</li>
+                    <li>alava</li>
+                    <li>guipuzcoa</li>
+                    <li>vizcaya</li>
+                  </ol>
+                type: string
+                example: verifactu
+              webhooks:
+                description: Lista de identificadores de los webhooks a los que esta asociado el
+                  NIF.
+                type: array
+                items:
+                  type: string
+                  example: 17067405-8c32-4efe-a7cb-8fad93403997
+              nombre:
+                description: Nombre y apellidos o razón social del NIF.
+                type: string
+                example: Mi empresa SL
+              activo:
+                description: Indica si el NIF está activo o no.
+                type: boolean
+                example: true
+              direccion:
+                description: Dirección del NIF.
+                type: string
+                example: Calle Mayor 15
+              cp:
+                description: Código postal del NIF.
+                type: string
+                example: "28040"
+              poblacion:
+                description: Población del NIF.
+                type: string
+                example: Madrid
+              provincia:
+                description: Provincia del NIF.
+                type: string
+                example: Madrid
+              fecha_creacion:
+                description: Fecha de creación del NIF.
+                type: string
+                example: 2024-12-01T12:18:21.671Z
+              fecha_modificacion:
+                description: Fecha de la última modificación del NIF.
+                type: string
+                example: 2024-12-07T16:16:51.671Z
+              pagado_hasta:
+                type: string
+                example: 2025-06-04T00:00:00.000Z
+                description: >
+                  Campo solo disponible para NIFs de producción, ya que son los
+                  únicos por los que hay que pagar.
+
+                  Este campo indica la fecha hasta la que se ha pagado el NIF.
+                  En caso de que llegada esa fecha el NIF esté activo,
+
+                  entonces se renovará automáticamente y dicha fecha se
+                  actualizará automáticamente.
+              representacion:
+                enum:
+                  - Correcto
+                  - Rechazado
+                  - Inexistente
+                example: Correcto
+                description: >
+                  Indica el estado del modelo de representación del NIF. Los
+                  valores posibles son:
+
+                  <ul style="list-style-type: disc">
+                    <li>Correcto: El modelo de representación se ha recibido y se ha validado correctamente.</li>
+                    <li>Rechazado: El modelo de representación ha sido recibido pero no se ha podido validar.</li>
+                    <li>Inexistente: No se ha recibido el modelo de representación firmado.</li>
+                  </ul>
+
+
+                  Para NIFs de producción se requiere que el estado de la
+                  representación sea "Correcto" para poder
+
+                  enviar facturas.
+                type: string
+              pdf:
+                type: string
+                example: https://bucket.com/4f4a6b5b-8c32-4efe-a7cb-8fad93403997.pdf
+                description: >
+                  URL donde está alojado el modelo de representación para este
+                  NIF en caso de que haya sido enviada. Esta URL tiene una
+                  validez
+
+                  de 15 minutos desde el momento de realizar la petición.
+              label:
+                type: string
+                example: Cliente A
+                description: Etiqueta asociada al NIF. Puede ser `null` si no se ha asignado
+                  ninguna.
+    webhookResponse:
+      description: Webhook
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: Identificador del webhook.
+                type: string
+              url:
+                description: URL a la que se hará la llamada cuando se dispare el webhook.
+                type: string
+              entorno:
+                description: Entorno del webhook. Puede ser "test" o "prod".
+                type: string
+              secret:
+                description: Clave para generar la firma HMAC.
+                type: string
+              activo:
+                description: Indica si el webhook está activo o no.
+                type: boolean
+              nifs:
+                type: array
+                description: >
+                  Lista de NIFs. Cuando se envían registros de facturación para
+                  cualquiera de estos NIFs, se dispara el webhook con el
+                  resultado
+
+                  de hacienda una vez obtenido.
+                items:
+                  type: string
+            example:
+              id: 17067405-8c32-4efe-a7cb-8fad93403997
+              url: https://api.webdelcliente.com/webhook
+              entorno: test
+              secret: mi-secreto
+              activo: true
+              nifs:
+                - B86561412
+                - B01345232

@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidNifException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.LegalDocumentVersion;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
@@ -13,6 +14,8 @@ import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.lib.AgeHelper;
+import dev.jpitarch.ctrlgym.verifactu.dtos.NifValidationResult;
+import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,11 +44,22 @@ public class SignupService {
 
   private final ApplicationEventPublisher eventPublisher;
 
+  private final NifValidationService nifValidationService;
+
   private static final Set<LegalDocumentType> MANDATORY_TYPES =
     Set.of(LegalDocumentType.TERMS_OF_USE, LegalDocumentType.PRIVACY_POLICY);
 
   @Transactional
   public AuthResponse signup(SignupRequest request, Integer gymId, String ip, String userAgent) {
+    if (request.nif() != null) {
+      var fullName = request.name() + " " + request.firstSurname() +
+        (request.secondSurname() != null ? " " + request.secondSurname() : "");
+      var validationResponse = nifValidationService.validateNif(gymId, request.nif(), fullName);
+      if (validationResponse == null || validationResponse.result() != NifValidationResult.IDENTIFICADO) {
+        throw new InvalidNifException(request.nif());
+      }
+    }
+
     List<LegalDocumentVersion> acceptedVersions = legalDocumentsRepository.findAllById(
       request.acceptedDocumentVersionIds() != null ? request.acceptedDocumentVersionIds() : List.of()
     );

@@ -88,7 +88,7 @@ class AuthServiceTest {
     when(membersRepository.existsAnotherGym(1, "new@example.com")).thenReturn(false);
     when(responseSpec.body(AuthResponse.class)).thenReturn(authResponse);
 
-    var request = new SignupRequest("new@example.com", "password123", "John", "Doe", "Smith");
+    var request = new SignupRequest("new@example.com", "password123", "John", "Doe", "Smith", null, null, null);
     var result = authService.signup(request, 1);
 
     assertThat(result).isEqualTo(authResponse);
@@ -117,7 +117,7 @@ class AuthServiceTest {
     when(membersRepository.exists(1, "existing@example.com")).thenReturn(true);
     when(membersRepository.isInMigration(1, "existing@example.com")).thenReturn(false);
 
-    var request = new SignupRequest("existing@example.com", "password123", "Jane", "Doe", "Smith");
+    var request = new SignupRequest("existing@example.com", "password123", "Jane", "Doe", "Smith", null, null, null);
 
     assertThatThrownBy(() -> authService.signup(request, 1))
       .isInstanceOf(AuthException.class)
@@ -134,7 +134,7 @@ class AuthServiceTest {
     when(membersRepository.isInMigration(1, "migration@example.com")).thenReturn(true);
     when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.ok().build());
 
-    var request = new SignupRequest("migration@example.com", "password123", "Jane", "Doe", "Smith");
+    var request = new SignupRequest("migration@example.com", "password123", "Jane", "Doe", "Smith", null, null, null);
 
     assertThatThrownBy(() -> authService.signup(request, 1))
       .isInstanceOf(AuthException.class)
@@ -157,7 +157,7 @@ class AuthServiceTest {
     when(membersRepository.exists(2, "another@example.com")).thenReturn(false);
     when(membersRepository.existsAnotherGym(2, "another@example.com")).thenReturn(true);
 
-    var request = new SignupRequest("another@example.com", "password123", "Bob", "Doe", "Smith");
+    var request = new SignupRequest("another@example.com", "password123", "Bob", "Doe", "Smith", null, null, null);
 
     assertThatThrownBy(() -> authService.signup(request, 2))
       .isInstanceOf(AuthException.class)

@@ -27,7 +27,6 @@ CREATE TYPE public.invoice_status AS ENUM (
 -- DROP TYPE public.user_status;
 
 CREATE TYPE public.user_status AS ENUM (
-  'AUTH',
   'PENDING_ACTIVATION',
   'PENDING_GUARDIAN_CONSENT',
   'ACTIVE');
@@ -883,39 +882,6 @@ CREATE TABLE member_terms_acceptance (
    user_agent            TEXT,
    revoked_at            TIMESTAMPTZ
 );
-
--- DROP FUNCTION public.handle_new_user();
-
-CREATE
-OR REPLACE FUNCTION public.handle_new_user()
-    RETURNS trigger
-    LANGUAGE plpgsql
-    SECURITY DEFINER
-    SET search_path TO 'public'
-AS $function$
-BEGIN
-
-INSERT INTO public.users (id,
-                          gym_id,
-                          email,
-                          name,
-                          first_surname,
-                          second_surname,
-                          status,
-                          role)
-VALUES (NEW.id,
-        (NEW.raw_user_meta_data ->>'gym_id')::int4,
-        NEW.email,
-        NEW.raw_user_meta_data ->>'name',
-        NEW.raw_user_meta_data ->>'first_surname',
-        NEW.raw_user_meta_data ->>'second_surname',
-        'AUTH',
-        'MEMBER');
-
-RETURN NEW;
-END;
-$function$
-;
 
 -- DROP FUNCTION public.update_gym_branch_current_occupancy();
 

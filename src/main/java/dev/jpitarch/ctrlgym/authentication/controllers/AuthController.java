@@ -2,6 +2,8 @@ package dev.jpitarch.ctrlgym.authentication.controllers;
 
 import dev.jpitarch.ctrlgym.authentication.dtos.*;
 import dev.jpitarch.ctrlgym.authentication.services.*;
+import dev.jpitarch.ctrlgym.lib.RequestHelper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,8 +30,9 @@ public class AuthController {
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(
     @RequestBody SignupRequest request,
-    @RequestHeader(value = "X-Tenant-Id") Integer gymId) {
-    AuthResponse response = signupService.signup(request, gymId);
+    @RequestHeader(value = "X-Tenant-Id") Integer gymId,
+    HttpServletRequest httpRequest) {
+    AuthResponse response = signupService.signup(request, gymId, RequestHelper.extractIp(httpRequest), httpRequest.getHeader("User-Agent"));
     return ResponseEntity.status(201).body(response);
   }
 

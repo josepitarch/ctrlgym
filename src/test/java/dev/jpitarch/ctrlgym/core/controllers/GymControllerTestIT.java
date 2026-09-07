@@ -225,8 +225,8 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.billing_period").value("MONTHLY"))
         .andExpect(jsonPath("$.gym_branch_id").value(1))
         .andExpect(jsonPath("$.all_branches").value(false))
-        .andExpect(jsonPath("$.start_time").value("09:00:00"))
-        .andExpect(jsonPath("$.end_time").value("21:00:00"))
+        .andExpect(jsonPath("$.start_time").value("09:00"))
+        .andExpect(jsonPath("$.end_time").value("21:00"))
         .andExpect(jsonPath("$.all_day").value(false));
 
       verify(productService).create(eq(gymId), any(MembershipPlan.class));
@@ -339,8 +339,8 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$[1].price").value(49.99))
         .andExpect(jsonPath("$[2].name").value("Premium Plan"))
         .andExpect(jsonPath("$[2].price").value(49.99))
-        .andExpect(jsonPath("$[2].start_time").value("09:00:00"))
-        .andExpect(jsonPath("$[2].end_time").value("21:00:00"))
+        .andExpect(jsonPath("$[2].start_time").value("09:00"))
+        .andExpect(jsonPath("$[2].end_time").value("21:00"))
         .andExpect(jsonPath("$[2].all_day").value(false))
         .andExpect(jsonPath("$[3].name").value("All Day Plan"))
         .andExpect(jsonPath("$[3].price").value(59.99))

@@ -61,16 +61,10 @@ public class MembersRepository {
       .orElseThrow(() -> new MemberNotFoundException(memberId));
   }
 
-  public void save(Member member, String customerId) {
-    var memberEntity = jpaRepository.findById(member.getId())
-      .orElseThrow(() -> new MemberNotFoundException(member.getId()));
-
-    memberEntity.setGymId(TenantContextHolder.getTenantId());
-    memberMapper.updateEntity(member, memberEntity);
-    if (customerId != null) {
-      memberEntity.setStripeCustomerId(customerId);
-    }
-
+  public void updateStatus(UUID memberId, dev.jpitarch.ctrlgym.core.domain.enums.UserStatus status) {
+    var memberEntity = jpaRepository.findById(memberId)
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+    memberEntity.setStatus(status);
     jpaRepository.save(memberEntity);
   }
 

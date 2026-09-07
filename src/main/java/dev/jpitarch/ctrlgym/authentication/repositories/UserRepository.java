@@ -7,6 +7,7 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,16 +38,18 @@ public class UserRepository {
     jpaRepository.save(user);
   }
 
-  public UserEntity create(String email, String hashedPassword, Integer gymId, String name, String firstSurname, String secondSurname) {
+  public UserEntity create(String email, String hashedPassword, Integer gymId, String name, String firstSurname, String secondSurname, String gender, LocalDate birthDate) {
     var UserEntity = new UserEntity();
     UserEntity.setId(UUID.randomUUID());
     UserEntity.setGymId(gymId);
     UserEntity.setEmail(email);
     UserEntity.setPassword(hashedPassword);
     UserEntity.setName(name);
-    UserEntity.setStatus(UserStatus.AUTH);
+    UserEntity.setStatus(UserStatus.ACTIVE);
     UserEntity.setFirstSurname(firstSurname);
     UserEntity.setSecondSurname(secondSurname);
+    UserEntity.setGender(gender);
+    UserEntity.setBirthDate(birthDate);
     UserEntity.setRole(Role.MEMBER);
     return jpaRepository.save(UserEntity);
   }

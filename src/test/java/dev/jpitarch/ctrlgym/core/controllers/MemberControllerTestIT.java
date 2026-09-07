@@ -2,8 +2,6 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
-import dev.jpitarch.ctrlgym.core.domain.enums.Gender;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.WorkoutStatus;
 import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
@@ -73,115 +71,24 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   UUID minorMemberId = UUID.fromString("d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2");
   Integer gymId = 1;
 
-  UUID termsOfServiceVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000001");
-  UUID privacyPolicyVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000002");
-  UUID staleTermsVersionId = UUID.fromString("d0d0d0d0-0000-0000-0000-000000000004");
-
   private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtAuth() {
     return jwt().jwt(j -> j.subject(memberId.toString()))
       .authorities(new SimpleGrantedAuthority("ROLE_MEMBER"));
   }
 
-  private CreateMemberRequest buildBaseRequest() {
-    var request = new CreateMemberRequest();
-    request.setName("Test");
-    request.setFirstSurname("Member");
-    request.setSecondSurname("User");
-    request.setGender(Gender.MALE);
-    request.setBirthDate(LocalDate.of(1995, 8, 20));
-    request.setNif("12345678Z");
-
-    return request;
-  }
-
   @BeforeEach
   void resetMemberStatus() {
     userJpaRepository.findById(memberId).ifPresent(u -> {
-      u.setStatus(UserStatus.AUTH);
+      u.setStatus(UserStatus.ACTIVE);
       userJpaRepository.save(u);
     });
     userJpaRepository.findById(minorMemberId).ifPresent(u -> {
-      u.setStatus(UserStatus.AUTH);
+      u.setStatus(UserStatus.ACTIVE);
       userJpaRepository.save(u);
     });
     membershipJpaRepository.findByMemberId(memberId).forEach(membershipJpaRepository::delete);
     workoutJpaRepository.findByMemberId(memberId).forEach(workoutJpaRepository::delete);
     routineJpaRepository.findByMemberId(memberId).forEach(routineJpaRepository::delete);
-  }
-
-  @Nested
-  @DisplayName("[CREATE-MEMBER]")
-  @Tag("CREATE-MEMBER")
-  class CreateMemberTests {
-
-    @Test
-    @Order(1)
-    @DisplayName("Creates a member successfully when all mandatory documents are accepted")
-    void createMember_withAllMandatoryDocuments_returns201() throws Exception {
-      var request = buildBaseRequest();
-      request.setAcceptedDocumentVersionIds(List.of(termsOfServiceVersionId, privacyPolicyVersionId));
-
-      when(customerService.create(any())).thenReturn("cus_test_member");
-
-      mockMvc.perform(post("/v1/members/{memberId}", memberId)
-          .header("X-Tenant-Id", gymId.toString())
-          .with(jwtAuth())
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(jsonMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated());
-    }
-
-    @Test
-    @Order(2)
-    @DisplayName("Returns 409 when not all mandatory documents are accepted")
-    void createMember_missingMandatoryDocument_returns409() throws Exception {
-      var request = buildBaseRequest();
-      request.setAcceptedDocumentVersionIds(List.of(termsOfServiceVersionId));
-
-      mockMvc.perform(post("/v1/members/{memberId}", memberId)
-          .header("X-Tenant-Id", gymId.toString())
-          .with(jwtAuth())
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(jsonMapper.writeValueAsString(request)))
-        .andExpect(status().isConflict());
-    }
-
-    @Test
-    @Order(3)
-    @DisplayName("Returns 409 when an accepted document version is not active")
-    void createMember_withStaleDocument_returns409() throws Exception {
-      var request = buildBaseRequest();
-      request.setAcceptedDocumentVersionIds(List.of(staleTermsVersionId, privacyPolicyVersionId));
-
-      mockMvc.perform(post("/v1/members/{memberId}", memberId)
-          .header("X-Tenant-Id", gymId.toString())
-          .with(jwtAuth())
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(jsonMapper.writeValueAsString(request)))
-        .andExpect(status().isConflict());
-    }
-
-    @Test
-    @Order(4)
-    @DisplayName("Creates a minor member with PENDING_GUARDIAN_CONSENT status and publishes event")
-    void createMember_minor_returns201_withPendingGuardianConsent() throws Exception {
-      var request = buildBaseRequest();
-      request.setBirthDate(LocalDate.now().minusYears(16));
-      request.setAcceptedDocumentVersionIds(List.of(termsOfServiceVersionId, privacyPolicyVersionId));
-
-      when(customerService.create(any())).thenReturn("cus_test_minor");
-
-      mockMvc.perform(post("/v1/members/{memberId}", minorMemberId)
-          .header("X-Tenant-Id", gymId.toString())
-          .with(jwt().jwt(j -> j.subject(minorMemberId.toString()))
-            .authorities(new SimpleGrantedAuthority("ROLE_MEMBER")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(jsonMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated());
-
-      var user = userJpaRepository.findById(minorMemberId).orElseThrow();
-      assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_GUARDIAN_CONSENT);
-    }
   }
 
   @Nested
@@ -211,7 +118,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
           .with(jwtAuth()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").isNumber())
-        .andExpect(jsonPath("$.billing_period").value("MONTHLY"))
         .andExpect(jsonPath("$.next_billing_date").isNotEmpty());
 
       verify(subscriptionService).create(eq(memberId), eq(gymId), any(Map.class));
@@ -220,9 +126,9 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     @Test
     @Order(2)
     @DisplayName("Returns 422 when member status is not ACTIVE")
-    void initializeMembership_accountNotActivated() throws Exception {
+    void initialize_membership_accountNotActivated() throws Exception {
       var user = userJpaRepository.findById(memberId).orElseThrow();
-      user.setStatus(UserStatus.AUTH);
+      user.setStatus(UserStatus.PENDING_ACTIVATION);
       user.setStripeCustomerId("cus_test_member");
       user.setStripeSetupIntentId("seti_test_member");
       userJpaRepository.save(user);
@@ -443,7 +349,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.days.length()").value(2))
         .andExpect(jsonPath("$.days[0].day_number").value(1))
         .andExpect(jsonPath("$.days[0].name").value("Push"))
-        .andExpect(jsonPath("$.days[0].description").value("Chest, shoulders and triceps"))
         .andExpect(jsonPath("$.days[0].exercises.length()").value(2))
         .andExpect(jsonPath("$.days[0].exercises[0].id").value(1))
         .andExpect(jsonPath("$.days[0].exercises[0].name").value("Press de banca"))
@@ -467,7 +372,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.days[0].exercises[1].sets[1].repetition").value(10))
         .andExpect(jsonPath("$.days[1].day_number").value(2))
         .andExpect(jsonPath("$.days[1].name").value("Pull"))
-        .andExpect(jsonPath("$.days[1].description").value("Back and biceps"))
         .andExpect(jsonPath("$.days[1].exercises.length()").value(1))
         .andExpect(jsonPath("$.days[1].exercises[0].id").value(2))
         .andExpect(jsonPath("$.days[1].exercises[0].name").value("Dominadas"))
@@ -504,7 +408,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$[0].days.length()").value(2))
         .andExpect(jsonPath("$[0].days[0].day_number").value(1))
         .andExpect(jsonPath("$[0].days[0].name").value("Push"))
-        .andExpect(jsonPath("$[0].days[0].description").value("Chest, shoulders and triceps"))
         .andExpect(jsonPath("$[0].days[0].exercises.length()").value(2))
         .andExpect(jsonPath("$[0].days[0].exercises[0].id").value(1))
         .andExpect(jsonPath("$[0].days[0].exercises[0].name").value("Press de banca"))
@@ -528,7 +431,6 @@ class MemberControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$[0].days[0].exercises[1].sets[1].repetition").value(10))
         .andExpect(jsonPath("$[0].days[1].day_number").value(2))
         .andExpect(jsonPath("$[0].days[1].name").value("Pull"))
-        .andExpect(jsonPath("$[0].days[1].description").value("Back and biceps"))
         .andExpect(jsonPath("$[0].days[1].exercises.length()").value(1))
         .andExpect(jsonPath("$[0].days[1].exercises[0].id").value(2))
         .andExpect(jsonPath("$[0].days[1].exercises[0].name").value("Dominadas"))

@@ -70,6 +70,9 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
       "Password1!",
       "New",
       "User",
+      null,
+      null,
+      null,
       null
     );
 

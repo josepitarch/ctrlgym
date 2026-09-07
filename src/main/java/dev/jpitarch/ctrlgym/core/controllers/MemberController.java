@@ -3,11 +3,8 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
-import dev.jpitarch.ctrlgym.core.dto.CreateMemberRequest;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
-import dev.jpitarch.ctrlgym.lib.RequestHelper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,24 +27,6 @@ import java.util.UUID;
 public class MemberController {
 
   private final MemberUseCase memberUseCase;
-
-  @PostMapping("/{memberId}")
-  @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> create(@PathVariable UUID memberId, @RequestBody CreateMemberRequest body, HttpServletRequest request) throws StripeException {
-
-    var member = Member.builder()
-      .id(memberId)
-      .name(body.getName())
-      .firstSurname(body.getFirstSurname())
-      .secondSurname(body.getSecondSurname())
-      .gender(body.getGender())
-      .birthDate(body.getBirthDate())
-      .nif(body.getNif())
-      .build();
-
-    memberUseCase.createMember(member, body.getAcceptedDocumentVersionIds(), RequestHelper.extractIp(request), request.getHeader("User-Agent"));
-    return new ResponseEntity<>(HttpStatus.CREATED);
-  }
 
   @GetMapping("/{memberId}")
   @PreAuthorize("#memberId.toString() == authentication.name")

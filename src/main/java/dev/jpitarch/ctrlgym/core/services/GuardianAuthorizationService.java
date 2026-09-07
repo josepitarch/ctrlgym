@@ -115,7 +115,7 @@ public class GuardianAuthorizationService {
 
     Member member = auth.getMember();
     member.setStatus(UserStatus.ACTIVE);
-    memberRepository.save(member, null);
+    memberRepository.updateStatus(member.getId(), UserStatus.ACTIVE);
   }
 
   private GuardianAuthorizationDto toDto(MemberGuardianAuthorization auth) {

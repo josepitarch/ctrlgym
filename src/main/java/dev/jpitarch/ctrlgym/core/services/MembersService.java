@@ -1,12 +1,9 @@
 package dev.jpitarch.ctrlgym.core.services;
 
-import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
-import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
@@ -16,8 +13,6 @@ import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -44,18 +39,6 @@ public class MembersService {
   private final MembershipService membershipService;
 
   private final MembershipPlanRepository membershipPlanRepository;
-
-  @Transactional
-  public void create(Member member) throws StripeException {
-    if (!membersRepository.exists(member.getId())) {
-      throw new MemberNotFoundException(member.getId());
-    }
-
-    String customerId = customerService.create(member);
-
-    log.info("Setting member with id {} from {} to {}...", member.getId(), UserStatus.AUTH, member.getStatus());
-    membersRepository.save(member, customerId);
-  }
 
   public Member getMember(UUID memberId) {
     var member = membersRepository.getById(memberId);

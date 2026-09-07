@@ -6,8 +6,6 @@ public enum UserStatus {
 
   PENDING_GUARDIAN_CONSENT,
 
-  AUTH,
-
   ACTIVE
 
 }

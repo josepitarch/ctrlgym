@@ -5,6 +5,8 @@ import dev.jpitarch.ctrlgym.authentication.services.*;
 import dev.jpitarch.ctrlgym.lib.RequestHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +28,8 @@ public class AuthController {
   private final InvitationService invitationService;
 
   private final PasswordRecoveryService passwordRecoveryService;
+
+  private final MessageSource messageSource;
 
   @PostMapping("/signup")
   public ResponseEntity<AuthResponse> signup(
@@ -57,9 +61,10 @@ public class AuthController {
   }
 
   @PostMapping("/password/forgot")
-  public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+  public ResponseEntity<ForgotPasswordResponse> forgotPassword(@RequestBody ForgotPasswordRequest request) {
     passwordRecoveryService.forgotPassword(request.email());
-    return ResponseEntity.ok().build();
+    String message = messageSource.getMessage("auth.forgot-password.message", null, LocaleContextHolder.getLocale());
+    return ResponseEntity.status(201).body(new ForgotPasswordResponse(message));
   }
 
   @PostMapping("/password/reset")

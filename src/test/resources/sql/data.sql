@@ -119,8 +119,8 @@ VALUES (1, 'es', 'Alquiler del local del gimnasio', null),
        (7, 'es', 'Licencias y SaaS', null),
        (8, 'es', 'Otros gastos', null);
 
-INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "stripe_customer_id", "stripe_setup_intent_id", "status", "role")
-VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'cus_test','seti_test456',  'ACTIVE', 'MEMBER');
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "stripe_customer_id", "stripe_setup_intent_id", "status", "role", "nif")
+VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'cus_test','seti_test456',  'ACTIVE', 'MEMBER', '12345678A');
 
 INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role")
 VALUES ('b2c3d4e5-f6a7-8901-bcde-f12345678901', 1, 'jane.employee@example.com', 'Jane', 'Employee', 'Doe', 'F', '1985-03-20', now(), 'ACTIVE', 'EMPLOYEE');
@@ -145,11 +145,11 @@ VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01',
 --INSERT INTO "public"."memberships" ("member_id", "gym_id", "membership_plan_id", "start_date", "end_date", "next_billing_date", "auto_renew")
 --VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'plan_premium', '2026-01-01', null, '2026-02-01', true);
 
-INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role")
-VALUES ('c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', 1, 'test.member@example.com', 'Test', 'Member', 'User', 'M', '1995-08-20', now(), 'ACTIVE', 'MEMBER');
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role", "nif")
+VALUES ('c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', 1, 'test.member@example.com', 'Test', 'Member', 'User', 'M', '1995-08-20', now(), 'ACTIVE', 'MEMBER', '87654321B');
 
-INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role")
-VALUES ('d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2', 1, 'test.minor@example.com', 'Minor', 'Test', 'User', 'M', '2010-01-01', now(), 'PENDING_GUARDIAN_CONSENT', 'MEMBER');
+INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "status", "role", "nif")
+VALUES ('d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2', 1, 'test.minor@example.com', 'Minor', 'Test', 'User', 'M', '2010-01-01', now(), 'PENDING_GUARDIAN_CONSENT', 'MEMBER', '11223344C');
 
 INSERT INTO "public"."legal_document_version" ("id", "gym_id", "type", "version", "content", "content_hash", "effective_date", "active", "created_at")
 VALUES ('d0d0d0d0-0000-0000-0000-000000000001', 1, 'TERMS_OF_USE', '1.0', 'Terms of service content', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '2026-01-01', true, now()),

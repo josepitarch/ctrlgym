@@ -1,6 +1,7 @@
 package dev.jpitarch.ctrlgym.authentication.controllers;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.authentication.dtos.ForgotPasswordRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.RefreshRequest;
 import dev.jpitarch.ctrlgym.authentication.dtos.LoginRequest;
@@ -10,6 +11,7 @@ import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.controllers.BaseIntegrationTest;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -40,7 +42,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class AuthControllerTestIT extends BaseIntegrationTest {
 
-  JsonMapper objectMapper = new JsonMapper();
+  JsonMapper objectMapper = JsonMapper.builder()
+    .addModule(new JavaTimeModule())
+    .build();
 
   static String accessToken;
   static String refreshToken;
@@ -60,6 +64,9 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @MockitoBean
   NifValidationService nifValidationService;
 
+  @MockitoBean
+  CustomerService customerService;
+
   @BeforeEach
   void setUp() {
     when(emailTemplateComponent.build(anyString(), any())).thenReturn("<html></html>");
@@ -68,24 +75,29 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
   @Test
   @Order(1)
   @DisplayName("Signup returns tokens")
-  void signup_returns200_withTokens() throws Exception {
+  void signup_returns201_withTokens() throws Exception {
+    when(nifValidationService.validateNif(eq(1), eq("12345678A"), anyString())).thenReturn(true);
+
     var request = new SignupRequest(
       "newuser@test.com",
       "Password1!",
       "New",
       "User",
       null,
-      null,
-      null,
-      null,
-      null
+      "12345678A",
+      "M",
+      java.time.LocalDate.of(1990, 1, 1),
+      java.util.List.of(
+        java.util.UUID.fromString("d0d0d0d0-0000-0000-0000-000000000001"),
+        java.util.UUID.fromString("d0d0d0d0-0000-0000-0000-000000000002")
+      )
     );
 
     MvcResult result = mockMvc.perform(post("/v1/auth/signup")
         .header("X-Tenant-Id", 1)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
-      .andExpect(status().isOk())
+      .andExpect(status().isCreated())
       .andExpect(jsonPath("$.access_token").isNotEmpty())
       .andExpect(jsonPath("$.refresh_token").isNotEmpty())
       .andExpect(jsonPath("$.expires_in").isNumber())
@@ -159,14 +171,14 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
 
   @Test
   @Order(6)
-  @DisplayName("Forgot password returns 200 and sends email")
-  void forgotPassword_returns200_sendsEmail() throws Exception {
+  @DisplayName("Forgot password returns 201 and sends email")
+  void forgotPassword_returns201_sendsEmail() throws Exception {
     var request = new ForgotPasswordRequest("newuser@test.com");
 
     mockMvc.perform(post("/v1/auth/password/forgot")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
-      .andExpect(status().isOk());
+      .andExpect(status().isCreated());
 
     verify(emailTemplateComponent).build(eq("password-reset.html"), any());
     verify(emailService).send(eq("newuser@test.com"), anyString(), anyString());

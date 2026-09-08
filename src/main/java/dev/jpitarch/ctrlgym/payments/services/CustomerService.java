@@ -11,7 +11,6 @@ import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SetupIntentRetrieveParams;
 import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +64,8 @@ public class CustomerService {
       .addPaymentMethodType("sepa_debit")
       .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION)
       .build();
+
+    log.info("Creating a setup intent for member with id {}...", memberId);
 
     var setupIntent = SetupIntent.create(params, options);
 
@@ -128,6 +129,7 @@ public class CustomerService {
       .build();
 
     String status = SetupIntent.retrieve(setupIntentId, options).getStatus();
+    log.debug("SetupIntent with id {} has status {}", setupIntentId, status);
     return "processing".equals(status) || "succeeded".equals(status);
 
   }

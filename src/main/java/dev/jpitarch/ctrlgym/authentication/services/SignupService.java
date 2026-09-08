@@ -105,7 +105,8 @@ public class SignupService {
       eventPublisher.publishEvent(new GuardianAuthorizationRequiredEvent(this, created.getId(), gymId));
     }
 
-    customerService.create(created.getId(), created.getEmail(), fullName, request.nif());
+    var customerId = customerService.create(created.getId(), created.getEmail(), fullName, request.nif());
+    created.setStripeCustomerId(customerId);
     userRepository.save(created);
 
     for (LegalDocumentVersion version : acceptedVersions) {

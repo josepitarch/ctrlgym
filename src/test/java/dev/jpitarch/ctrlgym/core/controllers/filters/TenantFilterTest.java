@@ -44,30 +44,6 @@ class TenantFilterTest {
   }
 
   @Test
-  @DisplayName("shouldNotFilter returns true for /v1/auth paths")
-  void shouldNotFilter_returnsTrueForAuthPaths() {
-    when(request.getRequestURI()).thenReturn("/v1/auth/login");
-
-    assertTrue(filter.shouldNotFilter(request));
-  }
-
-  @Test
-  @DisplayName("shouldNotFilter returns false for /v1/members/ paths")
-  void shouldNotFilter_returnsFalseForMembersPaths() {
-    when(request.getRequestURI()).thenReturn("/v1/members/1/memberships");
-
-    assertFalse(filter.shouldNotFilter(request));
-  }
-
-  @Test
-  @DisplayName("shouldNotFilter returns false for other paths")
-  void shouldNotFilter_returnsFalseForOtherPaths() {
-    when(request.getRequestURI()).thenReturn("/v1/dashboard/metrics");
-
-    assertFalse(filter.shouldNotFilter(request));
-  }
-
-  @Test
   @DisplayName("Returns 400 when X-Tenant-Id header is missing for /v1/members/")
   void doFilterInternal_returns400WhenTenantIdMissingForMembers() throws Exception {
     when(request.getRequestURI()).thenReturn("/v1/members/1/memberships");

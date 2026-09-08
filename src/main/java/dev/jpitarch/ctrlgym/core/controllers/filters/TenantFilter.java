@@ -25,12 +25,6 @@ import java.time.Instant;
 public class TenantFilter extends OncePerRequestFilter {
 
   @Override
-  protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-    String path = request.getRequestURI();
-    return path.startsWith("/v1/auth");
-  }
-
-  @Override
   protected void doFilterInternal(HttpServletRequest request,
                                   @NonNull HttpServletResponse response,
                                   @NonNull FilterChain chain) throws IOException, ServletException {

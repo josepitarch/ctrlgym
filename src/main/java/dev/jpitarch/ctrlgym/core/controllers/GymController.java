@@ -250,7 +250,6 @@ public class GymController {
     return ResponseEntity.noContent().build();
   }
 
-  @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/{gymId}/legal/documents/current")
   public ResponseEntity<List<LegalDocumentResponse>> getActiveLegalDocuments(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getActiveLegalDocuments(gymId));

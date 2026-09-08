@@ -58,6 +58,7 @@ public class WebhookService {
 
     switch (event.getType()) {
       case "setup_intent.succeeded" -> handleSetupIntentSucceeded(map(event));
+      case "setup_intent.failed" -> handleSetupIntentFailed(map(event));
       case "invoice.finalized" -> handleInvoiceCreated(map(event));
       case "payment_intent.processing" -> handlePaymentIntentProcessing(map(event));
       case "invoice.payment_succeeded" -> handlePaymentSucceeded(map(event));
@@ -67,12 +68,10 @@ public class WebhookService {
 
   }
 
-  private void handleSubscriptionUpdated(Subscription subscription) {
-    String product = subscription.getItems().getData().getFirst().getPrice().getProduct();
-    Long membershipId = membershipsRepository.getIdByStripeSubscriptionId(product);
-
-    log.info("Setting membership with id {} to plan {}", membershipId, product);
-    membershipsRepository.setMembershipPlanId(membershipId, product);
+  private void handleSetupIntentFailed(Subscription subscription) {
+    //TODO: aquí hay que notificar al usuario de que ha habido un error
+    // Revisar si en stripe se le queda guardado y lo puede actualizar
+    // o hay que eliminarlo y que cree uno desde cero
   }
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
@@ -84,6 +83,15 @@ public class WebhookService {
      */
 
   }
+
+  private void handleSubscriptionUpdated(Subscription subscription) {
+    String product = subscription.getItems().getData().getFirst().getPrice().getProduct();
+    Long membershipId = membershipsRepository.getIdByStripeSubscriptionId(product);
+
+    log.info("Setting membership with id {} to plan {}", membershipId, product);
+    membershipsRepository.setMembershipPlanId(membershipId, product);
+  }
+
 
   private void handleInvoiceCreated(Invoice invoice) {
     log.info("Creating invoice of member with id {}...", invoice.getId());

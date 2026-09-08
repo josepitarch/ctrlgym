@@ -33,25 +33,13 @@ public class CustomerService {
   public String create(Member member) throws StripeException {
     Integer gymId = TenantContextHolder.getTenantId();
 
-    var requestOptions = RequestOptions.builder()
+    var options = RequestOptions.builder()
       .setStripeAccount(stripeBridge.getStripeAccountId(gymId))
       .build();
 
     var params = CustomerCreateParams.builder()
       .setName(member.getFullName())
       .setEmail(member.getEmail())
-      /*.addTaxIdData(CustomerCreateParams.TaxIdData.builder()
-        .setType(CustomerCreateParams.TaxIdData.Type.ES_CIF)
-        .setValue("45911747K")
-        .build()
-      )*/
-      .setAddress(
-        CustomerCreateParams.Address.builder()
-          //.setCity(member.getAddress().getCity())
-          .setPostalCode(member.getAddress().getPostalCode().toString())
-          .setCountry("ES")
-          .build()
-      )
       .setMetadata(Map.of(
         "nif", member.getNif(),
         "gym_id", gymId.toString()
@@ -59,7 +47,7 @@ public class CustomerService {
       .build();
 
     log.info("Creating a customer with member with id {}...", member.getId());
-    var customer = Customer.create(params, requestOptions);
+    var customer = Customer.create(params, options);
 
     return customer.getId();
   }

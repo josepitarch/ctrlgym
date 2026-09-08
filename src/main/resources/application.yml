@@ -37,10 +37,6 @@ stripe:
   secret-key: ${STRIPE_SECRET_KEY}
   whsec-account: ${STRIPE_WEBHOOK_SECRET}
 
-supabase:
-  url: ${SUPABASE_URL}
-  service-role-key: ${SUPABASE_SECRET_KEY}
-
 member-access-qr:
   private-key: ${MEMBER_ACCESS_QR_PRIVATE_KEY}
 

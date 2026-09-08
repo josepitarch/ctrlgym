@@ -33,14 +33,6 @@ public class MembersRepository {
     return jpaRepository.existsByGymIdAndEmail(gymId, email);
   }
 
-  public boolean existsAnotherGym(Integer gymId, String email) {
-    return jpaRepository.existsByGymIdNotAndEmail(gymId, email);
-  }
-
-  public boolean isInMigration(Integer gymId, String email) {
-    return jpaRepository.isInMigration(gymId, email);
-  }
-
   public Member getById(UUID memberId) {
     UserEntity UserEntity = jpaRepository
       .findById(memberId)

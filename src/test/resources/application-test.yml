@@ -11,22 +11,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-  datasource:
-    hikari:
-      max-lifetime: 180000
-      connection-timeout: 30000
-      validation-timeout: 5000
-      keepalive-time: 60000
-      register-mbeans: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://test.auth.com
-
-supabase:
-  url: https://test.auth.com
-  service-role-key: secret-key
 
 stripe:
   secret-key: test-key

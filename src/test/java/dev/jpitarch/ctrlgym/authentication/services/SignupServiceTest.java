@@ -13,8 +13,6 @@ import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
-import dev.jpitarch.ctrlgym.verifactu.dtos.NifValidationResult;
-import dev.jpitarch.ctrlgym.verifactu.dtos.ValidateNifResponse;
 import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -130,6 +128,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup adult with all mandatory documents returns AuthResponse and sets ACTIVE status")
   void signup_adultWithAllMandatoryDocuments_returnsAuthResponseAndSetsActive() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
@@ -157,6 +156,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup minor sets PENDING_GUARDIAN_CONSENT and publishes GuardianAuthorizationRequiredEvent")
   void signup_minor_setsPendingGuardianConsentAndPublishesEvent() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
@@ -183,6 +183,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup with null birthDate is treated as minor")
   void signup_nullBirthDate_treatedAsMinor() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
@@ -213,6 +214,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup missing TERMS_OF_USE throws MissingMandatoryAcceptanceException")
   void signup_missingTermsOfUse_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     var privacyOnly = List.of(
       LegalDocumentVersion.builder().id(privacyVersionId).type(LegalDocumentType.PRIVACY_POLICY).active(true).build()
     );
@@ -229,6 +231,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup missing PRIVACY_POLICY throws MissingMandatoryAcceptanceException")
   void signup_missingPrivacyPolicy_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     var termsOnly = List.of(
       LegalDocumentVersion.builder().id(termsVersionId).type(LegalDocumentType.TERMS_OF_USE).active(true).build()
     );
@@ -245,6 +248,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup with stale (inactive) document throws StaleLegalDocumentException")
   void signup_staleDocument_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     var staleVersions = List.of(
       LegalDocumentVersion.builder().id(termsVersionId).type(LegalDocumentType.TERMS_OF_USE).active(false).build(),
       LegalDocumentVersion.builder().id(privacyVersionId).type(LegalDocumentType.PRIVACY_POLICY).active(true).build()
@@ -262,6 +266,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup with null acceptedDocumentVersionIds throws MissingMandatoryAcceptanceException")
   void signup_nullAcceptedDocumentVersionIds_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of())).thenReturn(List.of());
 
     var request = adultRequest(null);
@@ -275,6 +280,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup with empty acceptedDocumentVersionIds throws MissingMandatoryAcceptanceException")
   void signup_emptyAcceptedDocumentVersionIds_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of())).thenReturn(List.of());
 
     var request = adultRequest(List.of());
@@ -288,6 +294,7 @@ class SignupServiceTest {
   @Test
   @DisplayName("Signup saves acceptances with correct ip and userAgent")
   void signup_savesAcceptancesWithCorrectIpAndUserAgent() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
@@ -313,7 +320,7 @@ class SignupServiceTest {
   @DisplayName("Signup with invalid NIF throws InvalidNifException")
   void signup_invalidNif_throwsException() {
     when(nifValidationService.validateNif(eq(gymId), eq("B99999999"), anyString()))
-      .thenReturn(new ValidateNifResponse("B99999999", "Adult User", NifValidationResult.NO_IDENTIFICADO));
+      .thenReturn(false);
 
     var request = adultRequestWithNif(List.of(termsVersionId, privacyVersionId), "B99999999");
 
@@ -327,7 +334,7 @@ class SignupServiceTest {
   @DisplayName("Signup with valid NIF proceeds normally")
   void signup_validNif_proceedsNormally() {
     when(nifValidationService.validateNif(eq(gymId), eq("B86561412"), anyString()))
-      .thenReturn(new ValidateNifResponse("B86561412", "Adult User", NifValidationResult.IDENTIFICADO));
+      .thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");

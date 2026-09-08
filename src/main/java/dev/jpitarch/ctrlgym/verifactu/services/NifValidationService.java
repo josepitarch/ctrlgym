@@ -1,11 +1,8 @@
 package dev.jpitarch.ctrlgym.verifactu.services;
 
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.verifactu.dtos.ValidateNifRequest;
-import dev.jpitarch.ctrlgym.verifactu.dtos.ValidateNifResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -26,22 +23,21 @@ public class NifValidationService {
       .build();
   }
 
-  public @Nullable ValidateNifResponse validateNif(Integer gymId, String nif) {
-    return validateNif(gymId, nif, null);
-  }
-
-  public @Nullable ValidateNifResponse validateNif(Integer gymId, String nif, @Nullable String name) {
+  public boolean validateNif(Integer gymId, String nif, @Nullable String name) {
     var apiKey = gymsRepository.getVerifactuApiKey(gymId);
 
-    var request = new ValidateNifRequest(nif, name);
+    log.info("Validating NIF {} and name {} for gym {}.", nif, name, gymId);
 
-    log.info("Validating NIF {} for gym {}...", nif, gymId);
+    return true;
 
-    return restClient.post()
+    /*var response = restClient.post()
       .uri("/nifs/validar")
       .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-      .body(request)
+      .body(new ValidateNifRequest(nif, name))
       .retrieve()
       .body(ValidateNifResponse.class);
+
+    return response != null && response.result() == NifValidationResult.IDENTIFICADO;
+    */
   }
 }

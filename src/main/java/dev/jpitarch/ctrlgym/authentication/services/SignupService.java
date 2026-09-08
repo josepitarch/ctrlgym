@@ -14,7 +14,6 @@ import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.lib.AgeHelper;
-import dev.jpitarch.ctrlgym.verifactu.dtos.NifValidationResult;
 import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,17 +48,20 @@ public class SignupService {
 
   @Transactional
   public AuthResponse signup(SignupRequest request, Integer gymId, String ip, String userAgent) {
-    if (request.nif() != null) {
-      var fullName = request.name() + " " + request.firstSurname() +
-        (request.secondSurname() != null ? " " + request.secondSurname() : "");
-      var validationResponse = nifValidationService.validateNif(gymId, request.nif(), fullName);
-      if (validationResponse == null || validationResponse.result() != NifValidationResult.IDENTIFICADO) {
-        throw new InvalidNifException(request.nif());
-      }
+
+    var fullName = new StringJoiner(" ")
+      .add(request.name())
+      .add(request.firstSurname())
+      .add(Optional.ofNullable(request.secondSurname()).orElse(""))
+      .toString()
+      .trim();
+
+    if(!nifValidationService.validateNif(gymId, request.nif(), fullName)) {
+      throw new InvalidNifException(request.nif());
     }
 
     List<LegalDocumentVersion> acceptedVersions = legalDocumentsRepository.findAllById(
-      request.acceptedDocumentVersionIds() != null ? request.acceptedDocumentVersionIds() : List.of()
+      request.acceptedDocumentVersionIds() != null ? request.acceptedDocumentVersionIds() : Collections.emptyList()
     );
 
     for (LegalDocumentVersion version : acceptedVersions) {

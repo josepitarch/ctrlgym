@@ -14,6 +14,7 @@ import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
 import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,8 @@ public class MembershipService {
   private final MembershipsRepository membershipsRepository;
 
   private final MembersRepository membersRepository;
+
+  private final CustomerService customerService;
 
   private final SubscriptionService subscriptionService;
 
@@ -61,6 +64,10 @@ public class MembershipService {
       "setupIntentId", setupIntentId,
       "customerId", customerId
     );
+
+    if(!customerService.setupIntentIsValid(setupIntentId)) {
+      throw new IllegalStateException("");
+    }
 
     log.info("Initializing membership plan with id {} for member with id {}...", membershipPlanId, memberId);
 

@@ -122,4 +122,14 @@ public class CustomerService {
 
   }
 
+  public boolean setupIntentIsValid(String setupIntentId) throws StripeException {
+    var options = RequestOptions.builder()
+      .setStripeAccount(stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId()))
+      .build();
+
+    String status = SetupIntent.retrieve(setupIntentId, options).getStatus();
+    return "processing".equals(status) || "succeeded".equals(status);
+
+  }
+
 }

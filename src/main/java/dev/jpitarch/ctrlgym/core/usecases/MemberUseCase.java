@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.core.services.*;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

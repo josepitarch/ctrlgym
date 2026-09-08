@@ -41,8 +41,6 @@ public class WebhookService {
 
   private final StripeBridge stripeBridge;
 
-  private final InvoiceService invoiceService;
-
   @Value("${stripe.whsec-account}")
   private String webhookSecret;
 
@@ -68,10 +66,11 @@ public class WebhookService {
 
   }
 
-  private void handleSetupIntentFailed(Subscription subscription) {
+  private void handleSetupIntentFailed(SetupIntent setupIntent) {
     //TODO: aquí hay que notificar al usuario de que ha habido un error
     // Revisar si en stripe se le queda guardado y lo puede actualizar
     // o hay que eliminarlo y que cree uno desde cero
+    var memberId = stripeBridge.getId(setupIntent.getCustomer());
   }
 
   private void handleSetupIntentSucceeded(SetupIntent setupIntent) {

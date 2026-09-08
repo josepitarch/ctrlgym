@@ -13,7 +13,9 @@ import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
+import com.stripe.exception.StripeException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +60,9 @@ class SignupServiceTest {
 
   @Mock
   NifValidationService nifValidationService;
+
+  @Mock
+  CustomerService customerService;
 
   @InjectMocks
   SignupService signupService;
@@ -108,16 +113,6 @@ class SignupServiceTest {
     );
   }
 
-  private UserEntity buildCreatedUser() {
-    var entity = new UserEntity();
-    entity.setId(UUID.randomUUID());
-    entity.setGymId(gymId);
-    entity.setEmail("adult@test.com");
-    entity.setName("Adult");
-    entity.setFirstSurname("User");
-    return entity;
-  }
-
   private List<LegalDocumentVersion> activeMandatoryVersions() {
     return List.of(
       LegalDocumentVersion.builder().id(termsVersionId).type(LegalDocumentType.TERMS_OF_USE).active(true).build(),
@@ -127,13 +122,11 @@ class SignupServiceTest {
 
   @Test
   @DisplayName("Signup adult with all mandatory documents returns AuthResponse and sets ACTIVE status")
-  void signup_adultWithAllMandatoryDocuments_returnsAuthResponseAndSetsActive() {
+  void signup_adultWithAllMandatoryDocuments_returnsAuthResponseAndSetsActive() throws StripeException {
     when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(userRepository.create(anyString(), anyString(), eq(gymId), anyString(), anyString(), any(), any(), any()))
-      .thenReturn(buildCreatedUser());
     when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
@@ -155,13 +148,11 @@ class SignupServiceTest {
 
   @Test
   @DisplayName("Signup minor sets PENDING_GUARDIAN_CONSENT and publishes GuardianAuthorizationRequiredEvent")
-  void signup_minor_setsPendingGuardianConsentAndPublishesEvent() {
+  void signup_minor_setsPendingGuardianConsentAndPublishesEvent() throws StripeException {
     when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(userRepository.create(anyString(), anyString(), eq(gymId), anyString(), anyString(), any(), any(), any()))
-      .thenReturn(buildCreatedUser());
     when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
@@ -182,13 +173,11 @@ class SignupServiceTest {
 
   @Test
   @DisplayName("Signup with null birthDate is treated as minor")
-  void signup_nullBirthDate_treatedAsMinor() {
+  void signup_nullBirthDate_treatedAsMinor() throws StripeException {
     when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(userRepository.create(anyString(), anyString(), eq(gymId), anyString(), anyString(), any(), any(), any()))
-      .thenReturn(buildCreatedUser());
     when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
@@ -225,7 +214,7 @@ class SignupServiceTest {
     assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
       .isInstanceOf(MissingMandatoryAcceptanceException.class);
 
-    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+    verify(userRepository, never()).save(any());
   }
 
   @Test
@@ -242,7 +231,7 @@ class SignupServiceTest {
     assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
       .isInstanceOf(MissingMandatoryAcceptanceException.class);
 
-    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+    verify(userRepository, never()).save(any());
   }
 
   @Test
@@ -260,7 +249,7 @@ class SignupServiceTest {
     assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
       .isInstanceOf(StaleLegalDocumentException.class);
 
-    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+    verify(userRepository, never()).save(any());
   }
 
   @Test
@@ -274,7 +263,7 @@ class SignupServiceTest {
     assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
       .isInstanceOf(MissingMandatoryAcceptanceException.class);
 
-    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+    verify(userRepository, never()).save(any());
   }
 
   @Test
@@ -288,18 +277,16 @@ class SignupServiceTest {
     assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
       .isInstanceOf(MissingMandatoryAcceptanceException.class);
 
-    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+    verify(userRepository, never()).save(any());
   }
 
   @Test
   @DisplayName("Signup saves acceptances with correct ip and userAgent")
-  void signup_savesAcceptancesWithCorrectIpAndUserAgent() {
+  void signup_savesAcceptancesWithCorrectIpAndUserAgent() throws StripeException {
     when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(userRepository.create(anyString(), anyString(), eq(gymId), anyString(), anyString(), any(), any(), any()))
-      .thenReturn(buildCreatedUser());
     when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
@@ -327,19 +314,17 @@ class SignupServiceTest {
     assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
       .isInstanceOf(InvalidNifException.class);
 
-    verify(userRepository, never()).create(anyString(), anyString(), anyInt(), anyString(), anyString(), any(), any(), any());
+    verify(userRepository, never()).save(any());
   }
 
   @Test
   @DisplayName("Signup with valid NIF proceeds normally")
-  void signup_validNif_proceedsNormally() {
+  void signup_validNif_proceedsNormally() throws StripeException {
     when(nifValidationService.validateNif(eq(gymId), eq("B86561412"), anyString()))
       .thenReturn(true);
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(userRepository.create(anyString(), anyString(), eq(gymId), anyString(), anyString(), any(), any(), any()))
-      .thenReturn(buildCreatedUser());
     when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 

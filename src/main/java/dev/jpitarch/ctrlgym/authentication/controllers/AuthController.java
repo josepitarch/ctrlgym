@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.authentication.controllers;
 import dev.jpitarch.ctrlgym.authentication.dtos.*;
 import dev.jpitarch.ctrlgym.authentication.services.*;
 import dev.jpitarch.ctrlgym.lib.RequestHelper;
+import com.stripe.exception.StripeException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -35,7 +36,7 @@ public class AuthController {
   public ResponseEntity<AuthResponse> signup(
     @RequestBody SignupRequest request,
     @RequestHeader(value = "X-Tenant-Id") Integer gymId,
-    HttpServletRequest httpRequest) {
+    HttpServletRequest httpRequest) throws StripeException {
     AuthResponse response = signupService.signup(request, gymId, RequestHelper.extractIp(httpRequest), httpRequest.getHeader("User-Agent"));
     return ResponseEntity.status(201).body(response);
   }

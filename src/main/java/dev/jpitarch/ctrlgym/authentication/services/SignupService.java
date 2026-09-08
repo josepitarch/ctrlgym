@@ -1,11 +1,13 @@
 package dev.jpitarch.ctrlgym.authentication.services;
 
+import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
 import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidNifException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.LegalDocumentVersion;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
+import dev.jpitarch.ctrlgym.core.domain.enums.Role;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MissingMandatoryAcceptanceException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.StaleLegalDocumentException;
@@ -14,6 +16,7 @@ import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.lib.AgeHelper;
+import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import dev.jpitarch.ctrlgym.verifactu.services.NifValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,11 +46,13 @@ public class SignupService {
 
   private final NifValidationService nifValidationService;
 
+  private final CustomerService customerService;
+
   private static final Set<LegalDocumentType> MANDATORY_TYPES =
     Set.of(LegalDocumentType.TERMS_OF_USE, LegalDocumentType.PRIVACY_POLICY);
 
   @Transactional
-  public AuthResponse signup(SignupRequest request, Integer gymId, String ip, String userAgent) {
+  public AuthResponse signup(SignupRequest request, Integer gymId, String ip, String userAgent) throws StripeException {
 
     var fullName = new StringJoiner(" ")
       .add(request.name())
@@ -81,16 +86,17 @@ public class SignupService {
     }
 
     String hashedPassword = passwordEncoder.encode(request.password());
-    UserEntity created = userRepository.create(
-      request.email(),
-      hashedPassword,
-      gymId,
-      request.name(),
-      request.firstSurname(),
-      request.secondSurname(),
-      request.gender(),
-      request.birthDate()
-    );
+    var created = new UserEntity();
+    created.setId(UUID.randomUUID());
+    created.setGymId(gymId);
+    created.setEmail(request.email());
+    created.setPassword(hashedPassword);
+    created.setName(request.name());
+    created.setFirstSurname(request.firstSurname());
+    created.setSecondSurname(request.secondSurname());
+    created.setGender(request.gender());
+    created.setBirthDate(request.birthDate());
+    created.setRole(Role.MEMBER);
 
     if (AgeHelper.isAdult(request.birthDate())) {
       created.setStatus(UserStatus.ACTIVE);
@@ -98,6 +104,8 @@ public class SignupService {
       created.setStatus(UserStatus.PENDING_GUARDIAN_CONSENT);
       eventPublisher.publishEvent(new GuardianAuthorizationRequiredEvent(this, created.getId(), gymId));
     }
+
+    customerService.create(created.getId(), created.getEmail(), fullName, request.nif());
     userRepository.save(created);
 
     for (LegalDocumentVersion version : acceptedVersions) {

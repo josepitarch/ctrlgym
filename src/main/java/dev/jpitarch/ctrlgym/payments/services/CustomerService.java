@@ -30,7 +30,7 @@ public class CustomerService {
 
   private final StripeBridge stripeBridge;
 
-  public String create(Member member) throws StripeException {
+  public String create(UUID memberId, String email, String fullName, String nif) throws StripeException {
     Integer gymId = TenantContextHolder.getTenantId();
 
     var options = RequestOptions.builder()
@@ -38,15 +38,15 @@ public class CustomerService {
       .build();
 
     var params = CustomerCreateParams.builder()
-      .setName(member.getFullName())
-      .setEmail(member.getEmail())
+      .setName(fullName)
+      .setEmail(email)
       .setMetadata(Map.of(
-        "nif", member.getNif(),
+        "nif", nif,
         "gym_id", gymId.toString()
       ))
       .build();
 
-    log.info("Creating a customer with member with id {}...", member.getId());
+    log.info("Creating a customer with member with id {}...", memberId);
     var customer = Customer.create(params, options);
 
     return customer.getId();

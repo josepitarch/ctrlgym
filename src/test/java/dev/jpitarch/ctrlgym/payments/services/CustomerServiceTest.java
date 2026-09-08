@@ -10,7 +10,6 @@ import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SetupIntentCreateParams;
 import com.stripe.param.SubscriptionUpdateParams;
-import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
@@ -59,18 +58,9 @@ class CustomerServiceTest {
       String stripeAccountId = "acct_test123";
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn(stripeAccountId);
 
-      var member = Member.builder()
-        .id(memberId)
-        .name("John")
-        .firstSurname("Doe")
-        .secondSurname("Smith")
-        .email("john.doe@example.com")
-        .nif("12345678A")
-        .address(Member.Address.builder()
-          .city("Madrid")
-          .postalCode(28001)
-          .build())
-        .build();
+      String email = "john.doe@example.com";
+      String fullName = "John Doe Smith";
+      String nif = "12345678A";
 
       Customer mockCustomer = mock(Customer.class);
       when(mockCustomer.getId()).thenReturn("cus_test123");
@@ -78,7 +68,7 @@ class CustomerServiceTest {
       customerMock.when(() -> Customer.create(any(CustomerCreateParams.class), any(RequestOptions.class)))
         .thenReturn(mockCustomer);
 
-      String result = customerService.create(member);
+      String result = customerService.create(memberId, email, fullName, nif);
 
       assertThat(result).isEqualTo("cus_test123");
 
@@ -99,23 +89,15 @@ class CustomerServiceTest {
     try (MockedStatic<Customer> customerMock = mockStatic(Customer.class)) {
       when(stripeBridge.getStripeAccountId(gymId)).thenReturn("acct_test");
 
-      var member = Member.builder()
-        .id(memberId)
-        .name("John")
-        .firstSurname("Doe")
-        .email("john@example.com")
-        .nif("12345678A")
-        .address(Member.Address.builder()
-          .city("Madrid")
-          .postalCode(28001)
-          .build())
-        .build();
+      String email = "john@example.com";
+      String fullName = "John Doe";
+      String nif = "12345678A";
 
       CardException cardException = mock(CardException.class);
       customerMock.when(() -> Customer.create(any(CustomerCreateParams.class), any(RequestOptions.class)))
         .thenThrow(cardException);
 
-      assertThatThrownBy(() -> customerService.create(member))
+      assertThatThrownBy(() -> customerService.create(memberId, email, fullName, nif))
         .isInstanceOf(StripeException.class);
     }
   }

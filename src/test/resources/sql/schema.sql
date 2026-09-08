@@ -264,7 +264,8 @@ CREATE TABLE users
   CONSTRAINT members_pkey PRIMARY KEY (id),
   CONSTRAINT members_stripe_customer_id_uk UNIQUE (stripe_customer_id),
   CONSTRAINT members_stripe_setup_intent_id_uk UNIQUE (stripe_setup_intent_id),
-  CONSTRAINT members_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
+  CONSTRAINT members_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id),
+  CONSTRAINT users_member_nif_check CHECK ("role" <> 'MEMBER' OR nif IS NOT NULL)
 );
 
 CREATE TABLE member_guardian_authorization (

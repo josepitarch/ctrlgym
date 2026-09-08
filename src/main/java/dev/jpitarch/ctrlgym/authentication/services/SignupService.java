@@ -89,6 +89,7 @@ public class SignupService {
     var created = new UserEntity();
     created.setId(UUID.randomUUID());
     created.setGymId(gymId);
+    created.setNif(request.nif());
     created.setEmail(request.email());
     created.setPassword(hashedPassword);
     created.setName(request.name());

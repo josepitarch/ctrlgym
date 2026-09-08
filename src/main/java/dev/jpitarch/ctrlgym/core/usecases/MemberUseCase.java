@@ -76,8 +76,8 @@ public class MemberUseCase {
     routinesService.delete(routineId, memberId);
   }
 
-  public void createWorkout(Workout workout, UUID memberId) {
-    workoutsService.create(workout, memberId);
+  public Workout createWorkout(Workout workout, UUID memberId) {
+    return workoutsService.create(workout, memberId);
   }
 
   public Page<Workout> getWorkouts(UUID memberId, Pageable pageable) {

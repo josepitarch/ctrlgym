@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.enums.WorkoutStatus;
 import dev.jpitarch.ctrlgym.core.entities.MembershipEntity;
@@ -49,7 +50,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
   CustomerService customerService;
 
   @MockitoBean
-  dev.jpitarch.ctrlgym.core.StripeBridge stripeBridge;
+  StripeBridge stripeBridge;
 
   @Autowired
   UserJpaRepository userJpaRepository;
@@ -111,6 +112,7 @@ class MemberControllerTestIT extends BaseIntegrationTest {
       when(stripeBridge.getStripeCustomerId(memberId)).thenReturn(java.util.Optional.of("cus_test_member"));
       when(stripeBridge.getStripeSetupIntentId(memberId)).thenReturn(java.util.Optional.of("seti_test_member"));
       when(subscriptionService.create(eq(memberId), eq(gymId), any(Map.class))).thenReturn("sub_test123");
+      when(customerService.setupIntentIsValid("seti_test_member")).thenReturn(true);
 
       mockMvc.perform(post("/v1/members/{memberId}/memberships/{membershipPlanId}", memberId, "plan_basic")
           .header("X-Tenant-Id", gymId.toString())
@@ -496,37 +498,40 @@ class MemberControllerTestIT extends BaseIntegrationTest {
     void createWorkout_returns201() throws Exception {
       Integer routineId = createRoutineAndGetId();
 
-      var workout = Map.of(
-        "routine_id", routineId,
-        "day_number", 1,
-        "started_at", "2026-09-02T10:00:00Z",
-        "finished_at", "2026-09-02T11:30:00Z",
-        "status", "COMPLETED",
-        "exercises", List.of(
-          Map.of(
-            "id", 1,
-            "sets", List.of(
-              Map.of("set_number", 1, "reps", 10, "weight", 60.0),
-              Map.of("set_number", 2, "reps", 8, "weight", 65.0),
-              Map.of("set_number", 3, "reps", 8, "weight", 65.0)
-            )
-          ),
-          Map.of(
-            "id", 8,
-            "sets", List.of(
-              Map.of("set_number", 1, "reps", 10, "weight", 20.0),
-              Map.of("set_number", 2, "reps", 10, "weight", 22.5)
-            )
-          )
-        )
-      );
+      var workoutJson = jsonMapper.readTree(new ClassPathResource("fixtures/workout_completed.json").getInputStream());
+      ((com.fasterxml.jackson.databind.node.ObjectNode) workoutJson).put("routine_id", routineId);
 
       mockMvc.perform(post("/v1/members/{memberId}/workouts", memberId)
           .header("X-Tenant-Id", gymId.toString())
           .with(jwtAuth())
           .contentType(MediaType.APPLICATION_JSON)
-          .content(jsonMapper.writeValueAsString(workout)))
-        .andExpect(status().isCreated());
+          .content(workoutJson.toString()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.routine_id").value(routineId))
+        .andExpect(jsonPath("$.day_number").value(1))
+        .andExpect(jsonPath("$.started_at").value("2026-09-02T10:00:00Z"))
+        .andExpect(jsonPath("$.finished_at").value("2026-09-02T11:30:00Z"))
+        .andExpect(jsonPath("$.status").value("COMPLETED"))
+        .andExpect(jsonPath("$.exercises.length()").value(2))
+        .andExpect(jsonPath("$.exercises[0].id").value(1))
+        .andExpect(jsonPath("$.exercises[0].sets.length()").value(3))
+        .andExpect(jsonPath("$.exercises[0].sets[0].set_number").value(1))
+        .andExpect(jsonPath("$.exercises[0].sets[0].reps").value(10))
+        .andExpect(jsonPath("$.exercises[0].sets[0].weight").value(60.0))
+        .andExpect(jsonPath("$.exercises[0].sets[1].set_number").value(2))
+        .andExpect(jsonPath("$.exercises[0].sets[1].reps").value(8))
+        .andExpect(jsonPath("$.exercises[0].sets[1].weight").value(65.0))
+        .andExpect(jsonPath("$.exercises[0].sets[2].set_number").value(3))
+        .andExpect(jsonPath("$.exercises[0].sets[2].reps").value(8))
+        .andExpect(jsonPath("$.exercises[0].sets[2].weight").value(65.0))
+        .andExpect(jsonPath("$.exercises[1].id").value(8))
+        .andExpect(jsonPath("$.exercises[1].sets.length()").value(2))
+        .andExpect(jsonPath("$.exercises[1].sets[0].set_number").value(1))
+        .andExpect(jsonPath("$.exercises[1].sets[0].reps").value(10))
+        .andExpect(jsonPath("$.exercises[1].sets[0].weight").value(20.0))
+        .andExpect(jsonPath("$.exercises[1].sets[1].set_number").value(2))
+        .andExpect(jsonPath("$.exercises[1].sets[1].reps").value(10))
+        .andExpect(jsonPath("$.exercises[1].sets[1].weight").value(22.5));
     }
 
     @Test

@@ -23,7 +23,7 @@ public class WorkoutsRepository {
 
   private final WorkoutMapper workoutMapper;
 
-  public void save(Workout workout, UUID memberId) {
+  public Workout save(Workout workout, UUID memberId) {
     WorkoutEntity workoutEntity = workoutMapper.map(workout, memberId);
 
     if (workout.getRoutineId() != null && workout.getDayNumber() != null) {
@@ -33,7 +33,8 @@ public class WorkoutsRepository {
 
     workoutEntity.getSets().forEach(set -> set.setWorkout(workoutEntity));
 
-    workoutJpaRepository.save(workoutEntity);
+    WorkoutEntity saved = workoutJpaRepository.save(workoutEntity);
+    return workoutMapper.map(saved);
   }
 
   public Page<Workout> findByMemberId(UUID memberId, Pageable pageable) {

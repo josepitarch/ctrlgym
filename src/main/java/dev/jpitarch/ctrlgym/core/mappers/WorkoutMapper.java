@@ -40,6 +40,7 @@ public interface WorkoutMapper {
     entity.setExerciseId(exerciseId);
     entity.setSet(set.getSetNumber());
     entity.setReps(set.getReps());
+    entity.setWeight(set.getWeight());
     return entity;
   }
 
@@ -65,6 +66,7 @@ public interface WorkoutMapper {
     return Workout.Exercise.Set.builder()
       .setNumber(setEntity.getSet())
       .reps(setEntity.getReps())
+      .weight(setEntity.getWeight() != null ? setEntity.getWeight() : 0.0)
       .build();
   }
 

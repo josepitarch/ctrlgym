@@ -102,9 +102,9 @@ public class MemberController {
 
   @PostMapping(value = "/{memberId}/workouts")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Void> createWorkout(@PathVariable UUID memberId, @RequestBody Workout workout) {
-    memberUseCase.createWorkout(workout, memberId);
-    return new ResponseEntity<>(HttpStatus.CREATED);
+  public ResponseEntity<Workout> createWorkout(@PathVariable UUID memberId, @RequestBody Workout workout) {
+    Workout createdWorkout = memberUseCase.createWorkout(workout, memberId);
+    return new ResponseEntity<>(createdWorkout, HttpStatus.CREATED);
   }
 
   @GetMapping(value = "/{memberId}/workouts")

@@ -1,0 +1,24 @@
+{
+  "routine_id": 1,
+  "day_number": 1,
+  "started_at": "2026-09-02T10:00:00Z",
+  "finished_at": "2026-09-02T11:30:00Z",
+  "status": "COMPLETED",
+  "exercises": [
+    {
+      "id": 1,
+      "sets": [
+        {"set_number": 1, "reps": 10, "weight": 60.0},
+        {"set_number": 2, "reps": 8, "weight": 65.0},
+        {"set_number": 3, "reps": 8, "weight": 65.0}
+      ]
+    },
+    {
+      "id": 8,
+      "sets": [
+        {"set_number": 1, "reps": 10, "weight": 20.0},
+        {"set_number": 2, "reps": 10, "weight": 22.5}
+      ]
+    }
+  ]
+}

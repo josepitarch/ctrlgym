@@ -33,6 +33,9 @@ public class WorkoutSetEntity {
   @Column(name = "reps", nullable = false)
   private Short reps;
 
+  @Column(name = "weight")
+  private Double weight;
+
   @Getter
   @Setter
   @EqualsAndHashCode

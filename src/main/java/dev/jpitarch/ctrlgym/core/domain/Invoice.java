@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 @Data
@@ -54,6 +55,6 @@ public class Invoice {
   private InvoiceStatus status;
 
   public String getFullName() {
-    return name + " " + firstSurname + " " + secondSurname;
+    return name + " " + firstSurname + Optional.ofNullable(secondSurname).map(s -> " " + s).orElse("");
   }
 }

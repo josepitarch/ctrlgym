@@ -742,6 +742,7 @@ CREATE TABLE workout_sets
   exercise_id int4 NOT NULL,
   "set"       int2 NOT NULL,
   reps        int2 NOT NULL,
+  weight      numeric(4, 2) NULL,
   CONSTRAINT routine_day_exercise_executions_pkey PRIMARY KEY (workout_id, exercise_id, set),
   CONSTRAINT routine_day_exercise_executions_reps_check CHECK ((reps >= 1)),
   CONSTRAINT routine_day_exercise_executions_set_check CHECK ((set >= 1)),

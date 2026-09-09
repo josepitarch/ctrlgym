@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
+import dev.jpitarch.ctrlgym.core.domain.Product;
 import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
 import dev.jpitarch.ctrlgym.core.domain.enums.RecurrenceType;
 import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
@@ -22,6 +23,7 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.ShiftSeriesJpaRepository;
 import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationToken;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
+import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +77,9 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
   @MockitoBean
   VerifactuService verifactuService;
+
+  @MockitoBean
+  StorageService storageService;
 
   @Autowired
   ExerciseJpaRepository exerciseJpaRepository;
@@ -669,6 +674,87 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.days[1].exercises[0].sets[1].repetition").value(8))
         .andExpect(jsonPath("$.days[1].exercises[0].sets[2].number").value(3))
         .andExpect(jsonPath("$.days[1].exercises[0].sets[2].repetition").value(6));
+    }
+  }
+
+  @Nested
+  @DisplayName("[PRODUCT]")
+  @Tag("PRODUCT")
+  class ProductTests {
+
+    @Test
+    @Order(1)
+    @DisplayName("Creates a product without image successfully")
+    void createProduct_withoutImage_returns201() throws Exception {
+      var product = Product.builder()
+        .name("Creatine")
+        .price(new BigDecimal("24.99"))
+        .stock((short) 30)
+        .build();
+
+      mockMvc.perform(multipart("/v1/gyms/{gymId}/branches/{branchId}/products", gymId, branchId)
+          .file(new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsBytes(product)))
+          .with(jwtAuth()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.name").value("Creatine"))
+        .andExpect(jsonPath("$.price").value(24.99))
+        .andExpect(jsonPath("$.stock").value(30));
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Creates a product with image successfully")
+    void createProduct_withImage_returns201() throws Exception {
+      var product = Product.builder()
+        .name("Whey Protein")
+        .price(new BigDecimal("39.99"))
+        .stock((short) 20)
+        .build();
+
+      var image = new MockMultipartFile("image", "whey.png", "image/png", "fake-image-content".getBytes());
+
+      when(storageService.uploadFile(any(), eq(gymId), eq("products"))).thenReturn("https://cdn.example.com/tenants/1/products/whey.png");
+
+      mockMvc.perform(multipart("/v1/gyms/{gymId}/branches/{branchId}/products", gymId, branchId)
+          .file(new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsBytes(product)))
+          .file(image)
+          .with(jwtAuth()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.name").value("Whey Protein"))
+        .andExpect(jsonPath("$.price").value(39.99))
+        .andExpect(jsonPath("$.stock").value(20))
+        .andExpect(jsonPath("$.image").value("https://cdn.example.com/tenants/1/products/whey.png"));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Returns all products for a branch")
+    void getProducts_returnsAllProducts() throws Exception {
+      mockMvc.perform(get("/v1/gyms/{gymId}/branches/{branchId}/products", gymId, branchId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].name").value("Protein Shake"))
+        .andExpect(jsonPath("$[0].price").value(3.50))
+        .andExpect(jsonPath("$[0].stock").value(50))
+        .andExpect(jsonPath("$[1].name").value("Energy Bar"))
+        .andExpect(jsonPath("$[1].price").value(2.00))
+        .andExpect(jsonPath("$[1].stock").value(100));
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Deletes a product successfully")
+    void deleteProduct_returns204() throws Exception {
+      List<ProductEntity> products = productJpaRepository.findAll();
+      Integer productId = products.stream().filter(p -> p.getName().equals("Protein Shake")).findFirst().orElseThrow().getId();
+
+      mockMvc.perform(delete("/v1/gyms/{gymId}/branches/{branchId}/products/{productId}", gymId, branchId, productId)
+          .with(jwtAuth()))
+        .andExpect(status().isNoContent());
+
+      assertThat(productJpaRepository.findById(productId)).isEmpty();
     }
   }
 

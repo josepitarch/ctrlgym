@@ -139,8 +139,8 @@ public class MemberController {
 
   @PostMapping(value = "/{memberId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<String> updateAvatar(@PathVariable UUID memberId, @RequestPart("file") MultipartFile file) {
-    return ResponseEntity.ok(memberUseCase.updateAvatar(memberId, file));
+  public ResponseEntity<Map<String, String>> updateAvatar(@PathVariable UUID memberId, @RequestPart("file") MultipartFile file) {
+    return ResponseEntity.ok(Map.of("avatar_url", memberUseCase.updateAvatar(memberId, file)));
   }
 
 }

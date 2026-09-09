@@ -25,7 +25,15 @@ public class StorageService {
 
   public String uploadFile(MultipartFile file, Integer tenant, String folder) {
     String key = generateKey(file.getOriginalFilename(), tenant, folder);
+    return doUpload(file, key);
+  }
 
+  public String uploadFile(MultipartFile file, Integer tenant, String folder, String customFilename) {
+    String key = generateKeyWithCustomName(file.getOriginalFilename(), tenant, folder, customFilename);
+    return doUpload(file, key);
+  }
+
+  private String doUpload(MultipartFile file, String key) {
     try {
       var request = PutObjectRequest.builder()
         .bucket(properties.bucket())
@@ -62,6 +70,14 @@ public class StorageService {
       extension = originalFilename.substring(originalFilename.lastIndexOf("."));
     }
     return "tenants/" + tenant + "/" + folder + "/" + UUID.randomUUID() + extension;
+  }
+
+  private String generateKeyWithCustomName(String originalFilename, Integer tenant, String folder, String customFilename) {
+    String extension = "";
+    if (originalFilename != null && originalFilename.contains(".")) {
+      extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+    }
+    return "tenants/" + tenant + "/" + folder + "/" + customFilename + extension;
   }
 
   private String extractKeyFromUrl(String fileUrl) {

@@ -4,9 +4,11 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
+import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.core.services.*;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
+import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -34,6 +39,10 @@ public class MemberUseCase {
   private final InvoiceRepository invoiceRepository;
 
   private final GenerateInvoiceReportService generateInvoiceReportService;
+
+  private final MembersRepository membersRepository;
+
+  private final StorageService storageService;
 
   public Member getMember(UUID memberId) {
     return membersService.getMember(memberId);
@@ -96,5 +105,18 @@ public class MemberUseCase {
   public byte[] getInvoiceReport(UUID memberId, String invoiceId) throws IOException {
     log.info("Generating invoice report for member {} and invoice {}...", memberId, invoiceId);
     return generateInvoiceReportService.generate(memberId, invoiceId);
+  }
+
+  public String updateAvatar(UUID memberId, MultipartFile file) {
+    Integer tenantId = TenantContextHolder.getTenantId();
+    String avatarUrl = storageService.uploadFile(file, tenantId, "avatars", memberId.toString());
+
+    String oldAvatarUrl = membersRepository.getAvatarUrl(memberId);
+    if (oldAvatarUrl != null && !oldAvatarUrl.isBlank()) {
+      storageService.deleteFile(oldAvatarUrl);
+    }
+
+    membersRepository.updateAvatarUrl(memberId, avatarUrl);
+    return avatarUrl;
   }
 }

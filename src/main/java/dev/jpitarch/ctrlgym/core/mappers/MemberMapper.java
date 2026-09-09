@@ -10,6 +10,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
+import java.net.URI;
+
 @Mapper(config = BaseMapper.class)
 public interface MemberMapper {
 
@@ -17,7 +19,7 @@ public interface MemberMapper {
   @Mapping(target = "address.postalCode", source = "postalCode")
   @Mapping(target = "isActive", ignore = true)
   @Mapping(target = "iban", ignore = true)
-  @Mapping(target = "avatarUrl", ignore = true)
+  @Mapping(target = "avatarUrl", source = "avatarUrl", qualifiedByName = "mapAvatarUrlToDomain")
   @Mapping(target = "role", source = "role")
   Member toDomain(UserEntity entity);
 
@@ -63,5 +65,10 @@ public interface MemberMapper {
       case 1 -> MemberAccess.Direction.OUT;
       default -> throw new IllegalStateException("Unexpected value: " + direction);
     };
+  }
+
+  @Named("mapAvatarUrlToDomain")
+  default URI mapAvatarUrlToDomain(String avatarUrl) {
+    return avatarUrl != null && !avatarUrl.isBlank() ? URI.create(avatarUrl) : null;
   }
 }

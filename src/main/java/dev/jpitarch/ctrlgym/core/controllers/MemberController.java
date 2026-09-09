@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -134,6 +135,12 @@ public class MemberController {
   public ResponseEntity<AccessTokensResponse> generateAccessTokens(@PathVariable UUID memberId) {
     AccessTokensResponse tokens = memberUseCase.generateAccessTokens(memberId);
     return ResponseEntity.ok(tokens);
+  }
+
+  @PostMapping(value = "/{memberId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("#memberId.toString() == authentication.name")
+  public ResponseEntity<String> updateAvatar(@PathVariable UUID memberId, @RequestPart("file") MultipartFile file) {
+    return ResponseEntity.ok(memberUseCase.updateAvatar(memberId, file));
   }
 
 }

@@ -11,6 +11,7 @@ import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -57,6 +58,19 @@ public class MembersRepository {
     var memberEntity = jpaRepository.findById(memberId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
     memberEntity.setStatus(status);
+    jpaRepository.save(memberEntity);
+  }
+
+  public String getAvatarUrl(UUID memberId) {
+    return jpaRepository.findById(memberId)
+      .map(UserEntity::getAvatarUrl)
+      .orElse(null);
+  }
+
+  public void updateAvatarUrl(UUID memberId, String avatarUrl) {
+    var memberEntity = jpaRepository.findById(memberId)
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+    memberEntity.setAvatarUrl(avatarUrl);
     jpaRepository.save(memberEntity);
   }
 

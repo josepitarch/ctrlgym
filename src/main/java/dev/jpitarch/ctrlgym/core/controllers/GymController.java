@@ -2,19 +2,8 @@ package dev.jpitarch.ctrlgym.core.controllers;
 
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
-import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
-import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
-import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
-import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
-import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
-import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
-import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
-import dev.jpitarch.ctrlgym.core.dto.MemberMetrics;
-import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
-import dev.jpitarch.ctrlgym.core.dto.TimeRange;
-import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
+import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
-import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +18,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -40,7 +28,6 @@ public class GymController {
   private final GymUseCase useCase;
 
   @GetMapping("/{gymId}/schedule")
-  @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<GymScheduleResponse> getSchedule(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getSchedule(gymId));
   }

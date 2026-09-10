@@ -108,6 +108,10 @@ public class DashboardUseCase {
   }
 
   private String resolvePostalCode(String postalCode) {
+    if ("NOT_INFORMED".equals(postalCode)) {
+      return messageSource.getMessage("dashboard.members.distribution.not-informed", null, LocaleContextHolder.getLocale());
+    }
+
     return postalCodeJpaRepository.findByPostalCode(Integer.valueOf(postalCode))
       .map(PostalCodeEntity::getCity)
       .orElse(postalCode);

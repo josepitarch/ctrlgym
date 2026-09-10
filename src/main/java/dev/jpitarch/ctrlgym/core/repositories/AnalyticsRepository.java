@@ -403,7 +403,7 @@ public class AnalyticsRepository {
     var sql = """
       SELECT
         gender,
-        postal_code,
+        COALESCE(postal_code::text, 'NOT_INFORMED') AS postal_code,
         CASE
           WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 18 AND 25 THEN '18-25'
           WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 26 AND 35 THEN '26-35'

@@ -12,7 +12,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "expense_categories")
-@SQLRestriction("is_active = true")
+@SQLRestriction("is_active IS true")
 public class ExpenseCategoryEntity {
 
   @Id

@@ -57,6 +57,12 @@ public class ExpensesRepository {
     });
   }
 
+  public boolean existsByCategoryId(Integer categoryId) {
+    var sql = "SELECT COUNT(*) > 0 FROM expenses WHERE category_id = :categoryId";
+    var params = Map.of("categoryId", categoryId);
+    return Boolean.TRUE.equals(jdbc.queryForObject(sql, params, Boolean.class));
+  }
+
   public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       WITH months AS (

@@ -62,8 +62,12 @@ public class ExpensesService {
     if (!entity.getGymId().equals(gymId)) {
       throw new IllegalArgumentException("Expense category with id " + categoryId + " does not belong to gym " + gymId);
     }
-    entity.setIsActive(false);
-    expenseCategoryJpaRepository.save(entity);
+    if (expensesRepository.existsByCategoryId(categoryId)) {
+      entity.setIsActive(false);
+      expenseCategoryJpaRepository.save(entity);
+    } else {
+      expenseCategoryJpaRepository.delete(entity);
+    }
   }
 
   @Transactional

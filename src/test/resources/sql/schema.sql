@@ -431,27 +431,13 @@ CREATE TABLE membership_cancellation_reason_translations
 
 CREATE TABLE expense_categories
 (
-  id         int4                    NOT NULL,
-  code       varchar(100)            NOT NULL,
+  id         int4 GENERATED ALWAYS AS IDENTITY ( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE) NOT NULL,
+  gym_id     int4                    NOT NULL,
+  name       varchar(100)            NOT NULL,
   created_at timestamp DEFAULT now() NOT NULL,
   is_active  bool      DEFAULT true  NOT NULL,
-  CONSTRAINT expense_categories_pkey PRIMARY KEY (id)
-);
-
--- public.expense_category_translations definition
-
--- Drop table
-
--- DROP TABLE expense_category_translations;
-
-CREATE TABLE expense_category_translations
-(
-  expense_category_id int4         NOT NULL,
-  language_code       varchar(10)  NOT NULL,
-  name                varchar(100) NOT NULL,
-  description         text NULL,
-  CONSTRAINT expense_category_translations_pkey PRIMARY KEY (expense_category_id, language_code),
-  CONSTRAINT expense_category_translations_expense_category_id_fkey FOREIGN KEY (expense_category_id) REFERENCES expense_categories (id)
+  CONSTRAINT expense_categories_pkey PRIMARY KEY (id),
+  CONSTRAINT expense_categories_gym_id_fkey FOREIGN KEY (gym_id) REFERENCES gyms (id)
 );
 
 -- public.expenses definition

@@ -219,8 +219,24 @@ public class GymUseCase {
     routinesService.deleteForGym(routineId, gymId);
   }
 
-  public byte[] generateExpensesExcel() throws IOException {
-    return expensesService.generateExpensesExcel();
+  public byte[] generateExpensesExcel(Integer gymId) throws IOException {
+    return expensesService.generateExpensesExcel(gymId);
+  }
+
+  public List<ExpenseCategory> getExpenseCategories(Integer gymId) {
+    return expensesService.getCategories(gymId);
+  }
+
+  public ExpenseCategory createExpenseCategory(Integer gymId, ExpenseCategory category) {
+    return expensesService.createCategory(gymId, category);
+  }
+
+  public void deleteExpenseCategory(Integer categoryId, Integer gymId) {
+    expensesService.deleteCategory(categoryId, gymId);
+  }
+
+  public ExpenseCategory updateExpenseCategoryName(Integer categoryId, Integer gymId, String newName) {
+    return expensesService.updateCategoryName(categoryId, gymId, newName);
   }
 
   public List<Employee> getEmployees(GymBranchId gymBranchId) {

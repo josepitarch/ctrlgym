@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
+import dev.jpitarch.ctrlgym.core.domain.ExpenseCategory;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.Product;
 import dev.jpitarch.ctrlgym.core.domain.enums.MuscleGroup;
@@ -14,6 +15,7 @@ import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
 import dev.jpitarch.ctrlgym.core.entities.GymBranchEntity;
 import dev.jpitarch.ctrlgym.core.entities.ProductEntity;
 import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseCategoryJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExerciseJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.MembershipPlanJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.OrderJpaRepository;
@@ -80,6 +82,9 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
   @MockitoBean
   StorageService storageService;
+
+  @Autowired
+  ExpenseCategoryJpaRepository expenseCategoryJpaRepository;
 
   @Autowired
   ExerciseJpaRepository exerciseJpaRepository;
@@ -839,6 +844,96 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$[0].gym_branch_id").value(branchId))
         .andExpect(jsonPath("$[0].items.length()").value(1))
         .andExpect(jsonPath("$[0].created_at").isNotEmpty());
+    }
+  }
+
+  @Nested
+  @DisplayName("[EXPENSE-CATEGORY]")
+  @Tag("EXPENSE-CATEGORY")
+  class ExpenseCategoryTests {
+
+    @Test
+    @Order(1)
+    @DisplayName("Creates an expense category successfully")
+    void createExpenseCategory_returns201() throws Exception {
+      var category = ExpenseCategory.builder()
+        .name("Seguros")
+        .build();
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/expense-categories", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(category)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.gym_id").value(gymId))
+        .andExpect(jsonPath("$.name").value("Seguros"));
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Returns all expense categories for a gym")
+    void getExpenseCategories_returns200() throws Exception {
+      mockMvc.perform(get("/v1/gyms/{gymId}/expense-categories", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(9))
+        .andExpect(jsonPath("$[8].id").isNumber())
+        .andExpect(jsonPath("$[8].gym_id").value(gymId))
+        .andExpect(jsonPath("$[8].name").value("Seguros"));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Deletes an expense category successfully (soft delete)")
+    void deleteExpenseCategory_returns204() throws Exception {
+      var category = ExpenseCategory.builder()
+        .name("Categoria a borrar")
+        .build();
+
+      MvcResult result = mockMvc.perform(post("/v1/gyms/{gymId}/expense-categories", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(category)))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+      Number categoryId = objectMapper.readValue(result.getResponse().getContentAsString(), ExpenseCategory.class).getId();
+
+      mockMvc.perform(delete("/v1/gyms/{gymId}/expense-categories/{categoryId}", gymId, categoryId.intValue())
+          .with(jwtAuth()))
+        .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Updates an expense category name successfully")
+    void updateExpenseCategoryName_returns200() throws Exception {
+      var category = ExpenseCategory.builder()
+        .name("Nombre original")
+        .build();
+
+      MvcResult result = mockMvc.perform(post("/v1/gyms/{gymId}/expense-categories", gymId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(category)))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+      Number categoryId = objectMapper.readValue(result.getResponse().getContentAsString(), ExpenseCategory.class).getId();
+
+      var updatePayload = ExpenseCategory.builder()
+        .name("Nombre actualizado")
+        .build();
+
+      mockMvc.perform(patch("/v1/gyms/{gymId}/expense-categories/{categoryId}", gymId, categoryId.intValue())
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(updatePayload)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(categoryId.intValue()))
+        .andExpect(jsonPath("$.name").value("Nombre actualizado"));
     }
   }
 }

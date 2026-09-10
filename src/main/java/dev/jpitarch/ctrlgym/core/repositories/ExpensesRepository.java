@@ -24,8 +24,8 @@ public class ExpensesRepository {
 
   private final ExpenseCategoryJpaRepository expenseCategoryJpaRepository;
 
-  public List<ExpenseCategoryEntity> getAllCategories() {
-    return expenseCategoryJpaRepository.findAll();
+  public List<ExpenseCategoryEntity> getAllCategories(Integer gymId) {
+    return expenseCategoryJpaRepository.findAllByGymId(gymId);
   }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId) {

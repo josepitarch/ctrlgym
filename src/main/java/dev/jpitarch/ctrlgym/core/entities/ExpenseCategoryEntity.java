@@ -16,14 +16,18 @@ import java.time.Instant;
 public class ExpenseCategoryEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Integer id;
 
-  @Column(name = "code", nullable = false, length = 100)
-  private String code;
+  @Column(name = "gym_id", nullable = false)
+  private Integer gymId;
+
+  @Column(name = "name", nullable = false, length = 100)
+  private String name;
 
   @ColumnDefault("now()")
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, insertable = false)
   private Instant createdAt;
 
   @ColumnDefault("true")

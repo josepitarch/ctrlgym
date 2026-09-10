@@ -144,12 +144,37 @@ public class GymController {
   }
 
   @PreAuthorize("hasRole('MANAGER')")
-  @GetMapping(value = "/expenses/export", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-  public ResponseEntity<byte[]> exportExpenses() throws IOException {
-    byte[] excelFile = useCase.generateExpensesExcel();
+  @GetMapping(value = "/{gymId}/expenses/export", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  public ResponseEntity<byte[]> exportExpenses(@PathVariable Integer gymId) throws IOException {
+    byte[] excelFile = useCase.generateExpensesExcel(gymId);
     return ResponseEntity.ok()
       .header("Content-Disposition", "attachment; filename=\"gastos.xlsx\"")
       .body(excelFile);
+  }
+
+  @GetMapping("/{gymId}/expense-categories")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<List<ExpenseCategory>> getExpenseCategories(@PathVariable Integer gymId) {
+    return ResponseEntity.ok(useCase.getExpenseCategories(gymId));
+  }
+
+  @PostMapping("/{gymId}/expense-categories")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<ExpenseCategory> createExpenseCategory(@PathVariable Integer gymId, @RequestBody ExpenseCategory category) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExpenseCategory(gymId, category));
+  }
+
+  @DeleteMapping("/{gymId}/expense-categories/{categoryId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> deleteExpenseCategory(@PathVariable Integer gymId, @PathVariable Integer categoryId) {
+    useCase.deleteExpenseCategory(categoryId, gymId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{gymId}/expense-categories/{categoryId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<ExpenseCategory> updateExpenseCategoryName(@PathVariable Integer gymId, @PathVariable Integer categoryId, @RequestBody ExpenseCategory category) {
+    return ResponseEntity.ok(useCase.updateExpenseCategoryName(categoryId, gymId, category.getName()));
   }
 
   @PreAuthorize("hasRole('MANAGER')")

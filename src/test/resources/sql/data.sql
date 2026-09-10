@@ -99,25 +99,15 @@ VALUES (1, 'es', 'Precio demasiado alto', 'La cuota o los servicios son demasiad
        (15, 'es', 'Demasiada afluencia', 'El gimnasio suele estar demasiado lleno'),
        (16, 'es', 'Otros', 'Otro motivo no especificado');
 
-INSERT INTO "public"."expense_categories" ("id", "code", "created_at", "is_active")
-VALUES (1, 'RENT', '2026-05-16 20:06:58.090593', true),
-       (2, 'UTILITIES', '2026-05-16 20:06:58.090593', true),
-       (3, 'CLEANING', '2026-05-16 20:06:58.090593', true),
-       (4, 'MAINTENANCE', '2026-05-16 20:06:58.090593', true),
-       (5, 'EQUIPMENT', '2026-05-16 20:06:58.090593', true),
-       (6, 'MARKETING', '2026-05-16 20:06:58.090593', true),
-       (7, 'SOFTWARE', '2026-05-16 20:06:58.090593', true),
-       (8, 'OTHER', '2026-05-16 20:06:58.090593', true);
-
-INSERT INTO "public"."expense_category_translations" ("expense_category_id", "language_code", "name", "description")
-VALUES (1, 'es', 'Alquiler del local del gimnasio', null),
-       (2, 'es', 'Suministros: luz, agua, gas', null),
-       (3, 'es', 'Servicios de limpieza', null),
-       (4, 'es', 'Mantenimiento general y reparaciones', null),
-       (5, 'es', 'Maquinaria y equipamiento deportivo', null),
-       (6, 'es', 'Publicidad y marketing', null),
-       (7, 'es', 'Licencias y SaaS', null),
-       (8, 'es', 'Otros gastos', null);
+INSERT INTO "public"."expense_categories" ("gym_id", "name", "created_at", "is_active")
+VALUES (1, 'Alquiler del local del gimnasio', '2026-05-16 20:06:58.090593', true),
+       (1, 'Suministros: luz, agua, gas', '2026-05-16 20:06:58.090593', true),
+       (1, 'Servicios de limpieza', '2026-05-16 20:06:58.090593', true),
+       (1, 'Mantenimiento general y reparaciones', '2026-05-16 20:06:58.090593', true),
+       (1, 'Maquinaria y equipamiento deportivo', '2026-05-16 20:06:58.090593', true),
+       (1, 'Publicidad y marketing', '2026-05-16 20:06:58.090593', true),
+       (1, 'Licencias y SaaS', '2026-05-16 20:06:58.090593', true),
+       (1, 'Otros gastos', '2026-05-16 20:06:58.090593', true);
 
 INSERT INTO "public"."users" ("id", "gym_id", "email", "name", "first_surname", "second_surname", "gender", "birth_date", "created_at", "stripe_customer_id", "stripe_setup_intent_id", "status", "role", "nif")
 VALUES ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, 'john.doe@example.com', 'John', 'Doe', 'Smith', 'M', '1990-05-15', now(), 'cus_test','seti_test456',  'ACTIVE', 'MEMBER', '12345678A');

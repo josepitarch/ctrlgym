@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
+import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.dto.Cohort;
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.dto.BranchMetrics;
 import dev.jpitarch.ctrlgym.core.dto.CancellationComment;
@@ -30,7 +30,7 @@ public class AnalyticsRepository {
 
   private final NamedParameterJdbcTemplate jdbc;
 
-  public Map<YearMonth, Integer> getCurrentCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getCurrentCount(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       SELECT
       month::date,
@@ -51,8 +51,8 @@ public class AnalyticsRepository {
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
       "gymBranchId", gymBranchId.branchId(),
-      "from", datePeriod.from().toString(),
-      "to", datePeriod.to().toString()
+      "from", dateRange.from().toString(),
+      "to", dateRange.to().toString()
     );
 
     return jdbc.query(sql, params, (row, rowNum) -> {
@@ -63,7 +63,7 @@ public class AnalyticsRepository {
 
   }
 
-  public Map<YearMonth, Integer> getNewsCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getNewsCount(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       SELECT
       month::date,
@@ -85,8 +85,8 @@ public class AnalyticsRepository {
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
       "gymBranchId", gymBranchId.branchId(),
-      "from", datePeriod.from().toString(),
-      "to", datePeriod.to().toString()
+      "from", dateRange.from().toString(),
+      "to", dateRange.to().toString()
     );
 
     return jdbc.query(sql, params, (row, rowNum) -> {
@@ -96,7 +96,7 @@ public class AnalyticsRepository {
     }).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  public Map<YearMonth, Integer> getCancelledCount(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getCancelledCount(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       SELECT
       month::date,
@@ -119,8 +119,8 @@ public class AnalyticsRepository {
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
       "gymBranchId", gymBranchId.branchId(),
-      "from", datePeriod.from().toString(),
-      "to", datePeriod.to().toString()
+      "from", dateRange.from().toString(),
+      "to", dateRange.to().toString()
     );
 
     return jdbc.query(sql, params, (row, rowNum) -> {
@@ -166,7 +166,7 @@ public class AnalyticsRepository {
     return result;
   }
 
-  public Map<YearMonth, Integer> getSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Integer> getSeniorityAverage(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       WITH months AS (SELECT generate_series(
                                      date_trunc('month', CAST(:from AS date)),
@@ -201,8 +201,8 @@ public class AnalyticsRepository {
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to()
+      "from", dateRange.from(),
+      "to", dateRange.to()
     );
 
     return jdbc.query(sql, params, (row, rowNum) -> {
@@ -278,7 +278,7 @@ public class AnalyticsRepository {
   }
 
   //TODO: creo que no termina de funcionar correctamente la query
-  public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       WITH months AS (
           SELECT generate_series(
@@ -331,8 +331,8 @@ public class AnalyticsRepository {
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to()
+      "from", dateRange.from(),
+      "to", dateRange.to()
     );
 
     var results = jdbc.query(sql, params, (row, rowNum) -> {
@@ -348,7 +348,7 @@ public class AnalyticsRepository {
     return new RetentionVsChurn(retention, churn);
   }
 
-  public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       SELECT cancellation_reason_id, COUNT (1) as count
       FROM memberships
@@ -551,7 +551,7 @@ public class AnalyticsRepository {
     ));
   }
 
-  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
 
        WITH months AS (
@@ -580,8 +580,8 @@ public class AnalyticsRepository {
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to()
+      "from", dateRange.from(),
+      "to", dateRange.to()
     );
 
     return jdbc.query(sql, params, (row, rowNum) -> {

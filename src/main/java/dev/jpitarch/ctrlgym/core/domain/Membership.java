@@ -20,7 +20,7 @@ public class Membership {
   private String planId;
 
   @JsonProperty("date_period")
-  private DatePeriod datePeriod;
+  private DateRange dateRange;
 
   @JsonProperty("next_billing_date")
   private LocalDate nextBillingDate;

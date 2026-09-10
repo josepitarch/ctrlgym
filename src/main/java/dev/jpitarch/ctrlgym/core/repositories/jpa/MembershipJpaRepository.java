@@ -19,12 +19,6 @@ public interface MembershipJpaRepository extends JpaRepository<MembershipEntity,
 
   Optional<MembershipEntity> findByIdAndEndDateIsNull(Long id);
 
-  @Query("SELECT m.id FROM MembershipEntity m WHERE m.stripeSubscriptionId = :stripeSubscriptionId")
-  Long getIdByStripeSubscriptionId(String stripeSubscriptionId);
-
-  @Query("SELECT m.stripeSubscriptionId FROM MembershipEntity m WHERE m.memberId = :memberId")
-  public String getStripeSubscriptionId(UUID memberId);
-
   @Query("""
     SELECT COUNT(m) > 0
     FROM MembershipEntity m

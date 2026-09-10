@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.services;
 
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
+import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Membership;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
@@ -60,7 +60,7 @@ class MembersServiceTest {
     when(membershipService.retrieve(memberId)).thenReturn(Optional.of(
       Membership.builder()
         .planId(planId)
-        .datePeriod(DatePeriod.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
+        .dateRange(DateRange.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
         .build()
     ));
     when(membershipPlanRepository.retrieve(planId)).thenReturn(
@@ -92,7 +92,7 @@ class MembersServiceTest {
     when(membershipService.retrieve(memberId)).thenReturn(Optional.of(
       Membership.builder()
         .planId(planId)
-        .datePeriod(DatePeriod.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
+        .dateRange(DateRange.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
         .build()
     ));
     when(membershipPlanRepository.retrieve(planId)).thenReturn(
@@ -123,7 +123,7 @@ class MembersServiceTest {
     when(membershipService.retrieve(memberId)).thenReturn(Optional.of(
       Membership.builder()
         .planId(planId)
-        .datePeriod(DatePeriod.of(LocalDate.now().minusDays(60), LocalDate.now().minusDays(1)))
+        .dateRange(DateRange.of(LocalDate.now().minusDays(60), LocalDate.now().minusDays(1)))
         .build()
     ));
 
@@ -143,7 +143,7 @@ class MembersServiceTest {
     when(membershipService.retrieve(memberId)).thenReturn(Optional.of(
       Membership.builder()
         .planId(planId)
-        .datePeriod(DatePeriod.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
+        .dateRange(DateRange.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
         .build()
     ));
     when(membershipPlanRepository.retrieve(planId)).thenReturn(
@@ -172,7 +172,7 @@ class MembersServiceTest {
     when(membershipService.retrieve(memberId)).thenReturn(Optional.of(
       Membership.builder()
         .planId(planId)
-        .datePeriod(DatePeriod.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
+        .dateRange(DateRange.of(LocalDate.now().minusDays(30), LocalDate.now().plusDays(30)))
         .build()
     ));
     when(membershipPlanRepository.retrieve(planId)).thenReturn(

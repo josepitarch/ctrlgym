@@ -43,6 +43,8 @@ public class MembershipService {
 
   public static final Integer PAYMENT_FAILED_ATTEMPTS_EXCEEDED = 10;
 
+  public static final Integer SETUP_PAYMENT_FAILED = 11;
+
   public Membership initialize(UUID memberId, Integer gymId, String membershipPlanId) throws StripeException {
     Member member = membersRepository.getById(memberId);
     if (member.getStatus() != UserStatus.ACTIVE) {
@@ -76,7 +78,7 @@ public class MembershipService {
   }
 
   public void change(UUID memberId, Integer gymId, String newMembershipPlanId) throws StripeException {
-    var currentMembership = membershipsRepository.getMemberships(memberId).stream().filter(m -> m.getDatePeriod().isCurrent()).findFirst();
+    var currentMembership = membershipsRepository.getMemberships(memberId).stream().filter(m -> m.getDateRange().isActive()).findFirst();
     if (currentMembership.isEmpty()) throw new MembershipNotFoundException(memberId);
     String stripeSubscriptionId = stripeBridge.getStripeSubscriptionId(currentMembership.get().getId());
     String stripeAccountId = stripeBridge.getStripeAccountId(gymId);
@@ -94,7 +96,7 @@ public class MembershipService {
     log.info("Cancelling membership plan with id {} for member with id {}...", membershipId, memberId);
 
     LocalDate endDate = subscriptionService.cancel(props);
-    membershipsRepository.setCancellationReasonId(membershipId, endDate, cancellationReasonId, comment);
+    membershipsRepository.cancel(membershipId, endDate, cancellationReasonId, comment);
   }
 
   public Optional<Membership> retrieve(UUID memberId) {
@@ -102,11 +104,11 @@ public class MembershipService {
     var memberships = membershipsRepository.getMemberships(memberId);
 
     return memberships.stream()
-      .filter(m -> m.getDatePeriod().isCurrent())
+      .filter(m -> m.getDateRange().isActive())
       .findFirst()
       .or(() -> memberships.stream()
-        .filter(m -> m.getDatePeriod().isPast())
-        .max(Comparator.comparing(m -> m.getDatePeriod().to()))
+        .filter(m -> m.getDateRange().isPast())
+        .max(Comparator.comparing(m -> m.getDateRange().to()))
       );
   }
 
@@ -123,7 +125,7 @@ public class MembershipService {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void cancelMembership(InvoiceFailedEvent event) {
     Long membershipId = stripeBridge.getMembershipId(event.getSubscriptionId());
-    membershipsRepository.setCancellationReasonId(membershipId, LocalDate.now(), PAYMENT_FAILED_ATTEMPTS_EXCEEDED, null);
+    membershipsRepository.cancel(membershipId, LocalDate.now(), PAYMENT_FAILED_ATTEMPTS_EXCEEDED, null);
   }
 
 }

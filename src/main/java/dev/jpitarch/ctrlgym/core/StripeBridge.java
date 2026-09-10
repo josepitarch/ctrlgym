@@ -32,7 +32,7 @@ public class StripeBridge {
     userJpaRepository.saveStripeSetupIntentId(memberId, id);
   }
 
-  public UUID getId(String stripeCustomerId) {
+  public UUID getMemberId(String stripeCustomerId) {
     var sql = """
         SELECT id
         FROM users
@@ -41,8 +41,19 @@ public class StripeBridge {
 
     var params = Map.of("stripeCustomerId", stripeCustomerId);
 
-    return this.jdbc.queryForObject(sql, params, (rs, rowNum) -> UUID.fromString(rs.getString("id")));
+    return this.jdbc.queryForObject(sql, params, (rs, _) -> UUID.fromString(rs.getString("id")));
+  }
 
+  public Integer getGymId(String stripeCustomerId) {
+    var sql = """
+        SELECT gym_id
+        FROM users
+        WHERE stripe_customer_id = :stripeCustomerId
+      """;
+
+    var params = Map.of("stripeCustomerId", stripeCustomerId);
+
+    return this.jdbc.queryForObject(sql, params, Integer.class);
   }
 
   public String getStripePriceId(String id) {

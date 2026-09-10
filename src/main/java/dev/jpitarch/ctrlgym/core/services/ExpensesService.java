@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.services;
 
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
+import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
@@ -30,8 +30,8 @@ public class ExpensesService {
     return expensesRepository.getExpenses(gymBranchId);
   }
 
-  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    return expensesRepository.getTotalPerMonth(gymBranchId, datePeriod);
+  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
+    return expensesRepository.getTotalPerMonth(gymBranchId, dateRange);
   }
 
   public byte[] generateExpensesExcel() throws IOException {

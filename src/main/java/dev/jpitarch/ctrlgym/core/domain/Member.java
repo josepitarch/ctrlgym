@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.time.LocalDate;
 
@@ -46,6 +47,11 @@ public class Member extends User {
     @JsonProperty("postal_code")
     private Integer postalCode;
 
+  }
+
+  public void setPostalCode(Integer postalCode) {
+    if (address == null) this.address = new Address();
+    this.address.setPostalCode(postalCode);
   }
 
 }

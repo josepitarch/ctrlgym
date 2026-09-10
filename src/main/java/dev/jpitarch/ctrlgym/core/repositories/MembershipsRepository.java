@@ -35,9 +35,6 @@ public class MembershipsRepository {
     return mapper.map(membershipJpaRepository.save(membership));
   }
 
-  public Long getIdByStripeSubscriptionId(String subscriptionId) {
-    return this.membershipJpaRepository.getIdByStripeSubscriptionId(subscriptionId);
-  }
 
   public List<Membership> getMemberships(UUID memberId) {
     return membershipJpaRepository
@@ -51,7 +48,7 @@ public class MembershipsRepository {
     membershipJpaRepository.findById(membershipId).ifPresent(m -> m.setNextBillingDate(nextBillingDate));
   }
 
-  public void setCancellationReasonId(Long membershipId, LocalDate endDate, Integer cancellationReasonId, String comment) {
+  public void cancel(Long membershipId, LocalDate endDate, Integer cancellationReasonId, String comment) {
     membershipJpaRepository
       .findByIdAndEndDateIsNull(membershipId)
       .ifPresent(m -> {

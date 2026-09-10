@@ -3,7 +3,9 @@ package dev.jpitarch.ctrlgym.payments.services;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
+import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
+import com.stripe.param.SetupIntentRetrieveParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
@@ -12,6 +14,7 @@ import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
+import dev.jpitarch.ctrlgym.core.services.MembershipService;
 import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Slf4j
@@ -70,22 +74,34 @@ public class WebhookService {
     //TODO: aquí hay que notificar al usuario de que ha habido un error
     // Revisar si en stripe se le queda guardado y lo puede actualizar
     // o hay que eliminarlo y que cree uno desde cero
-    var memberId = stripeBridge.getId(setupIntent.getCustomer());
+    var memberId = stripeBridge.getMemberId(setupIntent.getCustomer());
+    membershipsRepository.getMemberships(memberId)
+      .stream()
+      .filter(m -> m.getDateRange().isActive())
+      .findFirst()
+      .ifPresent(m -> membershipsRepository.cancel(m.getId(), LocalDate.now(), MembershipService.SETUP_PAYMENT_FAILED, null));
   }
 
-  private void handleSetupIntentSucceeded(SetupIntent setupIntent) {
+  private void handleSetupIntentSucceeded(SetupIntent setupIntent) throws StripeException {
     log.info("SetupIntent of member with id {} of customer {} is succeeded", setupIntent.getId(), setupIntent.getCustomer());
 
-    /* TODO
-     * Ahora se guarda el setup intent id y se guarda en ese preciso momento.
-     * Esto lo que hace es confirmar que el IBAN es OK simplemente
-     */
+    var options = RequestOptions.builder()
+      .setStripeAccount(stripeBridge.getStripeAccountId(stripeBridge.getGymId(setupIntent.getCustomer())))
+      .build();
 
+    var params = SetupIntentRetrieveParams.builder()
+      .addExpand("payment_method")
+      .build();
+
+    PaymentMethod pm = SetupIntent.retrieve(setupIntent.getId(), params, options).getPaymentMethodObject();
+
+    Member member = membersRepository.getById(stripeBridge.getMemberId(setupIntent.getCustomer()));
+    member.setPostalCode(Integer.valueOf(pm.getBillingDetails().getAddress().getPostalCode()));
   }
 
   private void handleSubscriptionUpdated(Subscription subscription) {
     String product = subscription.getItems().getData().getFirst().getPrice().getProduct();
-    Long membershipId = membershipsRepository.getIdByStripeSubscriptionId(product);
+    Long membershipId = stripeBridge.getMembershipId(product);
 
     log.info("Setting membership with id {} to plan {}", membershipId, product);
     membershipsRepository.setMembershipPlanId(membershipId, product);
@@ -94,7 +110,7 @@ public class WebhookService {
 
   private void handleInvoiceCreated(Invoice invoice) {
     log.info("Creating invoice of member with id {}...", invoice.getId());
-    UUID memberId = stripeBridge.getId(invoice.getCustomer());
+    UUID memberId = stripeBridge.getMemberId(invoice.getCustomer());
     Integer gymId = membersRepository.getGymIdByMemberId(memberId);
 
     var inv = dev.jpitarch.ctrlgym.core.domain.Invoice.builder()
@@ -131,7 +147,7 @@ public class WebhookService {
     log.info("Marking invoice with member with id {} as paid...", invoice.getId());
     invoiceRepository.markAsPaid(invoice.getId());
 
-    var memberId = stripeBridge.getId(invoice.getCustomer());
+    var memberId = stripeBridge.getMemberId(invoice.getCustomer());
     var nextBillingDate = EpochConverter.toLocalDate(invoice.getLines().getData().getFirst().getPeriod().getEnd());
 
     var event = new InvoicePaidEvent(this, invoice.getId(), memberId, nextBillingDate);

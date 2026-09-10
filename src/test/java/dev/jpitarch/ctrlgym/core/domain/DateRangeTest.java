@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DatePeriodTest {
+class DateRangeTest {
 
   static Stream<Arguments> isCurrentTestCases() {
     LocalDate today = LocalDate.now();
@@ -45,15 +45,15 @@ class DatePeriodTest {
   @MethodSource("isCurrentTestCases")
   @DisplayName("isCurrent returns correct value based on date period")
   void isCurrent_returnsCorrectValue(LocalDate from, LocalDate to, boolean expected, String scenario) {
-    DatePeriod period = DatePeriod.of(from, to);
-    assertThat(period.isCurrent()).isEqualTo(expected);
+    DateRange period = DateRange.of(from, to);
+    assertThat(period.isActive()).isEqualTo(expected);
   }
 
   @ParameterizedTest(name = "{3}")
   @MethodSource("isPastTestCases")
   @DisplayName("isPast returns correct value based on date period")
   void isPast_returnsCorrectValue(LocalDate from, LocalDate to, boolean expected, String scenario) {
-    DatePeriod period = DatePeriod.of(from, to);
+    DateRange period = DateRange.of(from, to);
     assertThat(period.isPast()).isEqualTo(expected);
   }
 }

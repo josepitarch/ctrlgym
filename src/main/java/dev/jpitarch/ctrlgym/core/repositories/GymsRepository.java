@@ -189,7 +189,7 @@ public class GymsRepository {
     return this.jdbc.queryForObject(sql, params, Short.class);
   }
 
-  public List<OccupancyGranularity.OccupancyDataPoint> getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
+  public List<OccupancyGranularity.OccupancyDataPoint> getOccupancies(GymBranchId gymBranchId, DateRange dateRange, Granularity granularity) {
     var sql = """
       SELECT
       DATE_TRUNC(:granularity, snapshot_time) AS bucket,
@@ -203,8 +203,8 @@ public class GymsRepository {
 
     var params = Map.of(
       "gymBranchId", gymBranchId.branchId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to(),
+      "from", dateRange.from(),
+      "to", dateRange.to(),
       "granularity", convertGranularity(granularity)
     );
 

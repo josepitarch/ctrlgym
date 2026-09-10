@@ -1,7 +1,7 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
+import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.dto.Cohort;
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
@@ -34,19 +34,19 @@ public class DashboardController {
   @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/gyms/{gymId}/branches/{branchId}/occupancy")
   public ResponseEntity<OccupancyGranularity> getOccupancies(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam Granularity granularity) {
-    return ResponseEntity.ok(useCase.getOccupancies(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to), granularity));
+    return ResponseEntity.ok(useCase.getOccupancies(GymBranchId.of(gymId, branchId), DateRange.of(from, to), granularity));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships")
   public ResponseEntity<Map<YearMonth, Integer>> getMemberships(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam MembershipFlow flow) {
-    return ResponseEntity.ok(useCase.getMemberships(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to), flow));
+    return ResponseEntity.ok(useCase.getMemberships(GymBranchId.of(gymId, branchId), DateRange.of(from, to), flow));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/seniority-avg")
   public ResponseEntity<Map<YearMonth, Integer>> getMembershipSeniorityAverage(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
-    return ResponseEntity.ok(useCase.getMembershipSeniorityAverage(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
+    return ResponseEntity.ok(useCase.getMembershipSeniorityAverage(GymBranchId.of(gymId, branchId), DateRange.of(from, to)));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")
@@ -64,7 +64,7 @@ public class DashboardController {
   @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/gyms/{gymId}/branches/{branchId}/cash-flow")
   public ResponseEntity<CashFlow> getCashFlow(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
-    return ResponseEntity.ok(useCase.getCashFlow(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
+    return ResponseEntity.ok(useCase.getCashFlow(GymBranchId.of(gymId, branchId), DateRange.of(from, to)));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")
@@ -82,7 +82,7 @@ public class DashboardController {
   @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/gyms/{gymId}/branches/{branchId}/memberships/retention-vs-churn")
   public ResponseEntity<RetentionVsChurn> getRetentionVsChurn(@PathVariable int gymId, @PathVariable int branchId, @RequestParam LocalDate from, @RequestParam LocalDate to) {
-    return ResponseEntity.ok(useCase.getRetentionVsChurn(GymBranchId.of(gymId, branchId), DatePeriod.of(from, to)));
+    return ResponseEntity.ok(useCase.getRetentionVsChurn(GymBranchId.of(gymId, branchId), DateRange.of(from, to)));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")

@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.repositories;
 
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
+import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
@@ -57,7 +57,7 @@ public class ExpensesRepository {
     });
   }
 
-  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DatePeriod datePeriod) {
+  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
     var sql = """
       WITH months AS (
           SELECT generate_series(
@@ -87,8 +87,8 @@ public class ExpensesRepository {
 
     var params = Map.of(
       "gymBranchId", gymBranchId.branchId(),
-      "from", datePeriod.from(),
-      "to", datePeriod.to()
+      "from", dateRange.from(),
+      "to", dateRange.to()
     );
 
     return jdbc.query(sql, params, (row, rowNum) -> {

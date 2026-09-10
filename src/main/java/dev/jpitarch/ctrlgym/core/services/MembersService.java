@@ -8,7 +8,6 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberWithoutAccessException;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +29,6 @@ public class MembersService {
 
   private final MembersRepository membersRepository;
 
-  private final MembershipsRepository membershipsRepository;
-
   private final GenerateAccessQr generateAccessQr;
 
   private final CustomerService customerService;
@@ -52,7 +49,7 @@ public class MembersService {
     Membership membership = membershipService.retrieve(memberId)
       .orElseThrow(() -> new MemberWithoutAccessException(memberId));
 
-    if (membership.getDatePeriod().isPast()) {
+    if (membership.getDateRange().isPast()) {
       throw new MemberWithoutAccessException(memberId);
     }
 

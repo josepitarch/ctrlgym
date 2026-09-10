@@ -1,6 +1,6 @@
 package dev.jpitarch.ctrlgym.core.usecases;
 
-import dev.jpitarch.ctrlgym.core.domain.DatePeriod;
+import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
@@ -36,38 +36,38 @@ public class DashboardUseCase {
 
   private final MessageSource messageSource;
 
-  public OccupancyGranularity getOccupancies(GymBranchId gymBranchId, DatePeriod datePeriod, Granularity granularity) {
-    var dataPoints = gymsRepository.getOccupancies(gymBranchId, datePeriod, granularity);
+  public OccupancyGranularity getOccupancies(GymBranchId gymBranchId, DateRange dateRange, Granularity granularity) {
+    var dataPoints = gymsRepository.getOccupancies(gymBranchId, dateRange, granularity);
     return new OccupancyGranularity(granularity, dataPoints);
   }
 
-  public Map<YearMonth, Integer> getMemberships(GymBranchId gymBranchId, DatePeriod datePeriod, MembershipFlow flow) {
+  public Map<YearMonth, Integer> getMemberships(GymBranchId gymBranchId, DateRange dateRange, MembershipFlow flow) {
     return switch (flow) {
-      case ACTIVE -> analyticsRepository.getCurrentCount(gymBranchId, datePeriod);
-      case NEW -> analyticsRepository.getNewsCount(gymBranchId, datePeriod);
-      case CANCELLED -> analyticsRepository.getCancelledCount(gymBranchId, datePeriod);
+      case ACTIVE -> analyticsRepository.getCurrentCount(gymBranchId, dateRange);
+      case NEW -> analyticsRepository.getNewsCount(gymBranchId, dateRange);
+      case CANCELLED -> analyticsRepository.getCancelledCount(gymBranchId, dateRange);
     };
   }
 
-  public Map<YearMonth, Integer> getMembershipSeniorityAverage(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    return analyticsRepository.getSeniorityAverage(gymBranchId, datePeriod);
+  public Map<YearMonth, Integer> getMembershipSeniorityAverage(GymBranchId gymBranchId, DateRange dateRange) {
+    return analyticsRepository.getSeniorityAverage(gymBranchId, dateRange);
   }
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {
     return analyticsRepository.getCohorts(gymBranchId);
   }
 
-  public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    return analyticsRepository.getRetentionVsChurn(gymBranchId, datePeriod);
+  public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DateRange dateRange) {
+    return analyticsRepository.getRetentionVsChurn(gymBranchId, dateRange);
   }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
     return expensesService.getExpenses(gymBranchId);
   }
 
-  public CashFlow getCashFlow(GymBranchId gymBranchId, DatePeriod datePeriod) {
-    var expenses = expensesService.getTotalPerMonth(gymBranchId, datePeriod);
-    var revenues = analyticsRepository.getTotalPerMonth(gymBranchId, datePeriod);
+  public CashFlow getCashFlow(GymBranchId gymBranchId, DateRange dateRange) {
+    var expenses = expensesService.getTotalPerMonth(gymBranchId, dateRange);
+    var revenues = analyticsRepository.getTotalPerMonth(gymBranchId, dateRange);
 
     return new CashFlow(expenses, revenues);
   }

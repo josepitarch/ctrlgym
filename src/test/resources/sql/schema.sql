@@ -446,43 +446,41 @@ CREATE TABLE expense_categories
 
 -- DROP TABLE expenses;
 
-CREATE TABLE expenses
-(
-  id                BIGSERIAL PRIMARY KEY,
-  gym_branch_id     BIGINT NOT NULL REFERENCES gym_branches(id),
-  concept           text NOT NULL,
-  category_id       int4 NOT NULL REFERENCES expense_categories(id),
-  type              expense_type NOT NULL,
-  recurrence        expense_recurrence NOT NULL,
-  amount            NUMERIC(10,2),
-  expense_date      DATE,
-  billing_day       SMALLINT,
-  estimated_amount  NUMERIC(10,2),
-  active            BOOLEAN NOT NULL DEFAULT TRUE,
-  source            VARCHAR(10) NOT NULL,
-  created_at        TIMESTAMP NOT NULL DEFAULT now(),
-  updated_at        TIMESTAMP NOT NULL DEFAULT now()
+CREATE TABLE expenses (
+  id                   BIGSERIAL PRIMARY KEY,
+  gym_branch_id        INTEGER NOT NULL REFERENCES gym_branches(id),
+  concept              VARCHAR(255) NOT NULL,
+  category_id          integer NOT NULL references expense_categories(id),
+  type                 public.expense_type NOT NULL,
+  recurrence           public.expense_recurrence NOT NULL,
+
+  -- ONE_OFF (fixed or variable):
+  amount               NUMERIC(10,2),
+  expense_date         DATE,
+
+  -- RECURRING:
+  billing_day          SMALLINT,               -- e.g. day 5 of each month
+  estimated_amount     NUMERIC(10,2),          -- real amount if FIXED; reference/placeholder if VARIABLE
+  active               BOOLEAN NOT NULL DEFAULT TRUE,
+
+  source                VARCHAR(10) NOT NULL,   -- MANUAL | EXCEL
+  created_at            TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at            TIMESTAMP NOT NULL DEFAULT now()
 );
 
--- public.expense_occurrences definition
+CREATE TABLE expense_occurrences (
+   id                   BIGSERIAL PRIMARY KEY,
+   expense_id           BIGINT NOT NULL REFERENCES expenses(id),
+   period               DATE NOT NULL,           -- normalized, e.g. first day of month: 2026-09-01
+   amount                NUMERIC(10,2),           -- NULL if RECURRING+VARIABLE not yet confirmed
+   amount_confirmed      BOOLEAN NOT NULL DEFAULT FALSE,
+   payment_status        expense_status NOT NULL,
+   payment_date          DATE,
+   source                VARCHAR(10) NOT NULL,    -- CRON | MANUAL | EXCEL
+   created_at            TIMESTAMP NOT NULL DEFAULT now(),
+   updated_at            TIMESTAMP NOT NULL DEFAULT now(),
 
--- Drop table
-
--- DROP TABLE expense_occurrences;
-
-CREATE TABLE expense_occurrences
-(
-  id                BIGSERIAL PRIMARY KEY,
-  expense_id        BIGINT NOT NULL REFERENCES expenses(id),
-  period            DATE NOT NULL,
-  amount            NUMERIC(10,2),
-  amount_confirmed  BOOLEAN NOT NULL DEFAULT FALSE,
-  payment_status    VARCHAR(20) NOT NULL,
-  payment_date      DATE,
-  source            VARCHAR(10) NOT NULL,
-  created_at        TIMESTAMP NOT NULL DEFAULT now(),
-  updated_at        TIMESTAMP NOT NULL DEFAULT now(),
-  CONSTRAINT uq_expense_period UNIQUE (expense_id, period)
+   CONSTRAINT uq_expense_period UNIQUE (expense_id, period)
 );
 
 -- public.gym_branch_current_occupancy definition

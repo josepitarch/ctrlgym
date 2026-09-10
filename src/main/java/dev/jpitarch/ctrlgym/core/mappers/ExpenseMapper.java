@@ -8,7 +8,7 @@ import org.mapstruct.Named;
 
 import java.math.BigDecimal;
 
-@Mapper(componentModel = "spring")
+@Mapper(config = BaseMapper.class)
 public interface ExpenseMapper {
 
   @Mapping(target = "id", ignore = true)

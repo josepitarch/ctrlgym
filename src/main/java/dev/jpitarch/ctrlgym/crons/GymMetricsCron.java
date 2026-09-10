@@ -76,14 +76,27 @@ public class GymMetricsCron {
                  )
               ), 0) AS revenue,
             COALESCE(
-              (SELECT COALESCE(SUM(expo.amount), 0)
-               FROM expenses exp
-               JOIN expense_occurrences expo ON exp.id = expo.expense_id
-               WHERE exp.gym_branch_id = gb.id
-                 AND exp.start_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
-                 AND (exp.end_date IS NULL OR exp.end_date >= :yearMonth::date)
-                 AND expo.occurrence_date >= :yearMonth::date
-                 AND expo.occurrence_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+              (SELECT COALESCE(SUM(amount), 0)
+               FROM (
+                 SELECT exp.amount
+                 FROM expenses exp
+                 WHERE exp.gym_branch_id = gb.id
+                   AND exp.active = true
+                   AND exp.recurrence = 'ONE_OFF'
+                   AND exp.expense_date >= :yearMonth::date
+                   AND exp.expense_date <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+
+                 UNION ALL
+
+                 SELECT expo.amount
+                 FROM expenses exp
+                 JOIN expense_occurrences expo ON exp.id = expo.expense_id
+                 WHERE exp.gym_branch_id = gb.id
+                   AND exp.active = true
+                   AND exp.recurrence = 'RECURRING'
+                   AND expo.period >= :yearMonth::date
+                   AND expo.period <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
+               ) AS all_expenses
               ), 0) AS expense,
             COALESCE(
               (SELECT COALESCE(SUM(i.total), 0)

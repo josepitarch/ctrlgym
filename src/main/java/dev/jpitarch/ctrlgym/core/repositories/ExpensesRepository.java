@@ -89,12 +89,25 @@ public class ExpensesRepository {
       ),
       expense_data AS (
           SELECT
+              DATE_TRUNC('month', exp.expense_date) AS month,
+              exp.amount
+          FROM expenses exp
+          WHERE exp.gym_branch_id = :gymBranchId
+            AND exp.active = true
+            AND exp.recurrence = 'ONE_OFF'
+            AND exp.expense_date >= :from
+            AND exp.expense_date <= :to
+
+          UNION ALL
+
+          SELECT
               eo.period AS month,
               eo.amount
           FROM expenses exp
           JOIN expense_occurrences eo ON exp.id = eo.expense_id
           WHERE exp.gym_branch_id = :gymBranchId
             AND exp.active = true
+            AND exp.recurrence = 'RECURRING'
             AND eo.period >= :from
             AND eo.period <= :to
       )

@@ -41,6 +41,16 @@ public class ExpensesService {
     return expensesRepository.getExpenses(gymBranchId);
   }
 
+  @Transactional
+  public Expense createExpense(Expense expense, GymBranchId gymBranchId) {
+    return expensesRepository.createExpense(expense, gymBranchId.branchId());
+  }
+
+  @Transactional
+  public void deleteExpense(Integer expenseId) {
+    expensesRepository.deleteExpense(expenseId);
+  }
+
   public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
     return expensesRepository.getTotalPerMonth(gymBranchId, dateRange);
   }

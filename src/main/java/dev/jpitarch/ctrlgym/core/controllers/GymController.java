@@ -152,16 +152,22 @@ public class GymController {
       .body(excelFile);
   }
 
+  @PostMapping("/{gymId}/expense-categories")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<ExpenseCategory> createExpenseCategory(@PathVariable Integer gymId, @RequestBody ExpenseCategory category) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExpenseCategory(gymId, category));
+  }
+
   @GetMapping("/{gymId}/expense-categories")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
   public ResponseEntity<List<ExpenseCategory>> getExpenseCategories(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getExpenseCategories(gymId));
   }
 
-  @PostMapping("/{gymId}/expense-categories")
+  @PatchMapping("/{gymId}/expense-categories/{categoryId}")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public ResponseEntity<ExpenseCategory> createExpenseCategory(@PathVariable Integer gymId, @RequestBody ExpenseCategory category) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExpenseCategory(gymId, category));
+  public ResponseEntity<ExpenseCategory> updateExpenseCategoryName(@PathVariable Integer gymId, @PathVariable Integer categoryId, @RequestBody ExpenseCategory category) {
+    return ResponseEntity.ok(useCase.updateExpenseCategoryName(categoryId, gymId, category.getName()));
   }
 
   @DeleteMapping("/{gymId}/expense-categories/{categoryId}")
@@ -171,11 +177,19 @@ public class GymController {
     return ResponseEntity.noContent().build();
   }
 
-  @PatchMapping("/{gymId}/expense-categories/{categoryId}")
+  @PostMapping("/{gymId}/branches/{branchId}/expenses")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public ResponseEntity<ExpenseCategory> updateExpenseCategoryName(@PathVariable Integer gymId, @PathVariable Integer categoryId, @RequestBody ExpenseCategory category) {
-    return ResponseEntity.ok(useCase.updateExpenseCategoryName(categoryId, gymId, category.getName()));
+  public ResponseEntity<Expense> createExpense(@PathVariable Integer gymId, @PathVariable Integer branchId, @RequestBody Expense expense) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExpense(expense, GymBranchId.of(gymId, branchId)));
   }
+
+  @DeleteMapping("/{gymId}/branches/{branchId}/expenses/{expenseId}")
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Void> deleteExpense(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Integer expenseId) {
+    useCase.deleteExpense(expenseId);
+    return ResponseEntity.noContent().build();
+  }
+
 
   @PreAuthorize("hasRole('MANAGER')")
   @GetMapping("/{gymId}/branches/{branchId}/employees")

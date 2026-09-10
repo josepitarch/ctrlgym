@@ -3,6 +3,7 @@ package dev.jpitarch.ctrlgym.core.controllers;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jpitarch.ctrlgym.core.domain.Exercise;
+import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.ExpenseCategory;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.domain.Product;
@@ -934,6 +935,85 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(categoryId.intValue()))
         .andExpect(jsonPath("$.name").value("Nombre actualizado"));
+    }
+  }
+
+  @Nested
+  @DisplayName("[EXPENSE]")
+  @Tag("EXPENSE")
+  class ExpenseTests {
+
+    @Test
+    @Order(1)
+    @DisplayName("Creates an expense successfully")
+    void createExpense_returns201() throws Exception {
+      var expense = Expense.builder()
+        .categoryId(1)
+        .nature(Expense.Nature.FIXED)
+        .frequency(Expense.Frequency.ONE_TIME)
+        .expectedAmount(150.00)
+        .build();
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/branches/{branchId}/expenses", gymId, branchId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(expense)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.category_id").value(1))
+        .andExpect(jsonPath("$.nature").value("FIXED"))
+        .andExpect(jsonPath("$.frequency").value("ONE_TIME"))
+        .andExpect(jsonPath("$.expected_amount").value(150.00));
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Creates a recurring expense with recurrence period")
+    void createRecurringExpense_returns201() throws Exception {
+      var expense = Expense.builder()
+        .categoryId(2)
+        .nature(Expense.Nature.FIXED)
+        .frequency(Expense.Frequency.RECURRING)
+        .recurrence(Expense.Recurrence.MONTHLY)
+        .expectedAmount(500.00)
+        .build();
+
+      mockMvc.perform(post("/v1/gyms/{gymId}/branches/{branchId}/expenses", gymId, branchId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(expense)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.category_id").value(2))
+        .andExpect(jsonPath("$.nature").value("FIXED"))
+        .andExpect(jsonPath("$.frequency").value("RECURRING"))
+        .andExpect(jsonPath("$.recurrence").value("MONTHLY"))
+        .andExpect(jsonPath("$.expected_amount").value(500.00));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Deletes an expense successfully")
+    void deleteExpense_returns204() throws Exception {
+      var expense = Expense.builder()
+        .categoryId(1)
+        .nature(Expense.Nature.VARIABLE)
+        .frequency(Expense.Frequency.ONE_TIME)
+        .expectedAmount(75.50)
+        .build();
+
+      MvcResult result = mockMvc.perform(post("/v1/gyms/{gymId}/branches/{branchId}/expenses", gymId, branchId)
+          .with(jwtAuth())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(expense)))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+      Number expenseId = objectMapper.readValue(result.getResponse().getContentAsString(), Expense.class).getId();
+
+      mockMvc.perform(delete("/v1/gyms/{gymId}/branches/{branchId}/expenses/{expenseId}", gymId, branchId, expenseId.intValue())
+          .with(jwtAuth()))
+        .andExpect(status().isNoContent());
     }
   }
 }

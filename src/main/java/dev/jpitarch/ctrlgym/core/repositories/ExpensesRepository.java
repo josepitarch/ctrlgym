@@ -4,7 +4,13 @@ import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.ExpenseFrequency;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.ExpenseNature;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.ExpenseStatus;
+import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.RecurrencePeriod;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseCategoryJpaRepository;
+import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -23,6 +29,8 @@ public class ExpensesRepository {
   private final NamedParameterJdbcTemplate jdbc;
 
   private final ExpenseCategoryJpaRepository expenseCategoryJpaRepository;
+
+  private final ExpenseJpaRepository expenseJpaRepository;
 
   public List<ExpenseCategoryEntity> getAllCategories(Integer gymId) {
     return expenseCategoryJpaRepository.findAllByGymId(gymId);
@@ -61,6 +69,26 @@ public class ExpensesRepository {
     var sql = "SELECT COUNT(*) > 0 FROM expenses WHERE category_id = :categoryId";
     var params = Map.of("categoryId", categoryId);
     return Boolean.TRUE.equals(jdbc.queryForObject(sql, params, Boolean.class));
+  }
+
+  public Expense createExpense(Expense expense, Integer gymBranchId) {
+    ExpenseEntity entity = new ExpenseEntity();
+    entity.setGymBranchId(gymBranchId);
+    entity.setCategoryId(expense.getCategoryId());
+    entity.setNature(ExpenseNature.valueOf(expense.getNature().name()));
+    entity.setFrequency(ExpenseFrequency.valueOf(expense.getFrequency().name()));
+    entity.setRecurrencePeriod(expense.getRecurrence() != null ? RecurrencePeriod.valueOf(expense.getRecurrence().name()) : null);
+    entity.setExpectedAmount(expense.getExpectedAmount() != null ? java.math.BigDecimal.valueOf(expense.getExpectedAmount()) : null);
+    entity.setCurrencyCode("EUR");
+    entity.setStartDate(LocalDate.now());
+    entity.setStatus(ExpenseStatus.ACTIVE);
+    ExpenseEntity saved = expenseJpaRepository.save(entity);
+    expense.setId(saved.getId().intValue());
+    return expense;
+  }
+
+  public void deleteExpense(Integer expenseId) {
+    expenseJpaRepository.deleteById(expenseId.longValue());
   }
 
   public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {

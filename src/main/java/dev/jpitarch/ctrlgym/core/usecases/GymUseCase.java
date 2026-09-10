@@ -227,6 +227,14 @@ public class GymUseCase {
     return expensesService.getCategories(gymId);
   }
 
+  public Expense createExpense(Expense expense, GymBranchId gymBranchId) {
+    return expensesService.createExpense(expense, gymBranchId);
+  }
+
+  public void deleteExpense(Integer expenseId) {
+    expensesService.deleteExpense(expenseId);
+  }
+
   public ExpenseCategory createExpenseCategory(Integer gymId, ExpenseCategory category) {
     return expensesService.createCategory(gymId, category);
   }

@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RefreshTokenService {
 
-  private final JwtService jwtService;
+  private final JwtFactory jwtFactory;
 
   private final RefreshTokenRepository refreshTokenRepository;
 
@@ -32,6 +32,7 @@ public class RefreshTokenService {
   private final SecureRandom secureRandom = new SecureRandom();
 
   private static final long REFRESH_TOKEN_EXPIRATION_DAYS = 30;
+
   private static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 900;
 
   public String generateRawRefreshToken(UUID userId, Integer gymId) {
@@ -42,6 +43,7 @@ public class RefreshTokenService {
     refreshEntity.setGymId(gymId);
     refreshEntity.setTokenHash(hashRefreshToken(rawToken));
     refreshEntity.setExpiresAt(Instant.now().plus(REFRESH_TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS));
+
     refreshTokenRepository.save(refreshEntity);
 
     return rawToken;
@@ -72,6 +74,7 @@ public class RefreshTokenService {
     newEntity.setTokenHash(hashRefreshToken(newRawToken));
     newEntity.setExpiresAt(Instant.now().plus(REFRESH_TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS));
     newEntity.setRevoked(false);
+
     refreshTokenRepository.save(newEntity);
 
     stored.setReplacedBy(newEntity.getId());
@@ -82,9 +85,19 @@ public class RefreshTokenService {
       throw new InvalidTokenException("Usuario no encontrado");
     }
 
-    String newAccessToken = jwtService.generateAccessToken(user);
+    String newAccessToken = jwtFactory.generateAccessToken(user);
 
     return new AuthResponse(newAccessToken, newRawToken, (int) ACCESS_TOKEN_EXPIRATION_SECONDS, "Bearer");
+  }
+
+  public void revoke(String rawRefreshToken) {
+    String tokenHash = hashRefreshToken(rawRefreshToken);
+
+    RefreshTokenEntity stored = refreshTokenRepository.findByTokenHash(tokenHash)
+      .orElseThrow(() -> new InvalidTokenException("Refresh token no encontrado"));
+
+    stored.setRevoked(true);
+    refreshTokenRepository.save(stored);
   }
 
   private String hashRefreshToken(String rawToken) {
@@ -95,16 +108,6 @@ public class RefreshTokenService {
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  public void logout(String rawRefreshToken) {
-    String tokenHash = hashRefreshToken(rawRefreshToken);
-
-    RefreshTokenEntity stored = refreshTokenRepository.findByTokenHash(tokenHash)
-      .orElseThrow(() -> new InvalidTokenException("Refresh token no encontrado"));
-
-    stored.setRevoked(true);
-    refreshTokenRepository.save(stored);
   }
 
   private String generateRawToken() {

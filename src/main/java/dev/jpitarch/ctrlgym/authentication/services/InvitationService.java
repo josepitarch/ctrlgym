@@ -7,8 +7,6 @@ import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,18 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class InvitationService {
-
-  private final SecretKey secretKey;
 
   private final String baseUrl;
 
@@ -35,7 +26,7 @@ public class InvitationService {
 
   private final PasswordEncoder passwordEncoder;
 
-  private final JwtService jwtService;
+  private final JwtFactory jwtFactory;
 
   private final RefreshTokenService refreshTokenService;
 
@@ -43,21 +34,17 @@ public class InvitationService {
 
   private final EmailService emailService;
 
-  private static final long INVITATION_TOKEN_EXPIRATION_DAYS = 7;
-
   public InvitationService(
-    @Value("${jwt.secret}") String secret,
     @Value("${email.redirect.base-url}") String baseUrl,
     UserRepository userRepository,
     PasswordEncoder passwordEncoder,
-    JwtService jwtService,
+    JwtFactory jwtFactory,
     RefreshTokenService refreshTokenService, EmailTemplateComponent emailTemplateComponent, EmailService emailService
   ) {
-    this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     this.baseUrl = baseUrl;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
-    this.jwtService = jwtService;
+    this.jwtFactory = jwtFactory;
     this.refreshTokenService = refreshTokenService;
     this.emailTemplateComponent = emailTemplateComponent;
     this.emailService = emailService;
@@ -67,22 +54,14 @@ public class InvitationService {
   public void generateInvitationToken(EmployeeCreatedEvent event) {
     log.info("Generating invitation token for email {}...", event.getEmail());
 
-    var now = Instant.now();
-    String token = Jwts.builder()
-      .subject(event.getEmail())
-      .claim("type", "invitation")
-      .claim("gym_id", event.getGymId())
-      .issuedAt(Date.from(now))
-      .expiration(Date.from(now.plus(INVITATION_TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS)))
-      .signWith(secretKey)
-      .compact();
+    String token = jwtFactory.generateInvitationToken(event.getEmail(), event.getGymId());
 
     String template = emailTemplateComponent.build("employee-invitation.html", Map.of("ConfirmationURL", baseUrl + "/signup" + "?token=" + token));
     emailService.send(event.getEmail(), "Invitación a CtrlGym", template);
   }
 
   public AuthResponse acceptInvitation(String token, String password) throws InvalidTokenException {
-    InvitationPayload payload = validateAndParse(token);
+    JwtFactory.InvitationPayload payload = jwtFactory.parseInvitationToken(token);
 
     var user = userRepository.findByEmail(payload.email())
       .orElseThrow(() -> new InvalidTokenException("Usuario no encontrado"));
@@ -97,29 +76,10 @@ public class InvitationService {
     user.setStatus(UserStatus.ACTIVE);
     userRepository.save(user);
 
-    String accessToken = jwtService.generateAccessToken(user);
+    String accessToken = jwtFactory.generateAccessToken(user);
     String rawRefreshToken = refreshTokenService.generateRawRefreshToken(user.getId(), user.getGymId());
 
     return new AuthResponse(accessToken, rawRefreshToken, 900, "Bearer");
-  }
-
-  public InvitationPayload validateAndParse(String token) {
-
-    var claims = Jwts.parser()
-      .verifyWith(secretKey)
-      .build()
-      .parseSignedClaims(token)
-      .getPayload();
-
-    String type = claims.get("type", String.class);
-    if (!"invitation".equals(type)) {
-      throw new InvalidTokenException("Token no es una invitación");
-    }
-
-    return new InvitationPayload(claims.getSubject(), claims.get("gym_id", Integer.class));
-  }
-
-  public record InvitationPayload(String email, Integer gymId) {
   }
 
 }

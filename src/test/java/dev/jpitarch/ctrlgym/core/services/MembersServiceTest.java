@@ -40,7 +40,7 @@ class MembersServiceTest {
   MembershipPlanRepository membershipPlanRepository;
 
   @Mock
-  GenerateAccessQr generateAccessQr;
+  GenerateAccessControlToken generateAccessControlToken;
 
   @Mock
   CustomerService customerService;
@@ -70,8 +70,8 @@ class MembersServiceTest {
         .gymBranchId(gymBranchId)
         .build()
     );
-    when(generateAccessQr.generateEntryToken(memberId, role, gymBranchId, gymBranchId)).thenReturn("entry-token");
-    when(generateAccessQr.generateExitToken(memberId, role, gymId, gymBranchId)).thenReturn("exit-token");
+    when(generateAccessControlToken.generateEntryToken(memberId, role, gymBranchId, gymBranchId)).thenReturn("entry-token");
+    when(generateAccessControlToken.generateExitToken(memberId, role, gymId, gymBranchId)).thenReturn("exit-token");
 
     AccessTokensResponse result = membersService.generateAccessTokens(memberId);
 
@@ -104,8 +104,8 @@ class MembersServiceTest {
         .gymBranchId(gymBranchId)
         .build()
     );
-    when(generateAccessQr.generateEntryToken(memberId, role, gymBranchId, gymBranchId)).thenReturn("entry-token");
-    when(generateAccessQr.generateExitToken(memberId, role, gymId, gymBranchId)).thenReturn("exit-token");
+    when(generateAccessControlToken.generateEntryToken(memberId, role, gymBranchId, gymBranchId)).thenReturn("entry-token");
+    when(generateAccessControlToken.generateExitToken(memberId, role, gymId, gymBranchId)).thenReturn("exit-token");
 
     AccessTokensResponse result = membersService.generateAccessTokens(memberId);
 

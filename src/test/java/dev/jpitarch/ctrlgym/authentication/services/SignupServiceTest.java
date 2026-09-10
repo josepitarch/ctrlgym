@@ -47,7 +47,7 @@ class SignupServiceTest {
   PasswordEncoder passwordEncoder;
 
   @Mock
-  JwtService jwtService;
+  JwtFactory jwtFactory;
 
   @Mock
   RefreshTokenService refreshTokenService;
@@ -127,7 +127,7 @@ class SignupServiceTest {
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
+    when(jwtFactory.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
     var request = adultRequest(List.of(termsVersionId, privacyVersionId));
@@ -153,7 +153,7 @@ class SignupServiceTest {
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
+    when(jwtFactory.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
     var request = minorRequest(List.of(termsVersionId, privacyVersionId));
@@ -178,7 +178,7 @@ class SignupServiceTest {
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
+    when(jwtFactory.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
     var request = new SignupRequest(
@@ -287,7 +287,7 @@ class SignupServiceTest {
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
+    when(jwtFactory.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
     var request = adultRequest(List.of(termsVersionId, privacyVersionId));
@@ -325,7 +325,7 @@ class SignupServiceTest {
     when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
       .thenReturn(activeMandatoryVersions());
     when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
-    when(jwtService.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
+    when(jwtFactory.generateAccessToken(any(UserEntity.class))).thenReturn("access-token");
     when(refreshTokenService.generateRawRefreshToken(any(UUID.class), eq(gymId))).thenReturn("refresh-token");
 
     var request = adultRequestWithNif(List.of(termsVersionId, privacyVersionId), "B86561412");

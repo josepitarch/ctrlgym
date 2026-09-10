@@ -5,19 +5,17 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.security.PrivateKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GenerateAccessQr {
+public class GenerateAccessControlToken {
 
   private final PrivateKey signingKey;
 

@@ -36,7 +36,7 @@ public class SignupService {
 
   private final PasswordEncoder passwordEncoder;
 
-  private final JwtService jwtService;
+  private final JwtFactory jwtFactory;
 
   private final RefreshTokenService refreshTokenService;
 
@@ -121,7 +121,7 @@ public class SignupService {
       legalDocumentsRepository.saveAcceptance(acceptance);
     }
 
-    String accessToken = jwtService.generateAccessToken(created);
+    String accessToken = jwtFactory.generateAccessToken(created);
     String rawRefreshToken = refreshTokenService.generateRawRefreshToken(created.getId(), gymId);
 
     return new AuthResponse(accessToken, rawRefreshToken, 900, "Bearer");

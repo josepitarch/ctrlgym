@@ -18,7 +18,7 @@ public class LoginService {
 
   private final PasswordEncoder passwordEncoder;
 
-  private final JwtService jwtService;
+  private final JwtFactory jwtFactory;
 
   private final RefreshTokenService refreshTokenService;
 
@@ -46,7 +46,7 @@ public class LoginService {
       throw new IllegalArgumentException("Invalid credentials");
     }
 
-    String accessToken = jwtService.generateAccessToken(user);
+    String accessToken = jwtFactory.generateAccessToken(user);
     String rawRefreshToken = refreshTokenService.generateRawRefreshToken(user.getId(), user.getGymId());
 
     return new AuthResponse(accessToken, rawRefreshToken, 900, "Bearer");

@@ -29,7 +29,7 @@ public class MembersService {
 
   private final MembersRepository membersRepository;
 
-  private final GenerateAccessQr generateAccessQr;
+  private final GenerateAccessControlToken generateAccessControlToken;
 
   private final CustomerService customerService;
 
@@ -74,8 +74,8 @@ public class MembersService {
 
     log.info("Generating access tokens for member with id {}: {}...", memberId, plan.getGymBranchId());
 
-    String entryToken = generateAccessQr.generateEntryToken(memberId, role, plan.getGymBranchId(), plan.getGymBranchId());
-    String exitToken = generateAccessQr.generateExitToken(memberId, role, gymId, plan.getGymBranchId());
+    String entryToken = generateAccessControlToken.generateEntryToken(memberId, role, plan.getGymBranchId(), plan.getGymBranchId());
+    String exitToken = generateAccessControlToken.generateExitToken(memberId, role, gymId, plan.getGymBranchId());
 
     return new AccessTokensResponse(entryToken, exitToken);
   }

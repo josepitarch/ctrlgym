@@ -1,20 +1,20 @@
 -- DROP TYPE public.expense_frequency;
 
-CREATE TYPE public.expense_frequency AS ENUM (
-    'ONE_TIME',
+CREATE TYPE public.expense_recurrence AS ENUM (
+    'ONE_OFF',
     'RECURRING');
 
 -- DROP TYPE public.expense_nature;
 
-CREATE TYPE public.expense_nature AS ENUM (
+CREATE TYPE public.expense_type AS ENUM (
     'FIXED',
     'VARIABLE');
 
 -- DROP TYPE public.expense_status;
 
 CREATE TYPE public.expense_status AS ENUM (
-    'ACTIVE',
-    'INACTIVE');
+    'PENDING',
+    'PAID');
 
 -- DROP TYPE public.invoice_status;
 
@@ -448,26 +448,20 @@ CREATE TABLE expense_categories
 
 CREATE TABLE expenses
 (
-  id              bigserial               NOT NULL,
-  gym_branch_id   int4                    NOT NULL,
-  category_id     int2                    NOT NULL,
-  nature public.expense_nature                                  NOT NULL,
-  frequency public.expense_frequency                               NOT NULL,
-  recurrence_period public.recurrence_period                               NULL,
-  expected_amount numeric(12, 2) NULL,
-  currency_code   bpchar(3)             DEFAULT 'EUR'::bpchar            NOT NULL,
-  start_date      date                    NOT NULL,
-  end_date        date NULL,
-  status public.expense_status DEFAULT 'ACTIVE'::expense_status NOT NULL,
-  created_at      timestamp DEFAULT now() NOT NULL,
-  updated_at      timestamp DEFAULT now() NOT NULL,
-  CONSTRAINT chk_expected_amount CHECK (((expected_amount IS NULL) OR (expected_amount >= (0)::numeric))),
-  CONSTRAINT chk_recurrence_period CHECK ((
-    ((frequency = 'RECURRING'::expense_frequency) AND (recurrence_period IS NOT NULL)) OR
-    ((frequency = 'ONE_TIME'::expense_frequency) AND (recurrence_period IS NULL)))),
-  CONSTRAINT expenses_pkey PRIMARY KEY (id),
-  CONSTRAINT expenses_category_id_fkey FOREIGN KEY (category_id) REFERENCES expense_categories (id),
-  CONSTRAINT expenses_gym_branch_id_fkey FOREIGN KEY (gym_branch_id) REFERENCES gym_branches (id)
+  id                BIGSERIAL PRIMARY KEY,
+  gym_branch_id     BIGINT NOT NULL REFERENCES gym_branches(id),
+  concept           text NOT NULL,
+  category_id       int4 NOT NULL REFERENCES expense_categories(id),
+  type              expense_type NOT NULL,
+  recurrence        expense_recurrence NOT NULL,
+  amount            NUMERIC(10,2),
+  expense_date      DATE,
+  billing_day       SMALLINT,
+  estimated_amount  NUMERIC(10,2),
+  active            BOOLEAN NOT NULL DEFAULT TRUE,
+  source            VARCHAR(10) NOT NULL,
+  created_at        TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- public.expense_occurrences definition
@@ -478,16 +472,17 @@ CREATE TABLE expenses
 
 CREATE TABLE expense_occurrences
 (
-  id                bigserial               NOT NULL,
-  expense_id        int8                    NOT NULL,
-  occurrence_date   date                    NOT NULL,
-  amount            numeric(12, 2)          NOT NULL,
-  notes             text NULL,
-  invoice_reference varchar(100) NULL,
-  created_at        timestamp DEFAULT now() NOT NULL,
-  CONSTRAINT chk_occurrence_amount CHECK ((amount >= (0)::numeric)),
-  CONSTRAINT expense_occurrences_pkey PRIMARY KEY (id),
-  CONSTRAINT expense_occurrences_expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expenses (id)
+  id                BIGSERIAL PRIMARY KEY,
+  expense_id        BIGINT NOT NULL REFERENCES expenses(id),
+  period            DATE NOT NULL,
+  amount            NUMERIC(10,2),
+  amount_confirmed  BOOLEAN NOT NULL DEFAULT FALSE,
+  payment_status    VARCHAR(20) NOT NULL,
+  payment_date      DATE,
+  source            VARCHAR(10) NOT NULL,
+  created_at        TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMP NOT NULL DEFAULT now(),
+  CONSTRAINT uq_expense_period UNIQUE (expense_id, period)
 );
 
 -- public.gym_branch_current_occupancy definition

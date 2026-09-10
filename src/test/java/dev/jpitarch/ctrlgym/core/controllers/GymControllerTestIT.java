@@ -945,13 +945,16 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
     @Test
     @Order(1)
-    @DisplayName("Creates an expense successfully")
+    @DisplayName("Creates a one-off expense successfully")
     void createExpense_returns201() throws Exception {
       var expense = Expense.builder()
+        .concept("Material de oficina")
         .categoryId(1)
-        .nature(Expense.Nature.FIXED)
-        .frequency(Expense.Frequency.ONE_TIME)
-        .expectedAmount(150.00)
+        .type(Expense.Type.FIXED)
+        .recurrence(Expense.Recurrence.ONE_OFF)
+        .amount(150.00)
+        .expenseDate(LocalDate.of(2026, 9, 10))
+        .source(Expense.Source.MANUAL)
         .build();
 
       mockMvc.perform(post("/v1/gyms/{gymId}/branches/{branchId}/expenses", gymId, branchId)
@@ -960,22 +963,27 @@ class GymControllerTestIT extends BaseIntegrationTest {
           .content(objectMapper.writeValueAsString(expense)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.concept").value("Material de oficina"))
         .andExpect(jsonPath("$.category_id").value(1))
-        .andExpect(jsonPath("$.nature").value("FIXED"))
-        .andExpect(jsonPath("$.frequency").value("ONE_TIME"))
-        .andExpect(jsonPath("$.expected_amount").value(150.00));
+        .andExpect(jsonPath("$.type").value("FIXED"))
+        .andExpect(jsonPath("$.recurrence").value("ONE_OFF"))
+        .andExpect(jsonPath("$.amount").value(150.00))
+        .andExpect(jsonPath("$.expense_date").value("2026-09-10"))
+        .andExpect(jsonPath("$.source").value("MANUAL"));
     }
 
     @Test
     @Order(2)
-    @DisplayName("Creates a recurring expense with recurrence period")
+    @DisplayName("Creates a recurring expense successfully")
     void createRecurringExpense_returns201() throws Exception {
       var expense = Expense.builder()
+        .concept("Alquiler mensual")
         .categoryId(2)
-        .nature(Expense.Nature.FIXED)
-        .frequency(Expense.Frequency.RECURRING)
-        .recurrence(Expense.Recurrence.MONTHLY)
-        .expectedAmount(500.00)
+        .type(Expense.Type.FIXED)
+        .recurrence(Expense.Recurrence.RECURRING)
+        .billingDay((short) 1)
+        .estimatedAmount(500.00)
+        .source(Expense.Source.MANUAL)
         .build();
 
       mockMvc.perform(post("/v1/gyms/{gymId}/branches/{branchId}/expenses", gymId, branchId)
@@ -984,11 +992,13 @@ class GymControllerTestIT extends BaseIntegrationTest {
           .content(objectMapper.writeValueAsString(expense)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.concept").value("Alquiler mensual"))
         .andExpect(jsonPath("$.category_id").value(2))
-        .andExpect(jsonPath("$.nature").value("FIXED"))
-        .andExpect(jsonPath("$.frequency").value("RECURRING"))
-        .andExpect(jsonPath("$.recurrence").value("MONTHLY"))
-        .andExpect(jsonPath("$.expected_amount").value(500.00));
+        .andExpect(jsonPath("$.type").value("FIXED"))
+        .andExpect(jsonPath("$.recurrence").value("RECURRING"))
+        .andExpect(jsonPath("$.billing_day").value(1))
+        .andExpect(jsonPath("$.estimated_amount").value(500.00))
+        .andExpect(jsonPath("$.source").value("MANUAL"));
     }
 
     @Test
@@ -996,10 +1006,13 @@ class GymControllerTestIT extends BaseIntegrationTest {
     @DisplayName("Deletes an expense successfully")
     void deleteExpense_returns204() throws Exception {
       var expense = Expense.builder()
+        .concept("Gasto a borrar")
         .categoryId(1)
-        .nature(Expense.Nature.VARIABLE)
-        .frequency(Expense.Frequency.ONE_TIME)
-        .expectedAmount(75.50)
+        .type(Expense.Type.VARIABLE)
+        .recurrence(Expense.Recurrence.ONE_OFF)
+        .amount(75.50)
+        .expenseDate(LocalDate.of(2026, 9, 5))
+        .source(Expense.Source.MANUAL)
         .build();
 
       MvcResult result = mockMvc.perform(post("/v1/gyms/{gymId}/branches/{branchId}/expenses", gymId, branchId)
@@ -1011,7 +1024,7 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
       Number expenseId = objectMapper.readValue(result.getResponse().getContentAsString(), Expense.class).getId();
 
-      mockMvc.perform(delete("/v1/gyms/{gymId}/branches/{branchId}/expenses/{expenseId}", gymId, branchId, expenseId.intValue())
+      mockMvc.perform(delete("/v1/gyms/{gymId}/branches/{branchId}/expenses/{expenseId}", gymId, branchId, expenseId.longValue())
           .with(jwtAuth()))
         .andExpect(status().isNoContent());
     }

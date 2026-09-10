@@ -3,7 +3,6 @@ package dev.jpitarch.ctrlgym.core.services;
 import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
 import dev.jpitarch.ctrlgym.core.domain.ExpenseCategory;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
 import dev.jpitarch.ctrlgym.core.repositories.ExpensesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseCategoryJpaRepository;
@@ -37,21 +36,21 @@ public class ExpensesService {
       .toList();
   }
 
-  public List<Expense> getExpenses(GymBranchId gymBranchId) {
+  public List<Expense> getExpenses(Integer gymBranchId) {
     return expensesRepository.getExpenses(gymBranchId);
   }
 
   @Transactional
-  public Expense createExpense(Expense expense, GymBranchId gymBranchId) {
-    return expensesRepository.createExpense(expense, gymBranchId.branchId());
+  public Expense createExpense(Expense expense, Integer gymBranchId) {
+    return expensesRepository.createExpense(expense, gymBranchId);
   }
 
   @Transactional
-  public void deleteExpense(Integer expenseId) {
+  public void deleteExpense(Long expenseId) {
     expensesRepository.deleteExpense(expenseId);
   }
 
-  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
+  public Map<YearMonth, Double> getTotalPerMonth(Integer gymBranchId, DateRange dateRange) {
     return expensesRepository.getTotalPerMonth(gymBranchId, dateRange);
   }
 

@@ -25,42 +25,40 @@ public class ExpenseEntity {
   @Column(name = "gym_branch_id", nullable = false)
   private Integer gymBranchId;
 
+  @Column(name = "concept", nullable = false)
+  private String concept;
+
   @Column(name = "category_id", nullable = false)
   private Integer categoryId;
 
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(name = "nature", columnDefinition = "expense_nature not null", nullable = false)
-  private ExpenseNature nature;
+  @Column(name = "type", columnDefinition = "expense_type not null", nullable = false)
+  private ExpenseType type;
 
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(name = "frequency", columnDefinition = "expense_frequency not null", nullable = false)
-  private ExpenseFrequency frequency;
+  @Column(name = "recurrence", columnDefinition = "expense_recurrence not null", nullable = false)
+  private ExpenseRecurrence recurrence;
 
-  @Enumerated(EnumType.STRING)
-  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(name = "recurrence_period", columnDefinition = "recurrence_period")
-  private RecurrencePeriod recurrencePeriod;
+  @Column(name = "amount")
+  private BigDecimal amount;
 
-  @Column(name = "expected_amount")
-  private BigDecimal expectedAmount;
+  @Column(name = "expense_date")
+  private LocalDate expenseDate;
 
-  @Column(name = "currency_code", nullable = false, length = 3)
-  @ColumnDefault("'EUR'")
-  private String currencyCode;
+  @Column(name = "billing_day")
+  private Short billingDay;
 
-  @Column(name = "start_date", nullable = false)
-  private LocalDate startDate;
+  @Column(name = "estimated_amount")
+  private BigDecimal estimatedAmount;
 
-  @Column(name = "end_date")
-  private LocalDate endDate;
+  @Column(name = "active", nullable = false)
+  @ColumnDefault("true")
+  private Boolean active;
 
-  @Enumerated(EnumType.STRING)
-  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(name = "status", columnDefinition = "expense_status not null", nullable = false)
-  @ColumnDefault("'ACTIVE'")
-  private ExpenseStatus status;
+  @Column(name = "source", nullable = false, length = 10)
+  private String source;
 
   @ColumnDefault("now()")
   @Column(name = "created_at", nullable = false, insertable = false)
@@ -70,20 +68,12 @@ public class ExpenseEntity {
   @Column(name = "updated_at", nullable = false, insertable = false)
   private Instant updatedAt;
 
-  public enum ExpenseNature {
+  public enum ExpenseType {
     FIXED, VARIABLE
   }
 
-  public enum ExpenseFrequency {
-    ONE_TIME, RECURRING
-  }
-
-  public enum RecurrencePeriod {
-    DAILY, WEEKLY, MONTHLY, YEARLY
-  }
-
-  public enum ExpenseStatus {
-    ACTIVE, INACTIVE
+  public enum ExpenseRecurrence {
+    ONE_OFF, RECURRING
   }
 
 }

@@ -62,11 +62,11 @@ public class DashboardUseCase {
   }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId) {
-    return expensesService.getExpenses(gymBranchId);
+    return expensesService.getExpenses(gymBranchId.branchId());
   }
 
   public CashFlow getCashFlow(GymBranchId gymBranchId, DateRange dateRange) {
-    var expenses = expensesService.getTotalPerMonth(gymBranchId, dateRange);
+    var expenses = expensesService.getTotalPerMonth(gymBranchId.branchId(), dateRange);
     var revenues = analyticsRepository.getTotalPerMonth(gymBranchId, dateRange);
 
     return new CashFlow(expenses, revenues);

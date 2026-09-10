@@ -2,21 +2,16 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.DateRange;
 import dev.jpitarch.ctrlgym.core.domain.Expense;
-import dev.jpitarch.ctrlgym.core.domain.GymBranchId;
 import dev.jpitarch.ctrlgym.core.entities.ExpenseCategoryEntity;
 import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity;
-import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.ExpenseFrequency;
-import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.ExpenseNature;
-import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.ExpenseStatus;
-import dev.jpitarch.ctrlgym.core.entities.ExpenseEntity.RecurrencePeriod;
+import dev.jpitarch.ctrlgym.core.mappers.ExpenseMapper;
+import dev.jpitarch.ctrlgym.core.mappers.ExpenseRowMapper;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseCategoryJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.ExpenseJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
@@ -32,37 +27,37 @@ public class ExpensesRepository {
 
   private final ExpenseJpaRepository expenseJpaRepository;
 
+  private final ExpenseRowMapper expenseRowMapper;
+
+  private final ExpenseMapper expenseMapper;
+
   public List<ExpenseCategoryEntity> getAllCategories(Integer gymId) {
     return expenseCategoryJpaRepository.findAllByGymId(gymId);
   }
 
-  public List<Expense> getExpenses(GymBranchId gymBranchId) {
+  public List<Expense> getExpenses(Integer gymBranchId) {
     var sql = """
-      SELECT category_id, nature, frequency, recurrence_period, expected_amount
-      FROM expenses e
+      SELECT id, gym_branch_id, concept, category_id, type, recurrence, amount, expense_date, billing_day, estimated_amount, active, source
+      FROM expenses
       WHERE gym_branch_id = :gymBranchId
-      AND EXISTS (
-        SELECT 1
-        FROM expense_occurrences eo
-        WHERE e.id = eo.expense_id
-        AND DATE_TRUNC('month', eo.occurrence_date)::date = DATE_TRUNC('month', CURRENT_DATE)::date
-      )
+        AND active IS true
+        AND recurrence = 'ONE_OFF'
+        AND DATE_TRUNC('month', expense_date) = DATE_TRUNC('month', CURRENT_DATE)
+
+      UNION ALL
+
+      SELECT e.id, e.gym_branch_id, e.concept, e.category_id, e.type, e.recurrence, eo.amount, e.expense_date, e.billing_day, e.estimated_amount, e.active, e.source
+      FROM expenses e
+      JOIN expense_occurrences eo ON e.id = eo.expense_id
+      WHERE e.gym_branch_id = :gymBranchId
+        AND e.active IS true
+        AND e.recurrence = 'RECURRING'
+        AND DATE_TRUNC('month', eo.period) = DATE_TRUNC('month', CURRENT_DATE)
       """;
 
-    var params = Map.of(
-      "gymBranchId", gymBranchId.branchId(),
-      "from", LocalDate.of(Year.now().getValue(), 1, 1),
-      "to", LocalDate.now()
-    );
+    var params = Map.of("gymBranchId", gymBranchId);
 
-    return jdbc.query(sql, params, (row, rowNum) -> {
-      var categoryId = row.getInt("category_id");
-      var nature = Expense.Nature.from(row.getString("nature"));
-      var frequency = Expense.Frequency.from(row.getString("frequency"));
-      var recurrencePeriod = Expense.Recurrence.from(row.getString("recurrence_period"));
-      var expectedAmount = row.getDouble("expected_amount");
-      return new Expense(null, categoryId, nature, frequency, recurrencePeriod, expectedAmount);
-    });
+    return jdbc.query(sql, params, expenseRowMapper);
   }
 
   public boolean existsByCategoryId(Integer categoryId) {
@@ -72,26 +67,18 @@ public class ExpensesRepository {
   }
 
   public Expense createExpense(Expense expense, Integer gymBranchId) {
-    ExpenseEntity entity = new ExpenseEntity();
+    ExpenseEntity entity = expenseMapper.toEntity(expense);
     entity.setGymBranchId(gymBranchId);
-    entity.setCategoryId(expense.getCategoryId());
-    entity.setNature(ExpenseNature.valueOf(expense.getNature().name()));
-    entity.setFrequency(ExpenseFrequency.valueOf(expense.getFrequency().name()));
-    entity.setRecurrencePeriod(expense.getRecurrence() != null ? RecurrencePeriod.valueOf(expense.getRecurrence().name()) : null);
-    entity.setExpectedAmount(expense.getExpectedAmount() != null ? java.math.BigDecimal.valueOf(expense.getExpectedAmount()) : null);
-    entity.setCurrencyCode("EUR");
-    entity.setStartDate(LocalDate.now());
-    entity.setStatus(ExpenseStatus.ACTIVE);
     ExpenseEntity saved = expenseJpaRepository.save(entity);
-    expense.setId(saved.getId().intValue());
+    expense.setId(saved.getId());
     return expense;
   }
 
-  public void deleteExpense(Integer expenseId) {
-    expenseJpaRepository.deleteById(expenseId.longValue());
+  public void deleteExpense(Long expenseId) {
+    expenseJpaRepository.deleteById(expenseId);
   }
 
-  public Map<YearMonth, Double> getTotalPerMonth(GymBranchId gymBranchId, DateRange dateRange) {
+  public Map<YearMonth, Double> getTotalPerMonth(Integer gymBranchId, DateRange dateRange) {
     var sql = """
       WITH months AS (
           SELECT generate_series(
@@ -102,13 +89,14 @@ public class ExpensesRepository {
       ),
       expense_data AS (
           SELECT
-              DATE_TRUNC('month', expo.occurrence_date)::date AS month,
-              expo.amount
+              eo.period AS month,
+              eo.amount
           FROM expenses exp
-          JOIN expense_occurrences expo ON exp.id = expo.expense_id
+          JOIN expense_occurrences eo ON exp.id = eo.expense_id
           WHERE exp.gym_branch_id = :gymBranchId
-            AND exp.start_date >= :from
-            AND (exp.end_date IS NULL OR exp.end_date <= :to)
+            AND exp.active = true
+            AND eo.period >= :from
+            AND eo.period <= :to
       )
       SELECT
           m.month AS month,
@@ -120,7 +108,7 @@ public class ExpensesRepository {
       """;
 
     var params = Map.of(
-      "gymBranchId", gymBranchId.branchId(),
+      "gymBranchId", gymBranchId,
       "from", dateRange.from(),
       "to", dateRange.to()
     );

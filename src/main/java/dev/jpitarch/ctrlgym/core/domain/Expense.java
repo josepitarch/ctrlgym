@@ -5,7 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.util.StringUtils;
+
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -13,45 +14,59 @@ import org.springframework.util.StringUtils;
 @AllArgsConstructor
 public class Expense {
 
-  private Integer id;
+  private Long id;
+
+  @JsonProperty("gym_branch_id")
+  private Integer gymBranchId;
+
+  private String concept;
 
   @JsonProperty("category_id")
   private Integer categoryId;
 
-  private Nature nature;
-
-  private Frequency frequency;
+  private Type type;
 
   private Recurrence recurrence;
 
-  @JsonProperty("expected_amount")
-  private Double expectedAmount;
+  private Double amount;
 
-  public enum Nature {
+  @JsonProperty("expense_date")
+  private LocalDate expenseDate;
+
+  @JsonProperty("billing_day")
+  private Short billingDay;
+
+  @JsonProperty("estimated_amount")
+  private Double estimatedAmount;
+
+  private Boolean active;
+
+  private Source source;
+
+  public enum Type {
     FIXED,
     VARIABLE;
 
-    public static Nature from(String str) {
-      return Nature.valueOf(str.toUpperCase());
-    }
-  }
-
-  public enum Frequency {
-    RECURRING,
-    ONE_TIME;
-
-    public static Frequency from(String str) {
-      return Frequency.valueOf(str.toUpperCase());
+    public static Type from(String str) {
+      return Type.valueOf(str.toUpperCase());
     }
   }
 
   public enum Recurrence {
-    WEEKLY,
-    MONTHLY;
+    RECURRING,
+    ONE_OFF;
 
     public static Recurrence from(String str) {
-      if (!StringUtils.hasText(str)) return null;
       return Recurrence.valueOf(str.toUpperCase());
+    }
+  }
+
+  public enum Source {
+    MANUAL,
+    EXCEL;
+
+    public static Source from(String str) {
+      return Source.valueOf(str.toUpperCase());
     }
   }
 

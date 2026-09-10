@@ -185,7 +185,7 @@ public class GymController {
 
   @DeleteMapping("/{gymId}/branches/{branchId}/expenses/{expenseId}")
   @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
-  public ResponseEntity<Void> deleteExpense(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Integer expenseId) {
+  public ResponseEntity<Void> deleteExpense(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable Long expenseId) {
     useCase.deleteExpense(expenseId);
     return ResponseEntity.noContent().build();
   }

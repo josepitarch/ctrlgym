@@ -228,10 +228,10 @@ public class GymUseCase {
   }
 
   public Expense createExpense(Expense expense, GymBranchId gymBranchId) {
-    return expensesService.createExpense(expense, gymBranchId);
+    return expensesService.createExpense(expense, gymBranchId.branchId());
   }
 
-  public void deleteExpense(Integer expenseId) {
+  public void deleteExpense(Long expenseId) {
     expensesService.deleteExpense(expenseId);
   }
 

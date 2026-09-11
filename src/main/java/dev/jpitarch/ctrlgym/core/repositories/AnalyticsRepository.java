@@ -402,28 +402,37 @@ public class AnalyticsRepository {
   public Map<MembersDistribution.Group, List<String[]>> getDistribution(GymBranchId gymBranchId) {
     var sql = """
       SELECT
-        gender,
-        COALESCE(postal_code::text, 'NOT_INFORMED') AS postal_code,
-        CASE
-          WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 18 AND 25 THEN '18-25'
-          WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 26 AND 35 THEN '26-35'
-          WHEN EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 36 AND 45 THEN '36-45'
-          ELSE '+45'
-        END AS age_range,
-        COUNT(*) AS total
-      FROM users u
-      WHERE u.gym_id = :gymId
-      AND EXISTS (
-          SELECT 1
-          FROM memberships mb
-          JOIN membership_plans mp on mb.membership_plan_id = mp.id
-          WHERE u.id = mb.member_id AND u.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
-          AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date >= CURRENT_DATE)
-      )
+        base.gender,
+        base.postal_code,
+        base.age_range,
+        COUNT(*) AS total,
+        GROUPING(base.gender) AS g_gender,
+        GROUPING(base.postal_code) AS g_postal,
+        GROUPING(base.age_range) AS g_age
+      FROM (
+        SELECT
+          u.gender,
+          COALESCE(u.postal_code::text, 'NOT_INFORMED') AS postal_code,
+          CASE
+            WHEN EXTRACT(YEAR FROM AGE(u.birth_date)) BETWEEN 18 AND 25 THEN '18-25'
+            WHEN EXTRACT(YEAR FROM AGE(u.birth_date)) BETWEEN 26 AND 35 THEN '26-35'
+            WHEN EXTRACT(YEAR FROM AGE(u.birth_date)) BETWEEN 36 AND 45 THEN '36-45'
+            ELSE '+45'
+          END AS age_range
+        FROM users u
+        WHERE u.gym_id = :gymId
+        AND EXISTS (
+            SELECT 1
+            FROM memberships mb
+            JOIN membership_plans mp on mb.membership_plan_id = mp.id
+            WHERE u.id = mb.member_id AND u.gym_id = mb.gym_id AND mp.gym_branch_id = :gymBranchId
+            AND mb.start_date <= CURRENT_DATE AND (mb.end_date IS NULL OR mb.end_date >= CURRENT_DATE)
+        )
+      ) base
       GROUP BY GROUPING SETS (
-        (gender),
-        (postal_code),
-        (age_range)
+        (base.gender),
+        (base.postal_code),
+        (base.age_range)
       );
       """;
 
@@ -432,23 +441,34 @@ public class AnalyticsRepository {
       "gymBranchId", gymBranchId.branchId()
     );
 
-    return jdbc.query(sql, params, (rs, rowNum) -> new String[]{
+    return jdbc.query(sql, params, (rs, rowNum) -> new Object[]{
       rs.getString("gender"),
       rs.getString("postal_code"),
       rs.getString("age_range"),
-      String.valueOf(rs.getInt("total"))
+      String.valueOf(rs.getInt("total")),
+      rs.getInt("g_gender"),
+      rs.getInt("g_postal"),
+      rs.getInt("g_age")
     }).stream().collect(Collectors.groupingBy(
       row -> {
-        if (row[0] != null) return MembersDistribution.Group.GENDER;
-        if (row[1] != null) return MembersDistribution.Group.POSTAL_CODE;
-        if (row[2] != null) return MembersDistribution.Group.AGE;
-        throw new RuntimeException("No distribution gender or postal code provided");
+        int gGender = (int) row[4];
+        int gPostal = (int) row[5];
+        int gAge = (int) row[6];
+        if (gGender == 0) return MembersDistribution.Group.GENDER;
+        if (gPostal == 0) return MembersDistribution.Group.POSTAL_CODE;
+        if (gAge == 0) return MembersDistribution.Group.AGE;
+        throw new RuntimeException("No distribution group identified");
       }, Collectors.collectingAndThen(
         Collectors.toList(),
         list -> list.stream()
-          .map(arr -> Arrays.stream(arr)
-            .filter(Objects::nonNull)
-            .toArray(String[]::new))
+          .map(arr -> {
+            int gGender = (int) arr[4];
+            int gPostal = (int) arr[5];
+            int gAge = (int) arr[6];
+            if (gGender == 0) return new String[]{ (String) arr[0], (String) arr[3] };
+            if (gPostal == 0) return new String[]{ (String) arr[1], (String) arr[3] };
+            return new String[]{ (String) arr[2], (String) arr[3] };
+          })
           .toList())
     ));
   }

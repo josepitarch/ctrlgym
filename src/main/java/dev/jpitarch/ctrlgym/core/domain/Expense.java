@@ -28,6 +28,8 @@ public class Expense {
 
   private Recurrence recurrence;
 
+  private Status status;
+
   private Double amount;
 
   @JsonProperty("expense_date")
@@ -39,7 +41,10 @@ public class Expense {
   @JsonProperty("estimated_amount")
   private Double estimatedAmount;
 
-  private Boolean active;
+  @JsonProperty("is_confirmed")
+  private boolean isConfirmed;
+
+  private boolean active;
 
   private Source source;
 
@@ -58,6 +63,15 @@ public class Expense {
 
     public static Recurrence from(String str) {
       return Recurrence.valueOf(str.toUpperCase());
+    }
+  }
+
+  public enum Status {
+    PENDING,
+    PAID;
+
+    public static Status from(String str) {
+      return Status.valueOf(str.toUpperCase());
     }
   }
 

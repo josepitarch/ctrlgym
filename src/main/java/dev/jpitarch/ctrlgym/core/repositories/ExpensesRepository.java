@@ -37,7 +37,8 @@ public class ExpensesRepository {
 
   public List<Expense> getExpenses(Integer gymBranchId, YearMonth month) {
     var sql = """
-      SELECT id, gym_branch_id, concept, category_id, type, recurrence, amount, expense_date, billing_day, estimated_amount, active, source
+      SELECT id, gym_branch_id, concept, category_id, type, recurrence, amount, expense_date, billing_day, estimated_amount, active, source,
+             'PAID' as status, true as is_confirmed
       FROM expenses
       WHERE gym_branch_id = :gymBranchId
         AND active IS true
@@ -46,7 +47,8 @@ public class ExpensesRepository {
 
       UNION ALL
 
-      SELECT e.id, e.gym_branch_id, e.concept, e.category_id, e.type, e.recurrence, eo.amount, e.expense_date, e.billing_day, e.estimated_amount, e.active, e.source
+      SELECT e.id, e.gym_branch_id, e.concept, e.category_id, e.type, e.recurrence, eo.amount, e.expense_date, e.billing_day, e.estimated_amount, e.active, e.source,
+             eo.payment_status as status, eo.amount_confirmed as is_confirmed
       FROM expenses e
       JOIN expense_occurrences eo ON e.id = eo.expense_id
       WHERE e.gym_branch_id = :gymBranchId

@@ -20,12 +20,15 @@ public class ExpenseOccurrencesCron {
   @Scheduled(cron = "0 0 6 1 * *", zone = "Europe/Madrid")
   public void generateMonthlyExpenseOccurrences() {
     var sql = """
-        INSERT INTO expense_occurrences (expense_id, period, amount, payment_status, source)
-        SELECT e.id, DATE_TRUNC('month', CURRENT_DATE)::date, e.estimated_amount, 'PENDING', 'CRON'
+        INSERT INTO expense_occurrences (expense_id, period, amount, amount_confirmed, payment_status, source)
+        SELECT e.id, DATE_TRUNC('month', CURRENT_DATE)::date,
+        CASE WHEN e.type = 'FIXED' THEN e.amount ELSE e.estimated_amount END,
+        (e.type = 'FIXED'),
+        'PENDING',
+        'CRON'
         FROM expenses e
         WHERE e.recurrence = 'RECURRING'
-          AND e.type = 'FIXED'
-          AND e.active = true
+          AND e.active IS TRUE
           AND NOT EXISTS (
             SELECT 1 FROM expense_occurrences eo
             WHERE eo.expense_id = e.id AND eo.period = DATE_TRUNC('month', CURRENT_DATE)::date

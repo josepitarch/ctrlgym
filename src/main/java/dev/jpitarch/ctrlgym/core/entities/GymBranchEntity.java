@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalTime;
 @Setter
 @Entity
 @Table(name = "gym_branches")
+@SQLRestriction("is_active IS TRUE")
 public class GymBranchEntity {
   @Id
   @Column(name = "id", nullable = false)
@@ -44,6 +46,5 @@ public class GymBranchEntity {
 
   @Column(name = "api_key")
   private String apiKey;
-
 
 }

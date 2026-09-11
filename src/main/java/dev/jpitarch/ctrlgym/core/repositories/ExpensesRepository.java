@@ -35,14 +35,14 @@ public class ExpensesRepository {
     return expenseCategoryJpaRepository.findAllByGymId(gymId);
   }
 
-  public List<Expense> getExpenses(Integer gymBranchId) {
+  public List<Expense> getExpenses(Integer gymBranchId, YearMonth month) {
     var sql = """
       SELECT id, gym_branch_id, concept, category_id, type, recurrence, amount, expense_date, billing_day, estimated_amount, active, source
       FROM expenses
       WHERE gym_branch_id = :gymBranchId
         AND active IS true
         AND recurrence = 'ONE_OFF'
-        AND DATE_TRUNC('month', expense_date) = DATE_TRUNC('month', CURRENT_DATE)
+        AND DATE_TRUNC('month', expense_date) = CAST(:month AS date)
 
       UNION ALL
 
@@ -52,10 +52,10 @@ public class ExpensesRepository {
       WHERE e.gym_branch_id = :gymBranchId
         AND e.active IS true
         AND e.recurrence = 'RECURRING'
-        AND DATE_TRUNC('month', eo.period) = DATE_TRUNC('month', CURRENT_DATE)
+        AND DATE_TRUNC('month', eo.period) = CAST(:month AS date)
       """;
 
-    var params = Map.of("gymBranchId", gymBranchId);
+    var params = Map.of("gymBranchId", gymBranchId, "month", month.atDay(1));
 
     return jdbc.query(sql, params, expenseRowMapper);
   }

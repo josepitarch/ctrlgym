@@ -36,8 +36,8 @@ public class ExpensesService {
       .toList();
   }
 
-  public List<Expense> getExpenses(Integer gymBranchId) {
-    return expensesRepository.getExpenses(gymBranchId);
+  public List<Expense> getExpenses(Integer gymBranchId, YearMonth month) {
+    return expensesRepository.getExpenses(gymBranchId, month);
   }
 
   @Transactional

@@ -57,8 +57,8 @@ public class DashboardController {
 
   @PreAuthorize("#gymId == authentication.gymId")
   @GetMapping("/gyms/{gymId}/branches/{branchId}/expenses")
-  public ResponseEntity<List<Expense>> getExpenses(@PathVariable int gymId, @PathVariable int branchId) {
-    return ResponseEntity.ok(useCase.getExpenses(GymBranchId.of(gymId, branchId)));
+  public ResponseEntity<List<Expense>> getExpenses(@PathVariable int gymId, @PathVariable int branchId, @RequestParam YearMonth month) {
+    return ResponseEntity.ok(useCase.getExpenses(GymBranchId.of(gymId, branchId), month));
   }
 
   @PreAuthorize("#gymId == authentication.gymId")

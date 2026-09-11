@@ -61,8 +61,8 @@ public class DashboardUseCase {
     return analyticsRepository.getRetentionVsChurn(gymBranchId, dateRange);
   }
 
-  public List<Expense> getExpenses(GymBranchId gymBranchId) {
-    return expensesService.getExpenses(gymBranchId.branchId());
+  public List<Expense> getExpenses(GymBranchId gymBranchId, YearMonth month) {
+    return expensesService.getExpenses(gymBranchId.branchId(), month);
   }
 
   public CashFlow getCashFlow(GymBranchId gymBranchId, DateRange dateRange) {

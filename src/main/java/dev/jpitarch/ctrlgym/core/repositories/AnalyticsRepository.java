@@ -495,7 +495,7 @@ public class AnalyticsRepository {
       LEFT JOIN gym_metrics_monthly gmm
         ON gmm.gym_branch_id = gb.id
         AND gmm.year_month = month::date
-      WHERE gb.gym_id = :gymId
+      WHERE gb.gym_id = :gymId AND gb.is_active IS TRUE
       ORDER BY month, gb.id;
       """;
 

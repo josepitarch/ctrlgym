@@ -31,7 +31,6 @@ public class GymController {
   }
 
   @GetMapping("/{gymId}/branches")
-  @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<GymBranch>> getBranches(@PathVariable Integer gymId) {
     return ResponseEntity.ok(useCase.getBranches(gymId));
   }

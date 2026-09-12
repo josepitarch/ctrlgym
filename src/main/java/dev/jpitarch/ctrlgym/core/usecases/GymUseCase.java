@@ -40,6 +40,7 @@ import dev.jpitarch.ctrlgym.core.services.ExpensesService;
 import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
 import dev.jpitarch.ctrlgym.core.services.RoutinesService;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
+import dev.jpitarch.ctrlgym.storage.config.StorageBucket;
 import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -128,6 +130,7 @@ public class GymUseCase {
         }
       });
     }
+    users.forEach(this::resolveAvatarUrl);
     return users;
   }
 
@@ -187,7 +190,7 @@ public class GymUseCase {
 
   public Exercise createExercise(Integer gymId, Exercise exercise, MultipartFile image) {
     if (image != null && !image.isEmpty()) {
-      String imageUrl = storageService.uploadFile(image, gymId, "exercises");
+      String imageUrl = storageService.uploadFile(image, gymId, "exercises", StorageBucket.ASSETS);
       exercise.setImage(imageUrl);
     }
     return exercisesService.create(exercise, gymId);
@@ -197,7 +200,7 @@ public class GymUseCase {
     Exercise exercise = exercisesService.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
 
     if (exercise.getImage() != null && !exercise.getImage().isBlank()) {
-      storageService.deleteFile(exercise.getImage());
+      storageService.deleteFile(exercise.getImage(), StorageBucket.ASSETS);
     }
     exercisesService.delete(exerciseId, gymId);
   }
@@ -285,7 +288,7 @@ public class GymUseCase {
 
   public Product createProduct(Integer gymId, Integer branchId, Product product, MultipartFile image) {
     if (image != null && !image.isEmpty()) {
-      String imageUrl = storageService.uploadFile(image, gymId, "products");
+      String imageUrl = storageService.uploadFile(image, gymId, "products", StorageBucket.ASSETS);
       product.setImage(imageUrl);
     }
     return productRepository.create(product, gymId, branchId);
@@ -299,7 +302,7 @@ public class GymUseCase {
     Product product = productRepository.findById(productId)
       .orElseThrow(() -> new ProductNotFoundException(productId));
     if (product.getImage() != null && !product.getImage().isBlank()) {
-      storageService.deleteFile(product.getImage());
+      storageService.deleteFile(product.getImage(), StorageBucket.ASSETS);
     }
     productRepository.delete(productId);
   }
@@ -386,6 +389,13 @@ public class GymUseCase {
 
   public List<MemberMetrics> getMemberMetrics(UUID memberId, YearMonth from, YearMonth to) {
     return analyticsRepository.getMemberMetrics(memberId, from, to);
+  }
+
+  private void resolveAvatarUrl(Member member) {
+    if (member.getAvatarUrl() != null) {
+      String presignedUrl = storageService.generatePresignedUrl(member.getAvatarUrl().toString(), StorageBucket.AVATARS);
+      member.setAvatarUrl(URI.create(presignedUrl));
+    }
   }
 
 }

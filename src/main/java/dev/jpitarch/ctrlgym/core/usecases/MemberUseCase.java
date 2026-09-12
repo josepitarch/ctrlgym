@@ -8,6 +8,7 @@ import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.core.services.*;
 import dev.jpitarch.ctrlgym.payments.services.CustomerService;
+import dev.jpitarch.ctrlgym.storage.config.StorageBucket;
 import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -45,7 +46,8 @@ public class MemberUseCase {
   private final StorageService storageService;
 
   public Member getMember(UUID memberId) {
-    return membersService.getMember(memberId);
+    Member member = membersService.getMember(memberId);
+    return resolveAvatarUrl(member);
   }
 
   public Membership initializeMembership(UUID memberId, String membershipPlanId) throws StripeException {
@@ -109,14 +111,22 @@ public class MemberUseCase {
 
   public String updateAvatar(UUID memberId, MultipartFile file) {
     Integer tenantId = TenantContextHolder.getTenantId();
-    String avatarUrl = storageService.uploadFile(file, tenantId, "avatars", memberId.toString());
+    String avatarKey = storageService.uploadFile(file, tenantId, "avatars", memberId.toString(), StorageBucket.AVATARS);
 
-    String oldAvatarUrl = membersRepository.getAvatarUrl(memberId);
-    if (oldAvatarUrl != null && !oldAvatarUrl.isBlank()) {
-      storageService.deleteFile(oldAvatarUrl);
+    String oldAvatarKey = membersRepository.getAvatarUrl(memberId);
+    if (oldAvatarKey != null && !oldAvatarKey.isBlank()) {
+      storageService.deleteFile(oldAvatarKey, StorageBucket.AVATARS);
     }
 
-    membersRepository.updateAvatarUrl(memberId, avatarUrl);
-    return avatarUrl;
+    membersRepository.updateAvatarUrl(memberId, avatarKey);
+    return storageService.generatePresignedUrl(avatarKey, StorageBucket.AVATARS);
+  }
+
+  private Member resolveAvatarUrl(Member member) {
+    if (member.getAvatarUrl() != null) {
+      String presignedUrl = storageService.generatePresignedUrl(member.getAvatarUrl().toString(), StorageBucket.AVATARS);
+      member.setAvatarUrl(URI.create(presignedUrl));
+    }
+    return member;
   }
 }

@@ -26,6 +26,7 @@ import dev.jpitarch.ctrlgym.core.repositories.jpa.ShiftSeriesJpaRepository;
 import dev.jpitarch.ctrlgym.core.security.CustomJwtAuthenticationToken;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.payments.services.SubscriptionService;
+import dev.jpitarch.ctrlgym.storage.config.StorageBucket;
 import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import dev.jpitarch.ctrlgym.verifactu.services.VerifactuService;
 import org.junit.jupiter.api.*;
@@ -719,7 +720,7 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
       var image = new MockMultipartFile("image", "whey.png", "image/png", "fake-image-content".getBytes());
 
-      when(storageService.uploadFile(any(), eq(gymId), eq("products"))).thenReturn("https://cdn.example.com/tenants/1/products/whey.png");
+      when(storageService.uploadFile(any(), eq(gymId), eq("products"), eq(StorageBucket.ASSETS))).thenReturn("https://cdn.example.com/tenants/1/products/whey.png");
 
       mockMvc.perform(multipart("/v1/gyms/{gymId}/branches/{branchId}/products", gymId, branchId)
           .file(new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsBytes(product)))

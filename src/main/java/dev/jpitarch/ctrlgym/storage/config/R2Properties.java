@@ -9,9 +9,11 @@ public record R2Properties(
   String accountId,
   String accessKeyId,
   String secretAccessKey,
-  String bucket,
-  String publicUrl
+  Buckets buckets
 ) {
+  public record Buckets(BucketConfig assets, BucketConfig avatars) {}
+  public record BucketConfig(String name, String publicUrl) {}
+
   public URI endpoint() {
     return URI.create("https://%s.r2.cloudflarestorage.com".formatted(accountId));
   }

@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidTokenException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +29,16 @@ public class PasswordRecoveryService {
 
   private final EmailService emailService;
 
+  private final GymsRepository gymsRepository;
+
   public PasswordRecoveryService(
     @Value("${email.redirect.base-url}") String baseUrl,
     UserRepository userRepository,
     PasswordEncoder passwordEncoder,
     JwtFactory jwtFactory,
     EmailTemplateComponent emailTemplateComponent,
-    EmailService emailService
+    EmailService emailService,
+    GymsRepository gymsRepository
   ) {
     this.baseUrl = baseUrl;
     this.userRepository = userRepository;
@@ -42,6 +46,7 @@ public class PasswordRecoveryService {
     this.jwtFactory = jwtFactory;
     this.emailTemplateComponent = emailTemplateComponent;
     this.emailService = emailService;
+    this.gymsRepository = gymsRepository;
   }
 
   public void forgotPassword(String email) {
@@ -55,9 +60,12 @@ public class PasswordRecoveryService {
 
     String token = jwtFactory.generatePasswordResetToken(user.getId().toString(), email);
 
+    var gym = gymsRepository.getById(user.getGymId());
+
     String template = emailTemplateComponent.build("password-reset.html",
-      Map.of("ResetURL", baseUrl + "/reset-password" + "?token=" + token));
-    emailService.send(email, "Recuperar contraseña - CtrlGym", template);
+      Map.of("ResetURL", baseUrl + "/reset-password" + "?token=" + token,
+             "GymName", gym.getName()));
+    emailService.send(email, "[%s] Recuperar contraseña".formatted(gym.getName()), template);
   }
 
   public void resetPassword(String token, String newPassword) {

@@ -9,6 +9,7 @@ import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthorizationTokenExpiredExce
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvalidAuthorizationStateException;
 import dev.jpitarch.ctrlgym.core.dto.GuardianAuthorizationDto;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MemberGuardianAuthorizationRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
@@ -40,17 +41,21 @@ public class GuardianAuthorizationService {
 
   private final EmailService emailService;
 
+  private final GymsRepository gymsRepository;
+
   public GuardianAuthorizationService(
     @Value("${email.redirect.base-url}") String baseUrl,
     MemberGuardianAuthorizationRepository repository,
     MembersRepository memberRepository,
     EmailTemplateComponent emailTemplateComponent,
-    EmailService emailService) {
+    EmailService emailService,
+    GymsRepository gymsRepository) {
     this.baseUrl = baseUrl;
     this.repository = repository;
     this.memberRepository = memberRepository;
     this.emailTemplateComponent = emailTemplateComponent;
     this.emailService = emailService;
+    this.gymsRepository = gymsRepository;
   }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -58,9 +63,9 @@ public class GuardianAuthorizationService {
     Member member = memberRepository.getById(event.getMemberId());
 
     String token = UUID.randomUUID().toString();
-    OffsetDateTime expiresAt = OffsetDateTime.now().plusDays(7);
+    var expiresAt = OffsetDateTime.now().plusDays(7);
 
-    MemberGuardianAuthorization auth = MemberGuardianAuthorization.builder()
+    var auth = MemberGuardianAuthorization.builder()
       .memberId(member.getId())
       .status(PENDING)
       .token(token)
@@ -71,10 +76,14 @@ public class GuardianAuthorizationService {
 
     repository.save(auth);
 
+    Integer gymId = memberRepository.getGymIdByMemberId(event.getMemberId());
+    var gym = gymsRepository.getById(gymId);
+
     String authorizationUrl = baseUrl + "/guardian-authorization/" + token;
     String template = emailTemplateComponent.build("guardian-authorization.html", Map.of(
       "MemberFullName", member.getFullName(),
-      "AuthorizationURL", authorizationUrl
+      "AuthorizationURL", authorizationUrl,
+      "GymName", gym.getName()
     ));
 
     // TODO: Need guardian email - this should come from the registration form

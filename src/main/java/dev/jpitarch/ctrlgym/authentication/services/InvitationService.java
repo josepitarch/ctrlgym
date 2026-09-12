@@ -5,6 +5,7 @@ import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidTokenException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
+import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
 import dev.jpitarch.ctrlgym.notifications.services.EmailService;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +35,17 @@ public class InvitationService {
 
   private final EmailService emailService;
 
+  private final GymsRepository gymsRepository;
+
   public InvitationService(
     @Value("${email.redirect.base-url}") String baseUrl,
     UserRepository userRepository,
     PasswordEncoder passwordEncoder,
     JwtFactory jwtFactory,
-    RefreshTokenService refreshTokenService, EmailTemplateComponent emailTemplateComponent, EmailService emailService
+    RefreshTokenService refreshTokenService,
+    EmailTemplateComponent emailTemplateComponent,
+    EmailService emailService,
+    GymsRepository gymsRepository
   ) {
     this.baseUrl = baseUrl;
     this.userRepository = userRepository;
@@ -48,6 +54,7 @@ public class InvitationService {
     this.refreshTokenService = refreshTokenService;
     this.emailTemplateComponent = emailTemplateComponent;
     this.emailService = emailService;
+    this.gymsRepository = gymsRepository;
   }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -56,8 +63,13 @@ public class InvitationService {
 
     String token = jwtFactory.generateInvitationToken(event.getEmail(), event.getGymId());
 
-    String template = emailTemplateComponent.build("employee-invitation.html", Map.of("ConfirmationURL", baseUrl + "/signup" + "?token=" + token));
-    emailService.send(event.getEmail(), "Invitación a CtrlGym", template);
+    var gym = gymsRepository.getById(event.getGymId());
+
+    String template = emailTemplateComponent.build("employee-invitation.html", Map.of(
+      "ConfirmationURL", baseUrl + "/signup" + "?token=" + token,
+      "GymName", gym.getName()
+    ));
+    emailService.send(event.getEmail(), "Alta empleado en " + gym.getName(), template);
   }
 
   public AuthResponse acceptInvitation(String token, String password) throws InvalidTokenException {

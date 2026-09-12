@@ -74,6 +74,15 @@ public class GymMetricsCron {
                      AND m.gym_id = i.gym_id
                      AND mp.gym_branch_id = gb.id
                  )
+              ), 0)
+            + COALESCE(
+              (SELECT COALESCE(SUM(oi.product_price_snapshot * oi.quantity), 0)
+               FROM orders o
+               JOIN order_items oi ON oi.order_id = o.id
+               WHERE o.gym_id = gb.gym_id
+                 AND o.gym_branch_id = gb.id
+                 AND o.created_at >= :yearMonth::date
+                 AND o.created_at <= (:yearMonth::date + INTERVAL '1 month' - INTERVAL '1 day')::date
               ), 0) AS revenue,
             COALESCE(
               (SELECT COALESCE(SUM(amount), 0)

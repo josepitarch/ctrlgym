@@ -17,6 +17,7 @@ import java.util.UUID;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class DashboardControllerTestIT extends BaseIntegrationTest {
@@ -78,6 +79,21 @@ class DashboardControllerTestIT extends BaseIntegrationTest {
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  }
+
+  @Test
+  @Order(4)
+  @DisplayName("Returns cash-flow with invoice and order revenue")
+  void getCashFlow_returns200_withCorrectRevenue() throws Exception {
+    mockMvc.perform(get("/v1/dashboard/gyms/{gymId}/branches/{branchId}/cash-flow", gymId, 1)
+        .with(jwtAuth())
+        .param("from", "2026-03-01")
+        .param("to", "2026-04-30")
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.revenues['2026-03']").value(49.99))
+      .andExpect(jsonPath("$.revenues['2026-04']").value(64.99));
   }
 
 }

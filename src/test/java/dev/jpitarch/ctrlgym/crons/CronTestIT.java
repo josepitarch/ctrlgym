@@ -54,6 +54,8 @@ class CronTestIT extends BaseIntegrationTest {
     jdbc.update("DELETE FROM member_accesses WHERE member_id IN (:m1, :m2, :m3, :m4)",
       Map.of("m1", NEW_MEMBER_ID, "m2", CHURNED_MEMBER_ID, "m3", EXTERNAL_MEMBER_ID, "m4", EXISTING_MEMBER_ID));
     jdbc.update("DELETE FROM invoices WHERE id IN ('INV-CRON-001', 'INV-CRON-002', 'INV-CRON-003')", Map.of());
+    jdbc.update("DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE series = 'CRON')", Map.of());
+    jdbc.update("DELETE FROM orders WHERE series = 'CRON'", Map.of());
     jdbc.update("DELETE FROM expenses WHERE concept LIKE 'Cron test%'", Map.of());
     jdbc.update("DELETE FROM expense_occurrences WHERE expense_id IN (SELECT id FROM expenses WHERE concept LIKE 'Cron test%')", Map.of());
     jdbc.update("DELETE FROM memberships WHERE member_id IN (:m1, :m2, :m3)",
@@ -111,6 +113,32 @@ class CronTestIT extends BaseIntegrationTest {
         "prevMonthStart", prevMonthStart,
         "prevMonthEnd", prevMonthEnd
       )
+    );
+
+    jdbc.update(
+      """
+        INSERT INTO orders (id, gym_id, member_id, gym_branch_id, series, "number", created_at)
+        OVERRIDING SYSTEM VALUE
+        VALUES
+          (100, 1, :existingMember, 1, 'CRON', '100', :midMonth),
+          (101, 1, :newMember, 1, 'CRON', '101', :midMonth)
+      """,
+      Map.of(
+        "existingMember", EXISTING_MEMBER_ID,
+        "newMember", NEW_MEMBER_ID,
+        "midMonth", midMonth
+      )
+    );
+
+    jdbc.update(
+      """
+        INSERT INTO order_items (order_id, product_id, product_name_snapshot, product_price_snapshot, quantity)
+        VALUES
+          (100, 1, 'Protein Shake', 10.00, 2),
+          (100, 2, 'Gym Towel', 5.00, 1),
+          (101, 1, 'Protein Shake', 15.00, 1)
+      """,
+      Map.of()
     );
 
     jdbc.update(
@@ -182,7 +210,7 @@ class CronTestIT extends BaseIntegrationTest {
     assertThat(((Number) result.get("active_members")).intValue()).isEqualTo(3);
     assertThat(((Number) result.get("new_members")).intValue()).isEqualTo(1);
     assertThat(((Number) result.get("churned_members")).intValue()).isEqualTo(1);
-    assertThat(new BigDecimal(result.get("revenue").toString())).isEqualByComparingTo("79.98");
+    assertThat(new BigDecimal(result.get("revenue").toString())).isEqualByComparingTo("119.98");
     assertThat(new BigDecimal(result.get("expense").toString())).isEqualByComparingTo("350.00");
     assertThat(new BigDecimal(result.get("overdue_amount").toString())).isEqualByComparingTo("29.99");
     assertThat(new BigDecimal(result.get("churn_rate").toString())).isEqualByComparingTo("25.00");

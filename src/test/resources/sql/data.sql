@@ -145,3 +145,22 @@ INSERT INTO "public"."legal_document_version" ("id", "gym_id", "type", "version"
 VALUES ('d0d0d0d0-0000-0000-0000-000000000001', 1, 'TERMS_OF_USE', '1.0', 'Terms of service content', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '2026-01-01', true, now()),
        ('d0d0d0d0-0000-0000-0000-000000000002', 1, 'PRIVACY_POLICY', '1.0', 'Privacy policy content', 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3', '2026-01-01', true, now()),
        ('d0d0d0d0-0000-0000-0000-000000000003', 1, 'IMAGE_CONSENT', '1.0', 'Image consent', 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4', '2026-01-01', true, now());
+
+INSERT INTO "public"."invoices" ("id", "gym_id", "member_id", "series", "number", "issue_at", "due_at", "status", "subtotal", "tax", "total", "currency", "created_at", "updated_at", "membership_id")
+VALUES ('inv-001', 1, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', '1-2026', '1', '2026-03-15', '2026-04-15', 'PAID', 29.99, 0, 29.99, 'EUR', now(), now(), 1),
+       ('inv-002', 1, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', '1-2026', '2', '2026-04-15', '2026-05-15', 'PAID', 49.99, 0, 49.99, 'EUR', now(), now(), 1);
+
+INSERT INTO "public"."products" ("id", "gym_id", "gym_branch_id", "name", "image", "price", "stock")
+OVERRIDING SYSTEM VALUE
+VALUES (1, 1, 1, 'Protein Shake', null, 5.00, 100),
+       (2, 1, 1, 'Gym Towel', null, 10.00, 50);
+
+INSERT INTO "public"."orders" ("id", "gym_id", "member_id", "gym_branch_id", "series", "number", "created_at")
+OVERRIDING SYSTEM VALUE
+VALUES (1, 1, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, '1-2026', '1', '2026-03-10 10:00:00'),
+       (2, 1, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 1, '1-2026', '2', '2026-04-05 14:30:00');
+
+INSERT INTO "public"."order_items" ("order_id", "product_id", "product_name_snapshot", "product_price_snapshot", "quantity")
+VALUES (1, 1, 'Protein Shake', 5.00, 2),
+       (1, 2, 'Gym Towel', 10.00, 1),
+       (2, 1, 'Protein Shake', 5.00, 3);

@@ -588,10 +588,21 @@ public class AnalyticsRepository {
           FROM invoices
           WHERE gym_id = :gymId
           AND issue_at BETWEEN :from AND :to AND status = 'PAID'
+      ),
+      order_data AS (
+          SELECT
+              DATE_TRUNC('month', o.created_at)::date AS month,
+              SUM(oi.product_price_snapshot * oi.quantity) AS order_total
+          FROM orders o
+          JOIN order_items oi ON oi.order_id = o.id
+          WHERE o.gym_id = :gymId
+            AND o.gym_branch_id = :branchId
+            AND o.created_at BETWEEN CAST(:from AS timestamp) AND CAST(:to AS timestamp) + INTERVAL '1 month' - INTERVAL '1 day'
+          GROUP BY DATE_TRUNC('month', o.created_at)::date
       )
       SELECT
           m.month AS month,
-          COALESCE(SUM(inv.total), 0) AS total_payments
+          COALESCE(SUM(inv.total), 0) + COALESCE((SELECT od.order_total FROM order_data od WHERE od.month = m.month), 0) AS total_payments
       FROM months m
       LEFT JOIN invoice_data inv ON inv.month = m.month
       GROUP BY m.month
@@ -600,6 +611,7 @@ public class AnalyticsRepository {
 
     var params = Map.of(
       "gymId", gymBranchId.gymId(),
+      "branchId", gymBranchId.branchId(),
       "from", dateRange.from(),
       "to", dateRange.to()
     );

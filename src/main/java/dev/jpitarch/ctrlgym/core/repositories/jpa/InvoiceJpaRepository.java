@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +15,9 @@ import java.util.UUID;
 public interface InvoiceJpaRepository extends JpaRepository<InvoiceEntity, String> {
 
   Page<InvoiceEntity> findByMemberId(UUID memberId, Pageable pageable);
+
+  @Query("SELECT i FROM InvoiceEntity i WHERE i.memberId = :memberId AND YEAR(i.issueAt) = :year ORDER BY i.issueAt DESC")
+  List<InvoiceEntity> findByMemberIdAndYear(UUID memberId, Integer year);
 
   @Query("SELECT i.verifactuId FROM InvoiceEntity i WHERE i.id = :invoiceId")
   Optional<UUID> getVerifactuId(String invoiceId);

@@ -5,8 +5,6 @@ import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.usecases.GymUseCase;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +59,8 @@ public class GymController {
 
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members/{memberId}/invoices")
-  public ResponseEntity<Page<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, Pageable pageable) {
-    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), memberId, pageable).map(invoice -> new InvoiceSummary(invoice.getId(), invoice.getIssueAt(), invoice.getTotal(), invoice.getStatus())));
+  public ResponseEntity<List<InvoiceSummary>> getInvoices(@PathVariable Integer gymId, @PathVariable Integer branchId, @PathVariable UUID memberId, @RequestParam Integer year) {
+    return ResponseEntity.ok(useCase.getInvoices(GymBranchId.of(gymId, branchId), memberId, year).stream().map(invoice -> new InvoiceSummary(invoice.getId(), invoice.getIssueAt(), invoice.getTotal(), invoice.getStatus())).toList());
   }
 
   @PreAuthorize("#gymId == authentication.gymId")

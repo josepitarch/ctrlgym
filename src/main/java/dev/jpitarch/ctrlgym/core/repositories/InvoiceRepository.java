@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Year;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,6 +40,13 @@ public class InvoiceRepository {
   public Page<Invoice> findByMemberId(UUID memberId, Pageable pageable) {
     return invoiceJpaRepository.findByMemberId(memberId, pageable)
       .map(mapper::map);
+  }
+
+  public List<Invoice> findByMemberIdAndYear(UUID memberId, Integer year) {
+    return invoiceJpaRepository.findByMemberIdAndYear(memberId, year)
+      .stream()
+      .map(mapper::map)
+      .toList();
   }
 
 

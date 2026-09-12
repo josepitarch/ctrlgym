@@ -44,9 +44,9 @@ import dev.jpitarch.ctrlgym.storage.services.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -135,8 +135,8 @@ public class GymUseCase {
     return gymsRepository.getMemberRetention(memberId);
   }
 
-  public Page<Invoice> getInvoices(GymBranchId gymBranchId, UUID memberId, Pageable pageable) {
-    return invoiceRepository.findByMemberId(memberId, pageable);
+  public List<Invoice> getInvoices(GymBranchId gymBranchId, UUID memberId, Integer year) {
+    return invoiceRepository.findByMemberIdAndYear(memberId, year);
   }
 
 

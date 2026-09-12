@@ -10,6 +10,8 @@ import dev.jpitarch.ctrlgym.core.components.InvoiceCounterComponent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.Year;
@@ -60,6 +62,7 @@ public class OrderRepository {
       .map(mapper::toDomain);
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void saveVerifactuId(Integer id, UUID verifactuId) {
     var orderEntity = jpaRepository
       .findById(id)

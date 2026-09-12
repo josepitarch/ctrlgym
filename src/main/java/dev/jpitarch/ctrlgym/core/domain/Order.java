@@ -35,9 +35,6 @@ public class Order {
   @JsonProperty("created_at")
   private OffsetDateTime createdAt;
 
-  @JsonProperty("verifactu_id")
-  private UUID verifactuId;
-
   private List<Item> items;
 
   @Data

@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -92,6 +94,7 @@ public class InvoiceRepository {
     invoiceJpaRepository.save(InvoiceEntity);
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void saveVerifactuId(String id, UUID verifactuId) {
     var InvoiceEntity = invoiceJpaRepository
       .findById(id)

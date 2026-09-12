@@ -3,42 +3,17 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
-
-import java.time.LocalDate;
-import java.time.YearMonth;
-
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
-import dev.jpitarch.ctrlgym.core.dto.CreateEmployeeRequest;
-import dev.jpitarch.ctrlgym.core.dto.CreateOrderRequest;
-import dev.jpitarch.ctrlgym.core.dto.CurrentOccupancy;
-import dev.jpitarch.ctrlgym.core.dto.GymScheduleResponse;
-import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
-import dev.jpitarch.ctrlgym.core.dto.MemberMetrics;
-import dev.jpitarch.ctrlgym.core.dto.MemberRetention;
-import dev.jpitarch.ctrlgym.core.dto.TimeRange;
+import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.entities.GymScheduleEntity;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
 import dev.jpitarch.ctrlgym.core.events.EmployeeCreatedEvent;
 import dev.jpitarch.ctrlgym.core.events.OrderCreatedEvent;
-import dev.jpitarch.ctrlgym.core.repositories.EmployeesRepository;
-import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
-import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
-import dev.jpitarch.ctrlgym.core.repositories.MembershipPlanRepository;
-import dev.jpitarch.ctrlgym.core.repositories.OrderRepository;
-import dev.jpitarch.ctrlgym.core.repositories.ProductRepository;
+import dev.jpitarch.ctrlgym.core.repositories.*;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.GymScheduleJpaRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
-import dev.jpitarch.ctrlgym.core.dto.CreateShiftRequest;
-import dev.jpitarch.ctrlgym.core.dto.CreateShiftSeriesRequest;
-import dev.jpitarch.ctrlgym.core.dto.UpdateShiftRequest;
-import dev.jpitarch.ctrlgym.core.services.EmployeeScheduleService;
-import dev.jpitarch.ctrlgym.core.services.ExercisesService;
-import dev.jpitarch.ctrlgym.core.services.ExpensesService;
-import dev.jpitarch.ctrlgym.core.services.GenerateInvoiceReportService;
-import dev.jpitarch.ctrlgym.core.services.RoutinesService;
+import dev.jpitarch.ctrlgym.core.services.*;
 import dev.jpitarch.ctrlgym.payments.services.ProductService;
 import dev.jpitarch.ctrlgym.storage.config.StorageBucket;
 import dev.jpitarch.ctrlgym.storage.services.StorageService;
@@ -46,16 +21,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -100,7 +76,7 @@ public class GymUseCase {
 
   public GymScheduleResponse getSchedule(Integer gymId) {
     Map<Integer, TimeRange> schedule = gymScheduleJpaRepository.findByGymId(gymId).stream()
-      .collect(java.util.stream.Collectors.toMap(
+      .collect(Collectors.toMap(
         GymScheduleEntity::getDayOfWeek,
         entity -> TimeRange.of(entity.getOpensAt(), entity.getClosesAt())
       ));

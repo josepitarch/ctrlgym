@@ -11,12 +11,17 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -86,6 +91,28 @@ public class StorageService {
 
     var presignedRequest = r2Presigner.presignGetObject(presignRequest);
     return presignedRequest.url().toString();
+  }
+
+  public List<String> listObjectsByPrefix(String prefix, StorageBucket bucket) {
+    var bucketConfig = resolveBucket(bucket);
+    var request = ListObjectsV2Request.builder()
+      .bucket(bucketConfig.name())
+      .prefix(prefix)
+      .build();
+
+    List<String> keys = new ArrayList<>();
+    ListObjectsV2Response response;
+    do {
+      response = r2Client.listObjectsV2(request);
+      for (S3Object obj : response.contents()) {
+        if (!obj.key().endsWith("/")) {
+          keys.add(obj.key());
+        }
+      }
+      request = request.toBuilder().continuationToken(response.nextContinuationToken()).build();
+    } while (response.isTruncated());
+
+    return keys;
   }
 
   public String resolvePublicUrl(String key) {

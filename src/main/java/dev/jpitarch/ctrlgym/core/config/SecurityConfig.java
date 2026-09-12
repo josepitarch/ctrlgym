@@ -67,7 +67,7 @@ public class SecurityConfig {
       .cors(Customizer.withDefaults())
       .csrf(AbstractHttpConfigurer::disable)
       .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/public/**", "/v1/payments/webhook", "/v1/auth/**", "/v1/gyms/*/schedule", "/v1/gyms/*/routines", "/v1/gyms/*/legal/documents/current", "/health").permitAll()
+        .requestMatchers("/public/**", "/v1/payments/webhook", "/v1/auth/**", "/v1/gyms/*/schedule", "/v1/gyms/*/routines", "/v1/gyms/*/legal/documents/current", "/v1/gyms/*/branches/*/images", "/health").permitAll()
         .requestMatchers("/v1/dashboard/**").hasRole("MANAGER")
         .requestMatchers("/v1/members/**").hasRole("MEMBER")
         .requestMatchers("/admin/**").hasRole("MANAGER")

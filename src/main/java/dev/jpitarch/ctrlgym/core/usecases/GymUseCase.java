@@ -112,6 +112,13 @@ public class GymUseCase {
     return gymsRepository.getBranches(gymId);
   }
 
+  public List<String> getBranchImages(Integer gymId, Integer branchId) {
+    String prefix = "tenants/" + gymId + "/branches/" + branchId + "/";
+    return storageService.listObjectsByPrefix(prefix, StorageBucket.ASSETS).stream()
+      .map(storageService::resolvePublicUrl)
+      .toList();
+  }
+
   public List<Member> getMembers(GymBranchId gymBranchId, String q) {
     List<Member> users = gymsRepository.getMembers(gymBranchId, q);
     List<Integer> postalCodes = users.stream()

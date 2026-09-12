@@ -36,6 +36,11 @@ public class GymController {
     return ResponseEntity.ok(useCase.getBranches(gymId));
   }
 
+  @GetMapping("/{gymId}/branches/{branchId}/images")
+  public ResponseEntity<List<String>> getBranchImages(@PathVariable Integer gymId, @PathVariable Integer branchId) {
+    return ResponseEntity.ok(useCase.getBranchImages(gymId, branchId));
+  }
+
   @PreAuthorize("hasAnyRole('MANAGER', 'EMPLOYEE') and #gymId == authentication.gymId")
   @GetMapping("/{gymId}/branches/{branchId}/members")
   public ResponseEntity<List<Member>> getMembers(@PathVariable int gymId, @PathVariable int branchId, @RequestParam(required = false) String q) {

@@ -185,15 +185,19 @@ public class GymUseCase {
   }
 
   public List<Exercise> getAll(Integer gymId) {
-    return exercisesService.getAll(gymId);
+    List<Exercise> exercises = exercisesService.getAll(gymId);
+    exercises.forEach(this::resolveExerciseImageUrl);
+    return exercises;
   }
 
   public Exercise createExercise(Integer gymId, Exercise exercise, MultipartFile image) {
     if (image != null && !image.isEmpty()) {
-      String imageUrl = storageService.uploadFile(image, gymId, "exercises", StorageBucket.ASSETS);
-      exercise.setImage(imageUrl);
+      String imageKey = storageService.uploadFile(image, gymId, "exercises", StorageBucket.ASSETS);
+      exercise.setImage(imageKey);
     }
-    return exercisesService.create(exercise, gymId);
+    Exercise created = exercisesService.create(exercise, gymId);
+    resolveExerciseImageUrl(created);
+    return created;
   }
 
   public void deleteExercise(Integer exerciseId, Integer gymId) {
@@ -288,14 +292,18 @@ public class GymUseCase {
 
   public Product createProduct(Integer gymId, Integer branchId, Product product, MultipartFile image) {
     if (image != null && !image.isEmpty()) {
-      String imageUrl = storageService.uploadFile(image, gymId, "products", StorageBucket.ASSETS);
-      product.setImage(imageUrl);
+      String imageKey = storageService.uploadFile(image, gymId, "products", StorageBucket.ASSETS);
+      product.setImage(imageKey);
     }
-    return productRepository.create(product, gymId, branchId);
+    Product created = productRepository.create(product, gymId, branchId);
+    resolveProductImageUrl(created);
+    return created;
   }
 
   public List<Product> getProducts(GymBranchId gymBranchId) {
-    return productRepository.findByBranchId(gymBranchId.branchId());
+    List<Product> products = productRepository.findByBranchId(gymBranchId.branchId());
+    products.forEach(this::resolveProductImageUrl);
+    return products;
   }
 
   public void deleteProduct(Integer productId) {
@@ -395,6 +403,18 @@ public class GymUseCase {
     if (member.getAvatarUrl() != null) {
       String presignedUrl = storageService.generatePresignedUrl(member.getAvatarUrl().toString(), StorageBucket.AVATARS);
       member.setAvatarUrl(URI.create(presignedUrl));
+    }
+  }
+
+  private void resolveExerciseImageUrl(Exercise exercise) {
+    if (exercise.getImage() != null && !exercise.getImage().isBlank()) {
+      exercise.setImage(storageService.resolvePublicUrl(exercise.getImage()));
+    }
+  }
+
+  private void resolveProductImageUrl(Product product) {
+    if (product.getImage() != null && !product.getImage().isBlank()) {
+      product.setImage(storageService.resolvePublicUrl(product.getImage()));
     }
   }
 

@@ -720,7 +720,8 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
       var image = new MockMultipartFile("image", "whey.png", "image/png", "fake-image-content".getBytes());
 
-      when(storageService.uploadFile(any(), eq(gymId), eq("products"), eq(StorageBucket.ASSETS))).thenReturn("https://cdn.example.com/tenants/1/products/whey.png");
+      when(storageService.uploadFile(any(), eq(gymId), eq("products"), eq(StorageBucket.ASSETS))).thenReturn("tenants/1/products/whey.png");
+      when(storageService.resolvePublicUrl("tenants/1/products/whey.png")).thenReturn("https://test-cdn.ctrlgym.es/tenants/1/products/whey.png");
 
       mockMvc.perform(multipart("/v1/gyms/{gymId}/branches/{branchId}/products", gymId, branchId)
           .file(new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsBytes(product)))
@@ -730,7 +731,7 @@ class GymControllerTestIT extends BaseIntegrationTest {
         .andExpect(jsonPath("$.name").value("Whey Protein"))
         .andExpect(jsonPath("$.price").value(39.99))
         .andExpect(jsonPath("$.stock").value(20))
-        .andExpect(jsonPath("$.image").value("https://cdn.example.com/tenants/1/products/whey.png"));
+        .andExpect(jsonPath("$.image").value("https://test-cdn.ctrlgym.es/tenants/1/products/whey.png"));
     }
 
     @Test

@@ -36,16 +36,15 @@ notifications:
 
 storage:
   r2:
+    cdn-base-url: https://test-cdn.ctrlgym.es
     account-id: test-account-id
     access-key-id: test-access-key
     secret-access-key: test-secret-key
     buckets:
       assets:
         name: test-assets-bucket
-        public-url: https://test-assets.r2.cloudflarestorage.com
       avatars:
         name: test-avatars-bucket
-        public-url: https://test-avatars.r2.cloudflarestorage.com
 
 management:
   otlp:

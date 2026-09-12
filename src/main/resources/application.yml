@@ -51,16 +51,15 @@ notifications:
 
 storage:
   r2:
+    cdn-base-url: ${R2_CDN_BASE_URL}
     account-id: ${R2_ACCOUNT_ID}
     access-key-id: ${R2_ACCESS_KEY_ID}
     secret-access-key: ${R2_SECRET_ACCESS_KEY}
     buckets:
       assets:
         name: ${R2_ASSETS_BUCKET}
-        public-url: ${R2_ASSETS_PUBLIC_URL}
       avatars:
         name: ${R2_AVATARS_BUCKET}
-        public-url: ${R2_AVATARS_PUBLIC_URL}
 
 management:
   otlp:

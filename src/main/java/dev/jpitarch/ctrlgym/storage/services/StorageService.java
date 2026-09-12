@@ -53,10 +53,6 @@ public class StorageService {
       r2Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
       log.info("File uploaded successfully: {} to bucket {}", key, bucketConfig.name());
-
-      if (bucket == StorageBucket.ASSETS) {
-        return bucketConfig.publicUrl() + "/" + key;
-      }
       return key;
     } catch (IOException e) {
       log.error("Error uploading file: {}", e.getMessage(), e);
@@ -64,9 +60,8 @@ public class StorageService {
     }
   }
 
-  public void deleteFile(String fileUrlOrKey, StorageBucket bucket) {
+  public void deleteFile(String key, StorageBucket bucket) {
     var bucketConfig = resolveBucket(bucket);
-    String key = extractKey(fileUrlOrKey, bucketConfig);
 
     var request = DeleteObjectRequest.builder()
       .bucket(bucketConfig.name())
@@ -93,18 +88,15 @@ public class StorageService {
     return presignedRequest.url().toString();
   }
 
+  public String resolvePublicUrl(String key) {
+    return properties.cdnBaseUrl() + "/" + key;
+  }
+
   private R2Properties.BucketConfig resolveBucket(StorageBucket bucket) {
     return switch (bucket) {
       case ASSETS -> properties.buckets().assets();
       case AVATARS -> properties.buckets().avatars();
     };
-  }
-
-  private String extractKey(String fileUrlOrKey, R2Properties.BucketConfig bucketConfig) {
-    if (fileUrlOrKey.startsWith(bucketConfig.publicUrl())) {
-      return fileUrlOrKey.replace(bucketConfig.publicUrl() + "/", "");
-    }
-    return fileUrlOrKey;
   }
 
   private String generateKey(String originalFilename, Integer tenant, String folder) {

@@ -96,7 +96,8 @@ public class WebhookService {
     PaymentMethod pm = SetupIntent.retrieve(setupIntent.getId(), params, options).getPaymentMethodObject();
 
     Member member = membersRepository.getById(stripeBridge.getMemberId(setupIntent.getCustomer()));
-    member.setPostalCode(Integer.valueOf(pm.getBillingDetails().getAddress().getPostalCode()));
+    Integer postalCode = Integer.valueOf(pm.getBillingDetails().getAddress().getPostalCode());
+    membersRepository.updatePostalCode(member.getId(), postalCode);
   }
 
   private void handleSubscriptionUpdated(Subscription subscription) {

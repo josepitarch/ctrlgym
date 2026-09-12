@@ -2,6 +2,7 @@ package dev.jpitarch.ctrlgym.core.repositories;
 
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberAccess;
+import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.MemberNotFoundException;
 import dev.jpitarch.ctrlgym.core.entities.UserEntity;
 import dev.jpitarch.ctrlgym.core.mappers.MemberMapper;
@@ -54,10 +55,17 @@ public class MembersRepository {
       .orElseThrow(() -> new MemberNotFoundException(memberId));
   }
 
-  public void updateStatus(UUID memberId, dev.jpitarch.ctrlgym.core.domain.enums.UserStatus status) {
+  public void updateStatus(UUID memberId, UserStatus status) {
     var memberEntity = jpaRepository.findById(memberId)
       .orElseThrow(() -> new MemberNotFoundException(memberId));
     memberEntity.setStatus(status);
+    jpaRepository.save(memberEntity);
+  }
+
+  public void updatePostalCode(UUID memberId, Integer postalCode) {
+    var memberEntity = jpaRepository.findById(memberId)
+      .orElseThrow(() -> new MemberNotFoundException(memberId));
+    memberEntity.setPostalCode(postalCode);
     jpaRepository.save(memberEntity);
   }
 

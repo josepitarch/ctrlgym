@@ -98,7 +98,7 @@ class GuardianAuthorizationServiceTest {
   }
 
   private GuardianApprovalRequest buildApprovalRequest(List<UUID> docIds) {
-    return new GuardianApprovalRequest("Jane", "Doe", "Smith", docIds);
+    return new GuardianApprovalRequest("Jane", "Doe", "Smith", "12345678A", docIds);
   }
 
   @Nested
@@ -214,6 +214,7 @@ class GuardianAuthorizationServiceTest {
 
       assertThat(auth.getGuardianFirstName()).isEqualTo("Jane");
       assertThat(auth.getGuardianLastName()).isEqualTo("Doe");
+      assertThat(auth.getGuardianDni()).isEqualTo("12345678A");
       assertThat(auth.getStatus()).isEqualTo(GuardianConsentStatus.APPROVED);
       assertThat(auth.getApprovedAt()).isNotNull();
       assertThat(auth.getApprovedIp()).isEqualTo("192.168.1.1");

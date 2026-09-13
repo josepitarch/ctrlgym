@@ -9,6 +9,7 @@ public record GuardianApprovalRequest(
   @JsonProperty("name") String name,
   @JsonProperty("first_surname") String firstSurname,
   @JsonProperty("second_surname") String secondSurname,
+  @JsonProperty("dni") String dni,
   @JsonProperty("accepted_document_version_ids") List<UUID> acceptedDocumentVersionIds
 ) {
 }

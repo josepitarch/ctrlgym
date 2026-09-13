@@ -83,6 +83,7 @@ public class GuardianAuthorizationService {
     var auth = MemberGuardianAuthorization.builder()
       .id(UuidCreator.getTimeOrderedEpoch())
       .memberId(member.getId())
+      .guardianEmail(event.getGuardianEmail())
       .status(PENDING)
       .token(token)
       .tokenExpiresAt(OffsetDateTime.now().plusDays(7))
@@ -166,6 +167,7 @@ public class GuardianAuthorizationService {
 
     auth.setGuardianFirstName(request.name());
     auth.setGuardianLastName(request.firstSurname());
+    auth.setGuardianDni(request.dni());
     auth.setStatus(GuardianConsentStatus.APPROVED);
     auth.setApprovedAt(OffsetDateTime.now());
     auth.setApprovedIp(ipAddress);

@@ -81,6 +81,7 @@ class SignupServiceTest {
       null,
       "MALE",
       LocalDate.of(1995, 8, 20),
+      "guardian@test.com",
       acceptedDocIds
     );
   }
@@ -95,6 +96,7 @@ class SignupServiceTest {
       nif,
       "MALE",
       LocalDate.of(1995, 8, 20),
+      "guardian@test.com",
       acceptedDocIds
     );
   }
@@ -105,10 +107,11 @@ class SignupServiceTest {
       "Password1!",
       "Minor",
       "User",
-      null,
+      "guardian@test.com",
       null,
       "MALE",
       LocalDate.now().minusYears(16),
+      "guardian@test.com",
       acceptedDocIds
     );
   }
@@ -190,6 +193,7 @@ class SignupServiceTest {
       null,
       null,
       null,
+      "guardian@test.com",
       List.of(termsVersionId, privacyVersionId)
     );
     signupService.signup(request, gymId, "127.0.0.1", "Mozilla");

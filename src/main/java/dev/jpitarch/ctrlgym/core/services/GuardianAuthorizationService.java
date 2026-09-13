@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.services;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberGuardianAuthorization;
 import dev.jpitarch.ctrlgym.core.domain.enums.GuardianConsentStatus;
@@ -17,6 +18,7 @@ import dev.jpitarch.ctrlgym.notifications.services.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -58,6 +60,7 @@ public class GuardianAuthorizationService {
     this.gymsRepository = gymsRepository;
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleGuardianAuthorizationRequiredEvent(GuardianAuthorizationRequiredEvent event) {
     Member member = memberRepository.getById(event.getMemberId());
@@ -66,12 +69,13 @@ public class GuardianAuthorizationService {
     var expiresAt = OffsetDateTime.now().plusDays(7);
 
     var auth = MemberGuardianAuthorization.builder()
+      .id(UuidCreator.getTimeOrderedEpoch())
       .memberId(member.getId())
       .status(PENDING)
       .token(token)
       .tokenExpiresAt(expiresAt)
       .requestedAt(OffsetDateTime.now())
-      .requiresAccompaniment(true)
+      .requiresAccompaniment(false)
       .build();
 
     repository.save(auth);
@@ -86,8 +90,7 @@ public class GuardianAuthorizationService {
       "GymName", gym.getName()
     ));
 
-    // TODO: Need guardian email - this should come from the registration form
-    // emailService.send(guardianEmail, "Autorización requerida para inscripción", template);
+    emailService.send(event.getGuardianEmail(), "[%s] Autorización requerida para inscripción".formatted(gym.getName()), template);
     log.info("Guardian authorization email prepared for member {} with token {}", member.getId(), token);
   }
 

@@ -12,9 +12,12 @@ public class GuardianAuthorizationRequiredEvent extends ApplicationEvent {
 
   private final Integer gymId;
 
-  public GuardianAuthorizationRequiredEvent(Object source, UUID memberId, Integer gymId) {
+  private final String guardianEmail;
+
+  public GuardianAuthorizationRequiredEvent(Object source, UUID memberId, Integer gymId, String guardianEmail) {
     super(source);
     this.memberId = memberId;
     this.gymId = gymId;
+    this.guardianEmail = guardianEmail;
   }
 }

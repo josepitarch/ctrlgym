@@ -72,7 +72,7 @@ public class GymUseCase {
 
   private final GymScheduleJpaRepository gymScheduleJpaRepository;
 
-  private final AnalyticsRepository analyticsRepository;
+  private final GymAnalyticsRepository gymAnalyticsRepository;
 
   public GymScheduleResponse getSchedule(Integer gymId) {
     Map<Integer, TimeRange> schedule = gymScheduleJpaRepository.findByGymId(gymId).stream()
@@ -379,7 +379,7 @@ public class GymUseCase {
   }
 
   public List<MemberMetrics> getMemberMetrics(UUID memberId, YearMonth from, YearMonth to) {
-    return analyticsRepository.getMemberMetrics(memberId, from, to);
+    return gymAnalyticsRepository.getMemberMetrics(memberId, from, to);
   }
 
   private void resolveAvatarUrl(Member member) {

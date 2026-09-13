@@ -7,7 +7,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.Granularity;
 import dev.jpitarch.ctrlgym.core.domain.enums.MembershipFlow;
 import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.entities.PostalCodeEntity;
-import dev.jpitarch.ctrlgym.core.repositories.AnalyticsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.GymAnalyticsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.jpa.PostalCodeJpaRepository;
 import dev.jpitarch.ctrlgym.core.services.ExpensesService;
@@ -28,7 +28,7 @@ public class DashboardUseCase {
 
   private final GymsRepository gymsRepository;
 
-  private final AnalyticsRepository analyticsRepository;
+  private final GymAnalyticsRepository gymAnalyticsRepository;
 
   private final ExpensesService expensesService;
 
@@ -43,22 +43,22 @@ public class DashboardUseCase {
 
   public Map<YearMonth, Integer> getMemberships(GymBranchId gymBranchId, DateRange dateRange, MembershipFlow flow) {
     return switch (flow) {
-      case ACTIVE -> analyticsRepository.getCurrentCount(gymBranchId, dateRange);
-      case NEW -> analyticsRepository.getNewsCount(gymBranchId, dateRange);
-      case CANCELLED -> analyticsRepository.getCancelledCount(gymBranchId, dateRange);
+      case ACTIVE -> gymAnalyticsRepository.getCurrentCount(gymBranchId, dateRange);
+      case NEW -> gymAnalyticsRepository.getNewsCount(gymBranchId, dateRange);
+      case CANCELLED -> gymAnalyticsRepository.getCancelledCount(gymBranchId, dateRange);
     };
   }
 
   public Map<YearMonth, Integer> getMembershipSeniorityAverage(GymBranchId gymBranchId, DateRange dateRange) {
-    return analyticsRepository.getSeniorityAverage(gymBranchId, dateRange);
+    return gymAnalyticsRepository.getSeniorityAverage(gymBranchId, dateRange);
   }
 
   public List<Cohort> getCohorts(GymBranchId gymBranchId) {
-    return analyticsRepository.getCohorts(gymBranchId);
+    return gymAnalyticsRepository.getCohorts(gymBranchId);
   }
 
   public RetentionVsChurn getRetentionVsChurn(GymBranchId gymBranchId, DateRange dateRange) {
-    return analyticsRepository.getRetentionVsChurn(gymBranchId, dateRange);
+    return gymAnalyticsRepository.getRetentionVsChurn(gymBranchId, dateRange);
   }
 
   public List<Expense> getExpenses(GymBranchId gymBranchId, YearMonth month) {
@@ -67,14 +67,14 @@ public class DashboardUseCase {
 
   public CashFlow getCashFlow(GymBranchId gymBranchId, DateRange dateRange) {
     var expenses = expensesService.getTotalPerMonth(gymBranchId.branchId(), dateRange);
-    var revenues = analyticsRepository.getTotalPerMonth(gymBranchId, dateRange);
+    var revenues = gymAnalyticsRepository.getTotalPerMonth(gymBranchId, dateRange);
 
     return new CashFlow(expenses, revenues);
   }
 
   public MembersDistribution getMembersDistribution(GymBranchId gymBranchId) {
-    var distribution = analyticsRepository.getDistribution(gymBranchId);
-    var seniority = analyticsRepository.getSeniorityDistribution(gymBranchId);
+    var distribution = gymAnalyticsRepository.getDistribution(gymBranchId);
+    var seniority = gymAnalyticsRepository.getSeniorityDistribution(gymBranchId);
     return new MembersDistribution(
       toStringDistributionItemList(distribution.get(MembersDistribution.Group.POSTAL_CODE), this::resolvePostalCode),
       toStringDistributionItemList(distribution.get(MembersDistribution.Group.AGE), this::resolveAgeLabel),
@@ -85,11 +85,11 @@ public class DashboardUseCase {
 
 
   public List<Map<String, Integer>> getCancellationReasons(GymBranchId gymBranchId) {
-    return analyticsRepository.getCancellationReasons(gymBranchId, null);
+    return gymAnalyticsRepository.getCancellationReasons(gymBranchId, null);
   }
 
   public List<CancellationComment> getCancellationComments(GymBranchId gymBranchId) {
-    return analyticsRepository.getCancellationComments(gymBranchId);
+    return gymAnalyticsRepository.getCancellationComments(gymBranchId);
   }
 
 
@@ -160,11 +160,11 @@ public class DashboardUseCase {
   }
 
   public List<MembershipPlanDistribution> getMembershipsDistributionByPlan(GymBranchId gymBranchId) {
-    return analyticsRepository.getMembershipsDistributionByPlan(gymBranchId);
+    return gymAnalyticsRepository.getMembershipsDistributionByPlan(gymBranchId);
   }
 
   public List<BranchMetrics> getMonthlyMetrics(Integer gymId, YearMonth from, YearMonth to) {
-    return analyticsRepository.getMonthlyMetrics(gymId, from, to);
+    return gymAnalyticsRepository.getMonthlyMetrics(gymId, from, to);
   }
 
 }

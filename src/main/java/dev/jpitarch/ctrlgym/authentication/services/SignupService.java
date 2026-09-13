@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.authentication.services;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
@@ -87,7 +88,7 @@ public class SignupService {
 
     String hashedPassword = passwordEncoder.encode(request.password());
     var created = new UserEntity();
-    created.setId(UUID.randomUUID());
+    created.setId(UuidCreator.getTimeOrderedEpoch());
     created.setGymId(gymId);
     created.setNif(request.nif());
     created.setEmail(request.email());
@@ -103,7 +104,7 @@ public class SignupService {
       created.setStatus(UserStatus.ACTIVE);
     } else {
       created.setStatus(UserStatus.PENDING_GUARDIAN_CONSENT);
-      eventPublisher.publishEvent(new GuardianAuthorizationRequiredEvent(this, created.getId(), gymId));
+      eventPublisher.publishEvent(new GuardianAuthorizationRequiredEvent(this, created.getId(), gymId, request.guardianEmail()));
     }
 
     var customerId = customerService.create(created.getId(), created.getEmail(), fullName, request.nif());
@@ -112,7 +113,7 @@ public class SignupService {
 
     for (LegalDocumentVersion version : acceptedVersions) {
       var acceptance = new MemberTermsAcceptanceEntity();
-      acceptance.setId(UUID.randomUUID());
+      acceptance.setId(UuidCreator.getTimeOrderedEpoch());
       acceptance.setMemberId(created.getId());
       acceptance.setDocumentVersionId(version.getId());
       acceptance.setAcceptedAt(OffsetDateTime.now());

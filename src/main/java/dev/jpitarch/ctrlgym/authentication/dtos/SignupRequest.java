@@ -16,5 +16,6 @@ public record SignupRequest(
   String nif,
   String gender,
   @JsonProperty("birth_date") LocalDate birthDate,
+  @JsonProperty("guardian_email") @Nullable String guardianEmail,
   @JsonProperty("accepted_document_version_ids") List<UUID> acceptedDocumentVersionIds) {
 }

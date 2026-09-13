@@ -28,8 +28,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -86,10 +89,11 @@ public class AuthControllerTestIT extends BaseIntegrationTest {
       null,
       "12345678A",
       "M",
-      java.time.LocalDate.of(1990, 1, 1),
-      java.util.List.of(
-        java.util.UUID.fromString("d0d0d0d0-0000-0000-0000-000000000001"),
-        java.util.UUID.fromString("d0d0d0d0-0000-0000-0000-000000000002")
+      LocalDate.of(1990, 1, 1),
+      "guardian@test.com",
+      List.of(
+        UUID.fromString("d0d0d0d0-0000-0000-0000-000000000001"),
+        UUID.fromString("d0d0d0d0-0000-0000-0000-000000000002")
       )
     );
 

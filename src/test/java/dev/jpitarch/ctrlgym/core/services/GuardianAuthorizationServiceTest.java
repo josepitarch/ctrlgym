@@ -121,8 +121,9 @@ class GuardianAuthorizationServiceTest {
 
       GuardianAuthorizationDto dto = service.getByToken(token);
 
-      assertThat(dto.memberFirstName()).isEqualTo("John");
-      assertThat(dto.memberLastName()).isEqualTo("Doe");
+      assertThat(dto.memberName()).isEqualTo("John");
+      assertThat(dto.memberFirstName()).isEqualTo("Doe");
+      assertThat(dto.memberLastName()).isEqualTo("Smith");
       assertThat(dto.memberDateOfBirth()).isEqualTo(LocalDate.of(2008, 5, 15));
       assertThat(dto.gymName()).isEqualTo("Wolf Gym");
       assertThat(dto.requiresAccompaniment()).isFalse();

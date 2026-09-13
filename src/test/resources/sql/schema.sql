@@ -272,10 +272,10 @@ CREATE TABLE member_guardian_authorization (
   id                   UUID PRIMARY KEY DEFAULT uuidv7(),
   member_id            UUID NOT NULL UNIQUE REFERENCES users(id),
 
-  guardian_first_name  VARCHAR(100) NOT NULL,
-  guardian_last_name   VARCHAR(100) NOT NULL,
-  guardian_dni         VARCHAR(20) NOT NULL,
-  guardian_email       VARCHAR(255) NOT NULL,
+  guardian_first_name  VARCHAR(100),
+  guardian_last_name   VARCHAR(100),
+  guardian_dni         VARCHAR(20),
+  guardian_email       VARCHAR(255),
 
   status               guardian_consent_status NOT NULL DEFAULT 'PENDING',
   token                VARCHAR(255) NOT NULL UNIQUE,
@@ -286,7 +286,16 @@ CREATE TABLE member_guardian_authorization (
   approved_ip          VARCHAR(45),
   approved_user_agent  TEXT,
 
-  requires_accompaniment BOOLEAN NOT NULL DEFAULT false
+  requires_accompaniment BOOLEAN NOT NULL DEFAULT false,
+
+  CONSTRAINT chk_guardian_data_when_approved CHECK (
+    status <> 'APPROVED' OR (
+      guardian_first_name IS NOT NULL AND
+      guardian_last_name IS NOT NULL AND
+      guardian_dni IS NOT NULL AND
+      guardian_email IS NOT NULL
+    )
+  )
 );
 
 

@@ -4,7 +4,9 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.exceptions.DuplicateEmailException;
 import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidNifException;
+import dev.jpitarch.ctrlgym.authentication.exceptions.MissingGuardianEmailException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.LegalDocumentVersion;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
@@ -55,6 +57,10 @@ public class SignupService {
   @Transactional
   public AuthResponse signup(SignupRequest request, Integer gymId, String ip, String userAgent) throws StripeException {
 
+    if (userRepository.findByEmailAndGymId(request.email(), gymId).isPresent()) {
+      throw new DuplicateEmailException(request.email());
+    }
+
     var fullName = new StringJoiner(" ")
       .add(request.name())
       .add(request.firstSurname())
@@ -103,6 +109,9 @@ public class SignupService {
     if (AgeHelper.isAdult(request.birthDate())) {
       created.setStatus(UserStatus.ACTIVE);
     } else {
+      if (request.guardianEmail() == null || request.guardianEmail().isBlank()) {
+        throw new MissingGuardianEmailException();
+      }
       created.setStatus(UserStatus.PENDING_GUARDIAN_CONSENT);
       eventPublisher.publishEvent(new GuardianAuthorizationRequiredEvent(this, created.getId(), gymId, request.guardianEmail()));
     }

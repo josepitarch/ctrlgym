@@ -7,6 +7,8 @@ spring:
     properties:
       hibernate.hibernate.format_sql: true
 
+email.redirect.base-url: http://localhost:5173
+
 management:
   otlp:
     metrics:

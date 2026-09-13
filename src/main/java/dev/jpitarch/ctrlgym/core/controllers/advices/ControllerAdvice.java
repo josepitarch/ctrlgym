@@ -1,6 +1,8 @@
 package dev.jpitarch.ctrlgym.core.controllers.advices;
 
 import dev.jpitarch.ctrlgym.authentication.exceptions.AccountNotActivatedException;
+import dev.jpitarch.ctrlgym.authentication.exceptions.DuplicateEmailException;
+import dev.jpitarch.ctrlgym.authentication.exceptions.MissingGuardianEmailException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.*;
 import dev.jpitarch.ctrlgym.core.events.ExceptionEvent;
 import jakarta.servlet.http.HttpServletRequest;
@@ -138,6 +140,30 @@ public class ControllerAdvice {
     problem.setProperty("timestamp", Instant.now());
 
     publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.UNPROCESSABLE_CONTENT, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(MissingGuardianEmailException.class)
+  public ProblemDetail handleMissingGuardianEmailException(MissingGuardianEmailException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    problem.setTitle("Missing Guardian Email");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.BAD_REQUEST, request);
+
+    return problem;
+  }
+
+  @ExceptionHandler(DuplicateEmailException.class)
+  public ProblemDetail handleDuplicateEmailException(DuplicateEmailException e, HttpServletRequest request) {
+    var problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    problem.setTitle("Duplicate Email");
+    problem.setType(URI.create("about:blank"));
+    problem.setProperty("timestamp", Instant.now());
+
+    publishExceptionEvent(e.getClass().getSimpleName(), e.getMessage(), HttpStatus.CONFLICT, request);
 
     return problem;
   }

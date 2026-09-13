@@ -30,7 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,15 +79,13 @@ public class GuardianAuthorizationService {
   public void handleGuardianAuthorizationRequiredEvent(GuardianAuthorizationRequiredEvent event) {
     Member member = memberRepository.getById(event.getMemberId());
 
-    String token = UUID.randomUUID().toString();
-    var expiresAt = OffsetDateTime.now().plusDays(7);
-
+    String token = this.generateToken();
     var auth = MemberGuardianAuthorization.builder()
       .id(UuidCreator.getTimeOrderedEpoch())
       .memberId(member.getId())
       .status(PENDING)
       .token(token)
-      .tokenExpiresAt(expiresAt)
+      .tokenExpiresAt(OffsetDateTime.now().plusDays(7))
       .requestedAt(OffsetDateTime.now())
       .requiresAccompaniment(false)
       .build();
@@ -132,6 +132,7 @@ public class GuardianAuthorizationService {
     return new GuardianAuthorizationDto(
       member.getName(),
       member.getFirstSurname(),
+      member.getSecondSurname(),
       member.getBirthDate(),
       "Wolf Gym",
       auth.isRequiresAccompaniment(),
@@ -185,5 +186,11 @@ public class GuardianAuthorizationService {
       acceptance.setUserAgent(userAgent);
       legalDocumentsRepository.saveAcceptance(acceptance);
     }
+  }
+
+  private String generateToken() {
+    byte[] randomBytes = new byte[32];
+    new SecureRandom().nextBytes(randomBytes);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
   }
 }

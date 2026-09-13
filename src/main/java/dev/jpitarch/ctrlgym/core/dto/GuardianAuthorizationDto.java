@@ -6,6 +6,7 @@ import dev.jpitarch.ctrlgym.core.domain.enums.GuardianConsentStatus;
 import java.time.LocalDate;
 
 public record GuardianAuthorizationDto(
+  @JsonProperty("member_name") String memberName,
   @JsonProperty("member_first_name") String memberFirstName,
   @JsonProperty("member_last_name") String memberLastName,
   @JsonProperty("member_date_of_birth") LocalDate memberDateOfBirth,

@@ -2,7 +2,9 @@ package dev.jpitarch.ctrlgym.authentication.services;
 
 import dev.jpitarch.ctrlgym.authentication.dtos.AuthResponse;
 import dev.jpitarch.ctrlgym.authentication.dtos.SignupRequest;
+import dev.jpitarch.ctrlgym.authentication.exceptions.DuplicateEmailException;
 import dev.jpitarch.ctrlgym.authentication.exceptions.InvalidNifException;
+import dev.jpitarch.ctrlgym.authentication.exceptions.MissingGuardianEmailException;
 import dev.jpitarch.ctrlgym.authentication.repositories.UserRepository;
 import dev.jpitarch.ctrlgym.core.domain.LegalDocumentVersion;
 import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
@@ -28,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -338,5 +341,87 @@ class SignupServiceTest {
     assertThat(response.accessToken()).isEqualTo("access-token");
     verify(nifValidationService).validateNif(eq(gymId), eq("B86561412"), anyString());
     verify(userRepository).save(any(UserEntity.class));
+  }
+
+  @Test
+  @DisplayName("Signup minor with null guardianEmail throws MissingGuardianEmailException")
+  void signup_minorWithNullGuardianEmail_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
+    when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
+      .thenReturn(activeMandatoryVersions());
+    when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
+
+    var request = new SignupRequest(
+      "minor@test.com",
+      "Password1!",
+      "Minor",
+      "User",
+      null,
+      null,
+      "MALE",
+      LocalDate.now().minusYears(16),
+      null,
+      List.of(termsVersionId, privacyVersionId)
+    );
+
+    assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
+      .isInstanceOf(MissingGuardianEmailException.class);
+
+    verify(userRepository, never()).save(any());
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  @DisplayName("Signup minor with blank guardianEmail throws MissingGuardianEmailException")
+  void signup_minorWithBlankGuardianEmail_throwsException() {
+    when(nifValidationService.validateNif(any(), any(), anyString())).thenReturn(true);
+    when(legalDocumentsRepository.findAllById(List.of(termsVersionId, privacyVersionId)))
+      .thenReturn(activeMandatoryVersions());
+    when(passwordEncoder.encode("Password1!")).thenReturn("hashed");
+
+    var request = new SignupRequest(
+      "minor@test.com",
+      "Password1!",
+      "Minor",
+      "User",
+      null,
+      null,
+      "MALE",
+      LocalDate.now().minusYears(16),
+      "   ",
+      List.of(termsVersionId, privacyVersionId)
+    );
+
+    assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
+      .isInstanceOf(MissingGuardianEmailException.class);
+
+    verify(userRepository, never()).save(any());
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  @DisplayName("Signup with existing email in gym throws DuplicateEmailException")
+  void signup_existingEmailInGym_throwsException() {
+    when(userRepository.findByEmailAndGymId("duplicate@test.com", gymId))
+      .thenReturn(Optional.of(new UserEntity()));
+
+    var request = new SignupRequest(
+      "duplicate@test.com",
+      "Password1!",
+      "Adult",
+      "User",
+      null,
+      null,
+      "MALE",
+      LocalDate.of(1995, 8, 20),
+      "guardian@test.com",
+      List.of(termsVersionId, privacyVersionId)
+    );
+
+    assertThatThrownBy(() -> signupService.signup(request, gymId, "127.0.0.1", "Mozilla"))
+      .isInstanceOf(DuplicateEmailException.class);
+
+    verify(userRepository, never()).save(any());
+    verify(nifValidationService, never()).validateNif(any(), any(), anyString());
   }
 }

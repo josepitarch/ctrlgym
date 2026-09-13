@@ -10,8 +10,8 @@ public record GuardianAuthorizationDto(
   @JsonProperty("member_last_name") String memberLastName,
   @JsonProperty("member_date_of_birth") LocalDate memberDateOfBirth,
   @JsonProperty("gym_name") String gymName,
-  @JsonProperty("authorization_text") String authorizationText,
   @JsonProperty("requires_accompaniment") boolean requiresAccompaniment,
-  GuardianConsentStatus status
+  GuardianConsentStatus status,
+  @JsonProperty("terms_of_use") LegalDocumentResponse termsOfUse
 ) {
 }

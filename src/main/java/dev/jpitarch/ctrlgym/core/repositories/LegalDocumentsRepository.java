@@ -37,6 +37,11 @@ public class LegalDocumentsRepository {
       .toList();
   }
 
+  public Optional<LegalDocumentVersion> findActiveByGymIdAndType(Integer gymId, LegalDocumentType type) {
+    return legalDocumentVersionJpaRepository.findActiveByGymIdAndType(gymId, type)
+      .map(legalDocumentMapper::map);
+  }
+
   public void saveAcceptance(MemberTermsAcceptanceEntity entity) {
     memberTermsAcceptanceJpaRepository.save(entity);
   }

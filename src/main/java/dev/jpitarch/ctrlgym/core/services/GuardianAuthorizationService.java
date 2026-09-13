@@ -1,16 +1,23 @@
 package dev.jpitarch.ctrlgym.core.services;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import dev.jpitarch.ctrlgym.core.domain.LegalDocumentVersion;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.MemberGuardianAuthorization;
 import dev.jpitarch.ctrlgym.core.domain.enums.GuardianConsentStatus;
+import dev.jpitarch.ctrlgym.core.domain.enums.LegalDocumentType;
 import dev.jpitarch.ctrlgym.core.domain.enums.UserStatus;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthorizationNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.AuthorizationTokenExpiredException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvalidAuthorizationStateException;
+import dev.jpitarch.ctrlgym.core.domain.exceptions.StaleLegalDocumentException;
+import dev.jpitarch.ctrlgym.core.dto.GuardianApprovalRequest;
 import dev.jpitarch.ctrlgym.core.dto.GuardianAuthorizationDto;
+import dev.jpitarch.ctrlgym.core.dto.LegalDocumentResponse;
+import dev.jpitarch.ctrlgym.core.entities.MemberTermsAcceptanceEntity;
 import dev.jpitarch.ctrlgym.core.events.GuardianAuthorizationRequiredEvent;
 import dev.jpitarch.ctrlgym.core.repositories.GymsRepository;
+import dev.jpitarch.ctrlgym.core.repositories.LegalDocumentsRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MemberGuardianAuthorizationRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.notifications.EmailTemplateComponent;
@@ -24,6 +31,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,19 +53,23 @@ public class GuardianAuthorizationService {
 
   private final GymsRepository gymsRepository;
 
+  private final LegalDocumentsRepository legalDocumentsRepository;
+
   public GuardianAuthorizationService(
     @Value("${email.redirect.base-url}") String baseUrl,
     MemberGuardianAuthorizationRepository repository,
     MembersRepository memberRepository,
     EmailTemplateComponent emailTemplateComponent,
     EmailService emailService,
-    GymsRepository gymsRepository) {
+    GymsRepository gymsRepository,
+    LegalDocumentsRepository legalDocumentsRepository) {
     this.baseUrl = baseUrl;
     this.repository = repository;
     this.memberRepository = memberRepository;
     this.emailTemplateComponent = emailTemplateComponent;
     this.emailService = emailService;
     this.gymsRepository = gymsRepository;
+    this.legalDocumentsRepository = legalDocumentsRepository;
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -103,11 +115,33 @@ public class GuardianAuthorizationService {
       repository.save(auth);
     }
 
-    return toDto(auth);
+    Member member = auth.getMember();
+    Integer gymId = memberRepository.getGymIdByMemberId(member.getId());
+
+    LegalDocumentResponse termsOfUse = legalDocumentsRepository
+      .findActiveByGymIdAndType(gymId, LegalDocumentType.TERMS_OF_USE)
+      .map(doc -> new LegalDocumentResponse(
+        doc.getId(),
+        doc.getType(),
+        doc.getVersion(),
+        doc.getContent(),
+        doc.getEffectiveDate()
+      ))
+      .orElse(null);
+
+    return new GuardianAuthorizationDto(
+      member.getName(),
+      member.getFirstSurname(),
+      member.getBirthDate(),
+      "Wolf Gym",
+      auth.isRequiresAccompaniment(),
+      auth.getStatus(),
+      termsOfUse
+    );
   }
 
   @Transactional
-  public void approve(String token, String ipAddress, String userAgent) {
+  public void approve(String token, GuardianApprovalRequest request, String ipAddress, String userAgent) {
     MemberGuardianAuthorization auth = repository.findByToken(token)
       .orElseThrow(() -> new AuthorizationNotFoundException(token));
 
@@ -119,6 +153,18 @@ public class GuardianAuthorizationService {
       throw new AuthorizationTokenExpiredException(token);
     }
 
+    List<LegalDocumentVersion> acceptedVersions = legalDocumentsRepository.findAllById(
+      request.acceptedDocumentVersionIds()
+    );
+
+    for (LegalDocumentVersion version : acceptedVersions) {
+      if (!version.isActive()) {
+        throw new StaleLegalDocumentException(version.getType());
+      }
+    }
+
+    auth.setGuardianFirstName(request.name());
+    auth.setGuardianLastName(request.firstSurname());
     auth.setStatus(GuardianConsentStatus.APPROVED);
     auth.setApprovedAt(OffsetDateTime.now());
     auth.setApprovedIp(ipAddress);
@@ -128,24 +174,16 @@ public class GuardianAuthorizationService {
     Member member = auth.getMember();
     member.setStatus(UserStatus.ACTIVE);
     memberRepository.updateStatus(member.getId(), UserStatus.ACTIVE);
-  }
 
-  private GuardianAuthorizationDto toDto(MemberGuardianAuthorization auth) {
-    Member member = auth.getMember();
-    return new GuardianAuthorizationDto(
-      member.getName(),
-      member.getFirstSurname(),
-      member.getBirthDate(),
-      "Wolf Gym",
-      buildAuthorizationText(member),
-      auth.isRequiresAccompaniment(),
-      auth.getStatus()
-    );
-  }
-
-  private String buildAuthorizationText(Member member) {
-    return "Como padre/madre/tutor legal de " + member.getFullName()
-      + ", autorizo su inscripción como socio del centro y la aceptación en su nombre "
-      + "de las condiciones generales, política de privacidad y demás documentos aplicables.";
+    for (UUID docVersionId : request.acceptedDocumentVersionIds()) {
+      MemberTermsAcceptanceEntity acceptance = new MemberTermsAcceptanceEntity();
+      acceptance.setId(UuidCreator.getTimeOrderedEpoch());
+      acceptance.setMemberId(member.getId());
+      acceptance.setDocumentVersionId(docVersionId);
+      acceptance.setAcceptedAt(OffsetDateTime.now());
+      acceptance.setIpAddress(ipAddress);
+      acceptance.setUserAgent(userAgent);
+      legalDocumentsRepository.saveAcceptance(acceptance);
+    }
   }
 }

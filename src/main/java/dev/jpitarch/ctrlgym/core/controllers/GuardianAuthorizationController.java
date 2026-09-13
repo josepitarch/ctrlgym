@@ -1,5 +1,6 @@
 package dev.jpitarch.ctrlgym.core.controllers;
 
+import dev.jpitarch.ctrlgym.core.dto.GuardianApprovalRequest;
 import dev.jpitarch.ctrlgym.core.dto.GuardianAuthorizationDto;
 import dev.jpitarch.ctrlgym.core.services.GuardianAuthorizationService;
 import dev.jpitarch.ctrlgym.lib.RequestHelper;
@@ -22,8 +23,9 @@ public class GuardianAuthorizationController {
 
   @PostMapping("/{token}/approve")
   public ResponseEntity<Void> approve(@PathVariable String token,
+                                      @RequestBody GuardianApprovalRequest request,
                                       HttpServletRequest httpRequest) {
-    service.approve(token, RequestHelper.extractIp(httpRequest), httpRequest.getHeader("User-Agent"));
+    service.approve(token, request, RequestHelper.extractIp(httpRequest), httpRequest.getHeader("User-Agent"));
     return ResponseEntity.noContent().build();
   }
 }

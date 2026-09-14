@@ -202,6 +202,58 @@ class GymControllerTestIT extends BaseIntegrationTest {
 
       assertThat(exerciseJpaRepository.findById(21)).isEmpty();
     }
+
+    @Test
+    @Order(4)
+    @DisplayName("Updates an exercise with new image")
+    void updateExercise_withNewImage_returns200() throws Exception {
+      var createExercise = Exercise.builder()
+        .name("Press militar")
+        .description("Ejercicio para hombros")
+        .muscleGroup(MuscleGroup.DELTOID)
+        .build();
+
+      when(storageService.uploadFile(any(), eq(gymId), eq("exercises"), eq(StorageBucket.ASSETS)))
+        .thenReturn("tenants/1/exercises/old-image.png");
+      when(storageService.resolvePublicUrl("tenants/1/exercises/old-image.png"))
+        .thenReturn("https://test-cdn.ctrlgym.es/tenants/1/exercises/old-image.png");
+
+      MvcResult createResult = mockMvc.perform(multipart("/v1/gyms/{gymId}/exercises", gymId)
+          .file(new MockMultipartFile("exercise", "", "application/json", objectMapper.writeValueAsBytes(createExercise)))
+          .file(new MockMultipartFile("image", "old-image.png", "image/png", "old-image-content".getBytes()))
+          .with(jwtAuth()))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+      Number exerciseId = objectMapper.readValue(createResult.getResponse().getContentAsString(), Exercise.class).getId();
+
+      var updateExercise = Exercise.builder()
+        .name("Press militar actualizado")
+        .description("Ejercicio para hombros y trapecios")
+        .muscleGroup(MuscleGroup.DELTOID)
+        .build();
+
+      when(storageService.uploadFile(any(), eq(gymId), eq("exercises"), eq(StorageBucket.ASSETS)))
+        .thenReturn("tenants/1/exercises/new-image.png");
+      when(storageService.resolvePublicUrl("tenants/1/exercises/new-image.png"))
+        .thenReturn("https://test-cdn.ctrlgym.es/tenants/1/exercises/new-image.png");
+
+      mockMvc.perform(multipart("/v1/gyms/{gymId}/exercises/{exerciseId}", gymId, exerciseId.intValue())
+          .file(new MockMultipartFile("exercise", "", "application/json", objectMapper.writeValueAsBytes(updateExercise)))
+          .file(new MockMultipartFile("image", "new-image.png", "image/png", "new-image-content".getBytes()))
+          .with(jwtAuth())
+          .with(request -> {
+            request.setMethod("PUT");
+            return request;
+          }))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(exerciseId.intValue()))
+        .andExpect(jsonPath("$.name").value("Press militar actualizado"))
+        .andExpect(jsonPath("$.description").value("Ejercicio para hombros y trapecios"))
+        .andExpect(jsonPath("$.image").value("https://test-cdn.ctrlgym.es/tenants/1/exercises/new-image.png"));
+
+      verify(storageService).deleteFile("tenants/1/exercises/old-image.png", StorageBucket.ASSETS);
+    }
   }
 
   @Nested

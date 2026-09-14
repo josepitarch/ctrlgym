@@ -82,6 +82,16 @@ public class GymController {
     return ResponseEntity.status(HttpStatus.CREATED).body(useCase.createExercise(gymId, exercise, image));
   }
 
+  @PutMapping(value = "/{gymId}/exercises/{exerciseId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasRole('MANAGER') and #gymId == authentication.gymId")
+  public ResponseEntity<Exercise> updateExercise(
+    @PathVariable Integer gymId,
+    @PathVariable Integer exerciseId,
+    @RequestPart("exercise") Exercise exercise,
+    @RequestPart(value = "image", required = false) MultipartFile image) {
+    return ResponseEntity.ok(useCase.updateExercise(exerciseId, gymId, exercise, image));
+  }
+
   @GetMapping("/{gymId}/exercises")
   @PreAuthorize("#gymId == authentication.gymId")
   public ResponseEntity<List<Exercise>> getExercises(@PathVariable Integer gymId) {

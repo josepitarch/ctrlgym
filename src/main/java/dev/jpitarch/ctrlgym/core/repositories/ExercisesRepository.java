@@ -38,6 +38,19 @@ public class ExercisesRepository {
       .map(this::toDomain);
   }
 
+  public Exercise update(Exercise exercise) {
+    ExerciseEntity entity = jpaRepository.findById(exercise.getId())
+      .orElseThrow(() -> new IllegalArgumentException("Exercise not found with id: " + exercise.getId()));
+    entity.setName(exercise.getName());
+    entity.setDescription(exercise.getDescription());
+    entity.setMuscleGroup(exercise.getMuscleGroup());
+    if (exercise.getImage() != null) {
+      entity.setImage(exercise.getImage());
+    }
+    ExerciseEntity saved = jpaRepository.save(entity);
+    return toDomain(saved);
+  }
+
   public void delete(Integer exerciseId) {
     jpaRepository.deleteById(exerciseId);
   }

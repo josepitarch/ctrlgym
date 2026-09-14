@@ -183,6 +183,26 @@ public class GymUseCase {
     return created;
   }
 
+  public Exercise updateExercise(Integer exerciseId, Integer gymId, Exercise exercise, MultipartFile image) {
+    Exercise existing = exercisesService.findById(exerciseId)
+      .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+
+    if (image != null && !image.isEmpty()) {
+      if (existing.getImage() != null && !existing.getImage().isBlank()) {
+        storageService.deleteFile(existing.getImage(), StorageBucket.ASSETS);
+      }
+      String imageKey = storageService.uploadFile(image, gymId, "exercises", StorageBucket.ASSETS);
+      exercise.setImage(imageKey);
+    } else {
+      exercise.setImage(existing.getImage());
+    }
+
+    exercise.setId(exerciseId);
+    Exercise updated = exercisesService.update(exercise);
+    resolveExerciseImageUrl(updated);
+    return updated;
+  }
+
   public void deleteExercise(Integer exerciseId, Integer gymId) {
     Exercise exercise = exercisesService.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
 

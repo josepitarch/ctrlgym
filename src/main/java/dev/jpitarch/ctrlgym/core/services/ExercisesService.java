@@ -30,6 +30,11 @@ public class ExercisesService {
     return exercisesRepository.findById(exerciseId);
   }
 
+  public Exercise update(Exercise exercise) {
+    log.info("Updating exercise with id {}...", exercise.getId());
+    return exercisesRepository.update(exercise);
+  }
+
   public void delete(Integer exerciseId, Integer gymId) {
     log.info("Deleting exercise with id {} for gym with id {}...", exerciseId, gymId);
     exercisesRepository.delete(exerciseId);

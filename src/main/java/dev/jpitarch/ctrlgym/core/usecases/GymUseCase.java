@@ -222,7 +222,9 @@ public class GymUseCase {
   }
 
   public List<Routine> getGymRoutines(Integer gymId) {
-    return routinesService.getGymRoutines(gymId);
+    List<Routine> routines = routinesService.getGymRoutines(gymId);
+    routines.forEach(this::resolveRoutineExerciseImageUrls);
+    return routines;
   }
 
   public void deleteGymRoutine(Integer routineId, Integer gymId) {
@@ -419,6 +421,18 @@ public class GymUseCase {
     if (product.getImage() != null && !product.getImage().isBlank()) {
       product.setImage(storageService.resolvePublicUrl(product.getImage()));
     }
+  }
+
+  private void resolveRoutineExerciseImageUrls(Routine routine) {
+    if (routine.getDays() == null) return;
+    routine.getDays().forEach(day -> {
+      if (day.getExercises() == null) return;
+      day.getExercises().forEach(exercise -> {
+        if (exercise.getImage() != null && !exercise.getImage().isBlank()) {
+          exercise.setImage(storageService.resolvePublicUrl(exercise.getImage()));
+        }
+      });
+    });
   }
 
 }

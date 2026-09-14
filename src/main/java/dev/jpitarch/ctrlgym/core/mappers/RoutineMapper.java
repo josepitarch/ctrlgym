@@ -60,6 +60,7 @@ public interface RoutineMapper {
   @Mapping(target = "sets", source = "sets")
   @Mapping(target = "name", ignore = true)
   @Mapping(target = "muscleGroup", ignore = true)
+  @Mapping(target = "image", ignore = true)
   Routine.Day.Exercise map(RoutineDayExerciseEntity ExerciseEntity);
 
   @Named("mapExerciseWithContext")
@@ -68,6 +69,7 @@ public interface RoutineMapper {
   @Mapping(target = "sets", source = "sets")
   @Mapping(target = "name", ignore = true)
   @Mapping(target = "muscleGroup", ignore = true)
+  @Mapping(target = "image", ignore = true)
   Routine.Day.Exercise mapExerciseWithContext(RoutineDayExerciseEntity ExerciseEntity, @Context List<ExerciseEntity> exercises);
 
   @Mapping(target = "number", source = "set")
@@ -104,6 +106,7 @@ public interface RoutineMapper {
         .ifPresent(e -> {
           exercise.setName(e.getName());
           exercise.setMuscleGroup(e.getMuscleGroup());
+          exercise.setImage(e.getImage());
         });
     }
   }

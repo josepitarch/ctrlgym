@@ -43,6 +43,8 @@ public class Routine {
       @JsonProperty("muscle_group")
       private MuscleGroup muscleGroup;
 
+      private String image;
+
       private Integer position;
 
       private List<Set> sets;

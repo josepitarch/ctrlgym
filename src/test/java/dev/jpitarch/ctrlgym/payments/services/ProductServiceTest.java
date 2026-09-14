@@ -34,11 +34,13 @@ class ProductServiceTest {
   @Mock
   StripeBridge stripeBridge;
 
+  @Mock
+  PriceService priceService;
+
   @Test
   @DisplayName("create - creates product and price with correct parameters")
   void create_createsProductAndPriceWithCorrectParameters() throws StripeException {
-    try (MockedStatic<Product> productMock = mockStatic(Product.class);
-         MockedStatic<Price> priceMock = mockStatic(Price.class)) {
+    try (MockedStatic<Product> productMock = mockStatic(Product.class)) {
 
       Integer gymId = 1;
       var request = MembershipPlan.builder()
@@ -58,8 +60,7 @@ class ProductServiceTest {
       productMock.when(() -> Product.create(any(ProductCreateParams.class), any(RequestOptions.class)))
         .thenReturn(mockProduct);
 
-      priceMock.when(() -> Price.create(any(PriceCreateParams.class), any(RequestOptions.class)))
-        .thenReturn(mockPrice);
+      when(priceService.createPrice(eq("prod_test123"), eq(29.99))).thenReturn(mockPrice);
 
       String[] result = productService.create(gymId, request);
 
@@ -74,22 +75,14 @@ class ProductServiceTest {
       assertThat(capturedProductParams.getName()).isEqualTo("Premium Plan");
       assertThat(capturedProductParams.getMetadata()).extracting("gym_id").isEqualTo("1");
 
-      ArgumentCaptor<PriceCreateParams> priceCaptor = ArgumentCaptor.forClass(PriceCreateParams.class);
-      priceMock.verify(() -> Price.create(priceCaptor.capture(), any(RequestOptions.class)));
-
-      PriceCreateParams capturedPriceParams = priceCaptor.getValue();
-      assertThat(capturedPriceParams.getProduct()).isEqualTo("prod_test123");
-      assertThat(capturedPriceParams.getCurrency()).isEqualTo("eur");
-      assertThat(capturedPriceParams.getUnitAmountDecimal()).isEqualByComparingTo(new BigDecimal("2999"));
-      assertThat(capturedPriceParams.getRecurring().getInterval()).isEqualTo(PriceCreateParams.Recurring.Interval.MONTH);
+      verify(priceService).createPrice(eq("prod_test123"), eq(29.99));
     }
   }
 
   @Test
-  @DisplayName("create - converts price to cents correctly")
-  void create_convertsPriceToCentsCorrectly() throws StripeException {
-    try (MockedStatic<Product> productMock = mockStatic(Product.class);
-         MockedStatic<Price> priceMock = mockStatic(Price.class)) {
+  @DisplayName("create - delegates price creation to PriceService")
+  void create_delegatesPriceCreationToPriceService() throws StripeException {
+    try (MockedStatic<Product> productMock = mockStatic(Product.class)) {
 
       Integer gymId = 1;
       var request = MembershipPlan.builder()
@@ -107,15 +100,12 @@ class ProductServiceTest {
 
       productMock.when(() -> Product.create(any(ProductCreateParams.class), any(RequestOptions.class)))
         .thenReturn(mockProduct);
-      priceMock.when(() -> Price.create(any(PriceCreateParams.class), any(RequestOptions.class)))
-        .thenReturn(mockPrice);
+
+      when(priceService.createPrice(eq("prod_test"), eq(10.50))).thenReturn(mockPrice);
 
       productService.create(gymId, request);
 
-      ArgumentCaptor<PriceCreateParams> priceCaptor = ArgumentCaptor.forClass(PriceCreateParams.class);
-      priceMock.verify(() -> Price.create(priceCaptor.capture(), any(RequestOptions.class)));
-
-      assertThat(priceCaptor.getValue().getUnitAmountDecimal()).isEqualByComparingTo(new BigDecimal("1050"));
+      verify(priceService).createPrice(eq("prod_test"), eq(10.50));
     }
   }
 
@@ -201,41 +191,4 @@ class ProductServiceTest {
     }
   }
 
-  @Test
-  @DisplayName("createTaxRate - creates tax rate with correct parameters")
-  void createTaxRate_createsTaxRateWithCorrectParameters() throws StripeException {
-    try (MockedStatic<TaxRate> taxRateMock = mockStatic(TaxRate.class)) {
-
-      TaxRate mockTaxRate = mock(TaxRate.class);
-      taxRateMock.when(() -> TaxRate.create(any(TaxRateCreateParams.class)))
-        .thenReturn(mockTaxRate);
-
-      productService.createTaxRate();
-
-      ArgumentCaptor<TaxRateCreateParams> paramsCaptor = ArgumentCaptor.forClass(TaxRateCreateParams.class);
-      taxRateMock.verify(() -> TaxRate.create(paramsCaptor.capture()));
-
-      TaxRateCreateParams capturedParams = paramsCaptor.getValue();
-      assertThat(capturedParams.getDisplayName()).isEqualTo("IVA");
-      assertThat(capturedParams.getPercentage()).isEqualByComparingTo(new BigDecimal("21"));
-      assertThat(capturedParams.getInclusive()).isTrue();
-      assertThat(capturedParams.getCountry()).isEqualTo("ES");
-      assertThat(capturedParams.getJurisdiction()).isEqualTo("ES");
-      assertThat(capturedParams.getDescription()).isEqualTo("IVA español 21%");
-    }
-  }
-
-  @Test
-  @DisplayName("createTaxRate - propagates StripeException")
-  void createTaxRate_propagatesStripeException() throws StripeException {
-    try (MockedStatic<TaxRate> taxRateMock = mockStatic(TaxRate.class)) {
-
-      CardException cardException = mock(CardException.class);
-      taxRateMock.when(() -> TaxRate.create(any(TaxRateCreateParams.class)))
-        .thenThrow(cardException);
-
-      assertThatThrownBy(() -> productService.createTaxRate())
-        .isInstanceOf(StripeException.class);
-    }
-  }
 }

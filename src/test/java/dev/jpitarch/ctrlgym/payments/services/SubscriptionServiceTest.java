@@ -259,41 +259,4 @@ class SubscriptionServiceTest {
     }
   }
 
-  @Test
-  @DisplayName("createTaxRate - creates tax rate with correct parameters")
-  void createTaxRate_createsTaxRateWithCorrectParameters() throws StripeException {
-    try (MockedStatic<TaxRate> taxRateMock = mockStatic(TaxRate.class)) {
-
-      TaxRate mockTaxRate = mock(TaxRate.class);
-      taxRateMock.when(() -> TaxRate.create(any(TaxRateCreateParams.class)))
-        .thenReturn(mockTaxRate);
-
-      subscriptionService.createTaxRate();
-
-      ArgumentCaptor<TaxRateCreateParams> paramsCaptor = ArgumentCaptor.forClass(TaxRateCreateParams.class);
-      taxRateMock.verify(() -> TaxRate.create(paramsCaptor.capture()));
-
-      TaxRateCreateParams capturedParams = paramsCaptor.getValue();
-      assertThat(capturedParams.getDisplayName()).isEqualTo("IVA");
-      assertThat(capturedParams.getPercentage()).isEqualByComparingTo(new BigDecimal("21"));
-      assertThat(capturedParams.getInclusive()).isTrue();
-      assertThat(capturedParams.getCountry()).isEqualTo("ES");
-      assertThat(capturedParams.getJurisdiction()).isEqualTo("ES");
-      assertThat(capturedParams.getDescription()).isEqualTo("IVA español 21%");
-    }
-  }
-
-  @Test
-  @DisplayName("createTaxRate - propagates StripeException")
-  void createTaxRate_propagatesStripeException() throws StripeException {
-    try (MockedStatic<TaxRate> taxRateMock = mockStatic(TaxRate.class)) {
-
-      CardException cardException = mock(CardException.class);
-      taxRateMock.when(() -> TaxRate.create(any(TaxRateCreateParams.class)))
-        .thenThrow(cardException);
-
-      assertThatThrownBy(() -> subscriptionService.createTaxRate())
-        .isInstanceOf(StripeException.class);
-    }
-  }
 }

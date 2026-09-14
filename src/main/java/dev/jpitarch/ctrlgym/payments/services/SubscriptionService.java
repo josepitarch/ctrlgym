@@ -68,18 +68,22 @@ public class SubscriptionService {
     return subscription.getId();
   }
 
+
+  /*
+    Esto lo que hace es esperar al próximo pago para cobrar el miembro el nuevo precio
+   */
   public void change(String subscriptionId, String currentPriceId, String newCurrentPriceId, String stripeAccount) throws StripeException {
-    var requestOptions = RequestOptions.builder()
-            .setStripeAccount(stripeAccount)
-            .build();
+    var options = RequestOptions.builder()
+      .setStripeAccount(stripeAccount)
+      .build();
 
 
-    var subscription = Subscription.retrieve(subscriptionId, requestOptions);
+    var subscription = Subscription.retrieve(subscriptionId, options);
     var schedule = SubscriptionSchedule.create(
       SubscriptionScheduleCreateParams.builder()
         .setFromSubscription(subscriptionId)
         .build(),
-      requestOptions
+      options
     );
 
     var updateParams = SubscriptionScheduleUpdateParams.builder()
@@ -96,7 +100,7 @@ public class SubscriptionService {
         .build())
       .build();
 
-    schedule.update(updateParams, requestOptions);
+    schedule.update(updateParams, options);
   }
 
   public LocalDate cancel(Map<String, String> props) throws StripeException {
@@ -118,27 +122,5 @@ public class SubscriptionService {
     return EpochConverter.toLocalDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd());
   }
 
-
-  public LocalDate getNextBillingDate(String subscriptionId, String stripeAccountId) throws StripeException {
-    var options = RequestOptions.builder()
-      .setStripeAccount(stripeAccountId)
-      .build();
-
-    var subscription = Subscription.retrieve(subscriptionId, options);
-    return EpochConverter.toLocalDate(subscription.getItems().getData().getFirst().getCurrentPeriodEnd());
-  }
-
-  public void createTaxRate() throws StripeException {
-    var taxRateParams = TaxRateCreateParams.builder()
-      .setDisplayName("IVA")
-      .setPercentage(new BigDecimal("21"))
-      .setInclusive(true)
-      .setCountry("ES")
-      .setJurisdiction("ES")
-      .setDescription("IVA español 21%")
-      .build();
-
-    TaxRate.create(taxRateParams);
-  }
 
 }

@@ -1,13 +1,13 @@
 package dev.jpitarch.ctrlgym.payments.services;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Price;
-import com.stripe.model.Product;
-import com.stripe.model.TaxRate;
+import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import dev.jpitarch.ctrlgym.core.domain.MembershipPlan;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
+import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
+import io.opentelemetry.sdk.logs.LogLimits;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
+  private final PriceService priceService;
 
   private final StripeBridge stripeBridge;
 
@@ -37,22 +39,61 @@ public class ProductService {
 
     var product = Product.create(productParams, options);
 
-    var priceParams = PriceCreateParams.builder()
-      .setProduct(product.getId())
-      .setCurrency("eur")
-      .setUnitAmountDecimal(BigDecimal.valueOf(request.getPrice() * 100)) //Stripe works with cents
-      .setRecurring(
-        PriceCreateParams.Recurring.builder()
-          .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
+    var price = priceService.createPrice(product.getId(), request.getPrice());
+
+    return new String[]{product.getId(), price.getId()};
+  }
+
+  public String changePrice(String productId, Double price) throws StripeException {
+    log.info("Changing price of product with {} to {} €...", productId, price);
+    return priceService.createPrice(productId, price).getId();
+  }
+
+
+  public void changePrice1(String subscriptionId, Double priceId) throws StripeException {
+    var subscription = Subscription.retrieve(subscriptionId);
+
+    if (subscription.getSchedule() != null) {
+      throw new IllegalStateException("La suscripción " + subscriptionId + " ya tiene un schedule activo: " + subscription.getSchedule());
+    }
+
+    SubscriptionItem currentItem = subscription.getItems().getData().getFirst();
+    String currentPriceId = currentItem.getPrice().getId();
+    Long currentPeriodEnd = subscription.getItems().getData().getFirst().getCurrentPeriodEnd();
+
+    var schedule = SubscriptionSchedule.create(
+      SubscriptionScheduleCreateParams.builder()
+        .setFromSubscription(subscriptionId)
+        .build()
+    );
+
+    var params = SubscriptionScheduleUpdateParams.builder()
+      .addPhase(
+        SubscriptionScheduleUpdateParams.Phase.builder()
+          .addItem(
+            SubscriptionScheduleUpdateParams.Phase.Item.builder()
+              .setPrice(currentPriceId)
+              .setQuantity(currentItem.getQuantity())
+              .build()
+          )
+          .setStartDate(subscription.getItems().getData().getFirst().getCurrentPeriodStart())
+          .setEndDate(currentPeriodEnd)
+          .build()
+      )
+      .addPhase(
+        SubscriptionScheduleUpdateParams.Phase.builder()
+          .addItem(
+            SubscriptionScheduleUpdateParams.Phase.Item.builder()
+              .setPrice(priceId.toString())
+              .setQuantity(currentItem.getQuantity())
+              .build()
+          )
+          .setProrationBehavior(SubscriptionScheduleUpdateParams.Phase.ProrationBehavior.NONE)
           .build()
       )
       .build();
 
-    log.info("Creating price for product with id {} with amount {}...", product.getId(), request.getPrice());
-
-    var price = Price.create(priceParams, options);
-
-    return new String[]{ product.getId(), price.getId() };
+    schedule.update(params);
   }
 
   public void delete(Integer gymId, String productId) throws StripeException {
@@ -78,19 +119,6 @@ public class ProductService {
     log.info("Deleting product for gym with id {} with product with id {}...", gymId, productId);
 
     Product.retrieve(productId, options).update(productParams, options);
-  }
-
-  public void createTaxRate() throws StripeException {
-    var taxRateParams = TaxRateCreateParams.builder()
-      .setDisplayName("IVA")
-      .setPercentage(new BigDecimal("21"))
-      .setInclusive(true)
-      .setCountry("ES")
-      .setJurisdiction("ES")
-      .setDescription("IVA español 21%")
-      .build();
-
-    TaxRate.create(taxRateParams);
   }
 
 }

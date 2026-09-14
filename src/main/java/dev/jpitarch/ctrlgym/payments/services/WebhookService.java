@@ -66,8 +66,13 @@ public class WebhookService {
       case "invoice.payment_succeeded" -> handlePaymentSucceeded(map(event));
       case "invoice.payment_failed" -> handlePaymentFailed(map(event));
       case "customer.subscription.updated" -> handleSubscriptionUpdated(map(event));
+      case "subscription_schedule.updated" -> handleSubscriptionScheduleUpdated(map(event));
     }
 
+  }
+
+  private void handleSubscriptionScheduleUpdated(SubscriptionSchedule schedule) {
+    log.info("Schedule {} avanzó de fase. Fase actual: {}", schedule.getId(), schedule.getCurrentPhase());
   }
 
   private void handleSetupIntentFailed(SetupIntent setupIntent) {

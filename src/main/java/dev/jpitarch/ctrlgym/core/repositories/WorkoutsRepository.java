@@ -56,4 +56,9 @@ public class WorkoutsRepository {
     return workoutJpaRepository.getAverageVolumeLast30Days(memberId);
   }
 
+  public Optional<Workout> findLastCompleted(UUID memberId) {
+    return workoutJpaRepository.findFirstByMemberIdAndStatusOrderByFinishedAtDesc(memberId, WorkoutStatus.COMPLETED)
+      .map(workoutMapper::map);
+  }
+
 }

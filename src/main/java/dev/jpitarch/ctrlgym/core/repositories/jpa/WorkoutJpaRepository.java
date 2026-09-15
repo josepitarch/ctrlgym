@@ -28,6 +28,8 @@ public interface WorkoutJpaRepository extends JpaRepository<WorkoutEntity, Integ
       """)
   Optional<WorkoutEntity> findPreviousSession(UUID memberId, Integer currentId);
 
+  Optional<WorkoutEntity> findFirstByMemberIdAndStatusOrderByFinishedAtDesc(UUID memberId, WorkoutStatus status);
+
   @Query(value = """
       SELECT AVG(total_volume)
       FROM (

@@ -119,8 +119,10 @@ public class MemberController {
 
   @GetMapping(value = "/{memberId}/workouts")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<Page<Workout>> getWorkouts(@PathVariable UUID memberId, Pageable pageable) {
-    return ResponseEntity.ok(memberUseCase.getWorkouts(memberId, pageable));
+  public ResponseEntity<Page<Workout>> getWorkouts(@PathVariable UUID memberId,
+                                                   @RequestParam(required = false) Integer routineId,
+                                                   Pageable pageable) {
+    return ResponseEntity.ok(memberUseCase.getWorkouts(memberId, Optional.ofNullable(routineId), pageable));
   }
 
   @GetMapping("/{memberId}/invoices")

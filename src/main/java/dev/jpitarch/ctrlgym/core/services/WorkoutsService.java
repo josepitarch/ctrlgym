@@ -43,8 +43,10 @@ public class WorkoutsService {
     return savedWorkout;
   }
 
-  public Page<Workout> getWorkouts(UUID memberId, Pageable pageable) {
-    return workoutsRepository.findByMemberId(memberId, pageable);
+  public Page<Workout> getWorkouts(UUID memberId, Optional<Integer> routineId, Pageable pageable) {
+    return routineId
+      .map(id -> workoutsRepository.findByMemberIdAndRoutineId(memberId, id, pageable))
+      .orElseGet(() -> workoutsRepository.findByMemberId(memberId, pageable));
   }
 
   public Optional<Workout> findLastCompleted(UUID memberId) {

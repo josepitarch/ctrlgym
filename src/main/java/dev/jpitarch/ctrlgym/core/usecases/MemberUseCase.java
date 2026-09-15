@@ -96,8 +96,8 @@ public class MemberUseCase {
     return workoutsService.create(workout, memberId);
   }
 
-  public Page<Workout> getWorkouts(UUID memberId, Pageable pageable) {
-    return workoutsService.getWorkouts(memberId, pageable);
+  public Page<Workout> getWorkouts(UUID memberId, Optional<Integer> routineId, Pageable pageable) {
+    return workoutsService.getWorkouts(memberId, routineId, pageable);
   }
 
   public Page<Invoice> getInvoices(UUID memberId, Pageable pageable) {

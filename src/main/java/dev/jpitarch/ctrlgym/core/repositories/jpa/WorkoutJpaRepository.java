@@ -16,6 +16,8 @@ public interface WorkoutJpaRepository extends JpaRepository<WorkoutEntity, Integ
 
   Page<WorkoutEntity> findByMemberId(UUID memberId, Pageable pageable);
 
+  Page<WorkoutEntity> findByMemberIdAndRoutine_Routine_Id(UUID memberId, Integer routineId, Pageable pageable);
+
   List<WorkoutEntity> findByMemberId(UUID memberId);
 
   long countByMemberIdAndStatus(UUID memberId, WorkoutStatus status);

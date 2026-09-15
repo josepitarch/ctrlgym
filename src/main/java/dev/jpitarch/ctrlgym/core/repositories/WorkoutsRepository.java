@@ -44,6 +44,10 @@ public class WorkoutsRepository {
     return workoutJpaRepository.findByMemberId(memberId, pageable).map(workoutMapper::map);
   }
 
+  public Page<Workout> findByMemberIdAndRoutineId(UUID memberId, Integer routineId, Pageable pageable) {
+    return workoutJpaRepository.findByMemberIdAndRoutine_Routine_Id(memberId, routineId, pageable).map(workoutMapper::map);
+  }
+
   public long countByMemberIdAndStatus(UUID memberId, WorkoutStatus status) {
     return workoutJpaRepository.countByMemberIdAndStatus(memberId, status);
   }

@@ -4,18 +4,15 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.SetupIntent;
-import com.stripe.model.Subscription;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.CustomerRetrieveParams;
 import com.stripe.param.SetupIntentCreateParams;
-import com.stripe.param.SetupIntentRetrieveParams;
-import com.stripe.param.SubscriptionUpdateParams;
 import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
 import dev.jpitarch.ctrlgym.payments.dtos.SetupIntentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -79,27 +76,20 @@ public class CustomerService {
       var options = RequestOptions.builder()
         .setStripeAccount(stripeBridge.getStripeAccountId(TenantContextHolder.getTenantId()))
         .build();
-      var params = SetupIntentRetrieveParams.builder()
-        .addExpand("payment_method")
+
+      var customerParams = CustomerRetrieveParams.builder()
+        .addExpand("invoice_settings.default_payment_method")
         .build();
 
-      return stripeBridge.getStripeSetupIntentId(memberId)
-        .flatMap(s -> {
-          try {
-            return Optional.ofNullable(
-              SetupIntent.retrieve(s, params, options).getPaymentMethodObject().getSepaDebit().getLast4()
-            );
-          } catch (StripeException e) {
-            log.warn("Failed to retrieve IBAN last4 for member {}: {}", memberId, e.getMessage(), e);
-            return Optional.empty();
-          }
-        });
-    } catch (RuntimeException e) {
-      log.error("Failed to retrieve IBAN last4 for member {}: {}", memberId, e.getMessage(), e);
+      var customer = Customer.retrieve(stripeBridge.getStripeCustomerId(memberId).orElseThrow(), customerParams, options);
+
+      PaymentMethod pm = customer.getInvoiceSettings().getDefaultPaymentMethodObject();
+
+      return Optional.ofNullable(pm).map(PaymentMethod::getSepaDebit).map(PaymentMethod.SepaDebit::getLast4);
+    } catch (StripeException e) {
+      log.error("Error retrieving IBAN last 4 for member with id {}: {}", memberId, e.getMessage(), e);
       return Optional.empty();
     }
-
-
   }
 
   public boolean setupIntentIsValid(String setupIntentId) throws StripeException {

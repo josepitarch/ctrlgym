@@ -63,7 +63,6 @@ public class MembershipService {
     var props = Map.of(
       "stripeAccountId", stripeAccountId,
       "stripePriceId", stripePriceId,
-      "setupIntentId", setupIntentId,
       "customerId", customerId
     );
 

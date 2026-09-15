@@ -7,6 +7,7 @@ import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import com.stripe.param.CustomerUpdateParams;
 import com.stripe.param.SetupIntentRetrieveParams;
+import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
 import dev.jpitarch.ctrlgym.core.events.InvoiceFailedEvent;
@@ -14,7 +15,6 @@ import dev.jpitarch.ctrlgym.core.events.InvoicePaidEvent;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembershipsRepository;
-import dev.jpitarch.ctrlgym.core.StripeBridge;
 import dev.jpitarch.ctrlgym.core.services.MembershipService;
 import dev.jpitarch.ctrlgym.payments.utils.EpochConverter;
 import dev.jpitarch.ctrlgym.payments.utils.MoneyHelper;
@@ -95,36 +95,50 @@ public class WebhookService {
       .setStripeAccount(stripeBridge.getStripeAccountId(stripeBridge.getGymId(setupIntent.getCustomer())))
       .build();
 
-    var params = SetupIntentRetrieveParams.builder()
+    var retrieveParams = SetupIntentRetrieveParams.builder()
       .addExpand("payment_method")
       .build();
 
-    PaymentMethod pm = SetupIntent.retrieve(setupIntent.getId(), params, options).getPaymentMethodObject();
+    PaymentMethod newPm = SetupIntent.retrieve(setupIntent.getId(), retrieveParams, options).getPaymentMethodObject();
 
-    Address billingAddress = pm.getBillingDetails() != null
-      ? pm.getBillingDetails().getAddress()
+    var customer = Customer.retrieve(setupIntent.getCustomer(), options);
+    String previousPaymentMethodId = customer.getInvoiceSettings() != null
+      ? customer.getInvoiceSettings().getDefaultPaymentMethod()
       : null;
 
-    if (billingAddress == null) return;
+    Address billingAddress = newPm.getBillingDetails() != null ? newPm.getBillingDetails().getAddress() : null;
+
+    var updateParamsBuilder = CustomerUpdateParams.builder()
+      .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
+        .setDefaultPaymentMethod(newPm.getId())
+        .build()
+      );
 
     Member member = membersRepository.getById(stripeBridge.getMemberId(setupIntent.getCustomer()));
-    Integer postalCode = Integer.valueOf(billingAddress.getPostalCode());
-    membersRepository.updatePostalCode(member.getId(), postalCode);
 
-    var addressParams = CustomerUpdateParams.Address.builder()
-      .setLine1(billingAddress.getLine1())
-      .setLine2(billingAddress.getLine2())
-      .setCity(billingAddress.getCity())
-      .setState(billingAddress.getState())
-      .setPostalCode(billingAddress.getPostalCode())
-      .setCountry(billingAddress.getCountry())
-      .build();
+    if (billingAddress != null) {
+      membersRepository.updatePostalCode(member.getId(), Integer.valueOf(billingAddress.getPostalCode()));
+      updateParamsBuilder.setAddress(CustomerUpdateParams.Address.builder()
+        .setLine1(billingAddress.getLine1())
+        .setLine2(billingAddress.getLine2())
+        .setCity(billingAddress.getCity())
+        .setState(billingAddress.getState())
+        .setPostalCode(billingAddress.getPostalCode())
+        .setCountry(billingAddress.getCountry())
+        .build()
+      );
+    }
 
-    var updateParams = CustomerUpdateParams.builder()
-      .setAddress(addressParams)
-      .build();
+    customer.update(updateParamsBuilder.build(), options);
 
-    Customer.retrieve(setupIntent.getCustomer()).update(updateParams);
+    if (previousPaymentMethodId != null && !previousPaymentMethodId.equals(newPm.getId())) {
+      try {
+        PaymentMethod.retrieve(previousPaymentMethodId, options).detach(options);
+        log.info("Detached previous payment method {} for customer {}", previousPaymentMethodId, setupIntent.getCustomer());
+      } catch (StripeException e) {
+        log.warn("Could not detach previous payment method {}: {}", previousPaymentMethodId, e.getMessage());
+      }
+    }
   }
 
   private void handleSubscriptionUpdated(Subscription subscription) {

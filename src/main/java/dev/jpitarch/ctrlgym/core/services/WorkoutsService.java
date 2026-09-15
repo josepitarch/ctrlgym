@@ -3,10 +3,8 @@ package dev.jpitarch.ctrlgym.core.services;
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.domain.Workout;
 import dev.jpitarch.ctrlgym.core.domain.enums.WorkoutStatus;
-import dev.jpitarch.ctrlgym.core.dto.NextDaySuggestion;
 import dev.jpitarch.ctrlgym.core.dto.PersonalRecordResult;
 import dev.jpitarch.ctrlgym.core.dto.WorkoutSummary;
-import dev.jpitarch.ctrlgym.core.repositories.RoutinesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.WorkoutsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +28,7 @@ public class WorkoutsService {
 
   private final WorkoutsRepository workoutsRepository;
 
-  private final RoutinesRepository routinesRepository;
+  private final RoutinesService routinesService;
 
   private final PersonalRecordService personalRecordService;
 
@@ -53,36 +51,24 @@ public class WorkoutsService {
     return workoutsRepository.findLastCompleted(memberId);
   }
 
-  public Optional<NextDaySuggestion> getNextDaySuggestion(UUID memberId) {
-    List<Routine> routines = routinesRepository.findByMemberId(memberId);
+  public Optional<Routine.Day> getNextDaySuggestion(UUID memberId) {
+    List<Routine> routines = routinesService.getRoutines(memberId);
     if (routines.isEmpty()) return Optional.empty();
 
     Optional<Workout> lastWorkout = workoutsRepository.findLastCompleted(memberId);
 
     if (lastWorkout.isEmpty()) {
-      Routine firstRoutine = routines.get(0);
-      return Optional.of(NextDaySuggestion.of(firstRoutine.getId(), firstRoutine.getDays().get(0).getDayNumber()));
+      Routine firstRoutine = routines.getFirst();
+      return Optional.of(firstRoutine.getDays().getFirst());
     }
 
     Workout last = lastWorkout.get();
     Routine routine = routines.stream()
       .filter(r -> r.getId().equals(last.getRoutineId()))
       .findFirst()
-      .orElse(routines.get(0));
+      .orElse(routines.getFirst());
 
-    List<Routine.Day> days = routine.getDays();
-    int lastIndex = -1;
-    for (int i = 0; i < days.size(); i++) {
-      if (days.get(i).getDayNumber().equals(last.getDayNumber())) {
-        lastIndex = i;
-        break;
-      }
-    }
-
-    int nextIndex = (lastIndex >= 0) ? (lastIndex + 1) % days.size() : 0;
-    Routine.Day nextDay = days.get(nextIndex);
-
-    return Optional.of(NextDaySuggestion.of(routine.getId(), nextDay.getDayNumber()));
+    return Optional.of(routine.getNextDay(last.getDayNumber()));
   }
 
   public static class WorkoutSummaryCalculator {

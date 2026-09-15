@@ -19,6 +19,18 @@ public class Routine {
 
   private List<Day> days;
 
+  public Day getNextDay(Integer dayNumber) {
+    int lastIndex = -1;
+    for (int i = 0; i < days.size(); i++) {
+      if (days.get(i).getDayNumber().equals(dayNumber)) {
+        lastIndex = i;
+        break;
+      }
+    }
+    int nextIndex = (lastIndex >= 0) ? (lastIndex + 1) % days.size() : 0;
+    return days.get(nextIndex);
+  }
+
   @Data
   @Builder
   @AllArgsConstructor

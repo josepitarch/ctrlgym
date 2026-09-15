@@ -3,7 +3,6 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
-import dev.jpitarch.ctrlgym.core.dto.NextDaySuggestion;
 import dev.jpitarch.ctrlgym.core.repositories.InvoiceRepository;
 import dev.jpitarch.ctrlgym.core.repositories.MembersRepository;
 import dev.jpitarch.ctrlgym.core.security.TenantContextHolder;
@@ -88,7 +87,7 @@ public class MemberUseCase {
     routinesService.delete(routineId, memberId);
   }
 
-  public Optional<NextDaySuggestion> getNextDaySuggestion(UUID memberId) {
+  public Optional<Routine.Day> getNextDaySuggestion(UUID memberId) {
     return workoutsService.getNextDaySuggestion(memberId);
   }
 

@@ -23,11 +23,4 @@ public class CustomerController {
     return ResponseEntity.ok(response);
   }
 
-  @PutMapping("/members/{memberId}/payment-method")
-  public ResponseEntity<Void> updateSetupIntent(@PathVariable UUID memberId) throws StripeException {
-    //TODO: revisar coEntity implementar esto
-    return ResponseEntity.ok().build();
-  }
-
-
 }

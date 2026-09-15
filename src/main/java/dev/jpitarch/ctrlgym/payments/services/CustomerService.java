@@ -74,27 +74,6 @@ public class CustomerService {
     return new SetupIntentResponse(setupIntent.getId(), setupIntent.getClientSecret());
   }
 
-  public void updateSetupIntentId(@Nullable String subscriptionId, String oldSetupIntentId, String newPaymentMethodId, String stripeAccount) throws StripeException {
-    var options = RequestOptions.builder()
-      .setStripeAccount(stripeAccount)
-      .build();
-
-    var params = SubscriptionUpdateParams.builder()
-      .setDefaultPaymentMethod(newPaymentMethodId)
-      .build();
-
-    String oldPaymentMethodId = SetupIntent.retrieve(oldSetupIntentId, options).getPaymentMethod();
-
-    if (subscriptionId != null) {
-      log.info("Updating subscription with id {} payment method from {} to {}...", subscriptionId, oldPaymentMethodId, newPaymentMethodId);
-      Subscription.retrieve(subscriptionId, options).update(params, options);
-    }
-
-    log.info("Detaching payment method with id {}...", oldPaymentMethodId);
-
-    PaymentMethod.retrieve(oldPaymentMethodId, options).detach(options);
-  }
-
   public Optional<String> getIbanLast4(UUID memberId) {
     try {
       var options = RequestOptions.builder()

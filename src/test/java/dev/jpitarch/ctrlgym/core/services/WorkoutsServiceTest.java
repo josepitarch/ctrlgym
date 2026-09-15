@@ -2,8 +2,6 @@ package dev.jpitarch.ctrlgym.core.services;
 
 import dev.jpitarch.ctrlgym.core.domain.Routine;
 import dev.jpitarch.ctrlgym.core.domain.Workout;
-import dev.jpitarch.ctrlgym.core.dto.NextDaySuggestion;
-import dev.jpitarch.ctrlgym.core.repositories.RoutinesRepository;
 import dev.jpitarch.ctrlgym.core.repositories.WorkoutsRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,16 +28,16 @@ class WorkoutsServiceTest {
   WorkoutsRepository workoutsRepository;
 
   @Mock
-  RoutinesRepository routinesRepository;
+  RoutinesService routinesService;
 
   final UUID memberId = UUID.randomUUID();
 
   @Test
   @DisplayName("Should return empty when member has no routines")
   void shouldReturnEmptyWhenNoRoutines() {
-    when(routinesRepository.findByMemberId(memberId)).thenReturn(Collections.emptyList());
+    when(routinesService.getRoutines(memberId)).thenReturn(Collections.emptyList());
 
-    Optional<NextDaySuggestion> result = workoutsService.getNextDaySuggestion(memberId);
+    Optional<Routine.Day> result = workoutsService.getNextDaySuggestion(memberId);
 
     assertThat(result).isEmpty();
   }
@@ -48,14 +46,13 @@ class WorkoutsServiceTest {
   @DisplayName("Should suggest first day of first routine when no completed workouts")
   void shouldSuggestFirstDayWhenNoWorkouts() {
     Routine routine = createRoutine(1, "Push", List.of(1, 2, 3));
-    when(routinesRepository.findByMemberId(memberId)).thenReturn(List.of(routine));
+    when(routinesService.getRoutines(memberId)).thenReturn(List.of(routine));
     when(workoutsRepository.findLastCompleted(memberId)).thenReturn(Optional.empty());
 
-    Optional<NextDaySuggestion> result = workoutsService.getNextDaySuggestion(memberId);
+    Optional<Routine.Day> result = workoutsService.getNextDaySuggestion(memberId);
 
     assertThat(result).isPresent();
-    assertThat(result.get().routineId()).isEqualTo(1);
-    assertThat(result.get().dayNumber()).isEqualTo(1);
+    assertThat(result.get().getDayNumber()).isEqualTo(1);
   }
 
   @Test
@@ -64,14 +61,13 @@ class WorkoutsServiceTest {
     Routine routine = createRoutine(1, "Push", List.of(1, 2, 3));
     Workout lastWorkout = Workout.builder().routineId(1).dayNumber(1).build();
 
-    when(routinesRepository.findByMemberId(memberId)).thenReturn(List.of(routine));
+    when(routinesService.getRoutines(memberId)).thenReturn(List.of(routine));
     when(workoutsRepository.findLastCompleted(memberId)).thenReturn(Optional.of(lastWorkout));
 
-    Optional<NextDaySuggestion> result = workoutsService.getNextDaySuggestion(memberId);
+    Optional<Routine.Day> result = workoutsService.getNextDaySuggestion(memberId);
 
     assertThat(result).isPresent();
-    assertThat(result.get().routineId()).isEqualTo(1);
-    assertThat(result.get().dayNumber()).isEqualTo(2);
+    assertThat(result.get().getDayNumber()).isEqualTo(2);
   }
 
   @Test
@@ -80,14 +76,13 @@ class WorkoutsServiceTest {
     Routine routine = createRoutine(1, "Push", List.of(1, 2, 3));
     Workout lastWorkout = Workout.builder().routineId(1).dayNumber(3).build();
 
-    when(routinesRepository.findByMemberId(memberId)).thenReturn(List.of(routine));
+    when(routinesService.getRoutines(memberId)).thenReturn(List.of(routine));
     when(workoutsRepository.findLastCompleted(memberId)).thenReturn(Optional.of(lastWorkout));
 
-    Optional<NextDaySuggestion> result = workoutsService.getNextDaySuggestion(memberId);
+    Optional<Routine.Day> result = workoutsService.getNextDaySuggestion(memberId);
 
     assertThat(result).isPresent();
-    assertThat(result.get().routineId()).isEqualTo(1);
-    assertThat(result.get().dayNumber()).isEqualTo(1);
+    assertThat(result.get().getDayNumber()).isEqualTo(1);
   }
 
   @Test
@@ -96,14 +91,13 @@ class WorkoutsServiceTest {
     Routine routine = createRoutine(1, "Full Body", List.of(1));
     Workout lastWorkout = Workout.builder().routineId(1).dayNumber(1).build();
 
-    when(routinesRepository.findByMemberId(memberId)).thenReturn(List.of(routine));
+    when(routinesService.getRoutines(memberId)).thenReturn(List.of(routine));
     when(workoutsRepository.findLastCompleted(memberId)).thenReturn(Optional.of(lastWorkout));
 
-    Optional<NextDaySuggestion> result = workoutsService.getNextDaySuggestion(memberId);
+    Optional<Routine.Day> result = workoutsService.getNextDaySuggestion(memberId);
 
     assertThat(result).isPresent();
-    assertThat(result.get().routineId()).isEqualTo(1);
-    assertThat(result.get().dayNumber()).isEqualTo(1);
+    assertThat(result.get().getDayNumber()).isEqualTo(1);
   }
 
   @Test
@@ -113,14 +107,13 @@ class WorkoutsServiceTest {
     Routine routine2 = createRoutine(2, "Pull", List.of(1, 2));
     Workout lastWorkout = Workout.builder().routineId(2).dayNumber(2).build();
 
-    when(routinesRepository.findByMemberId(memberId)).thenReturn(List.of(routine1, routine2));
+    when(routinesService.getRoutines(memberId)).thenReturn(List.of(routine1, routine2));
     when(workoutsRepository.findLastCompleted(memberId)).thenReturn(Optional.of(lastWorkout));
 
-    Optional<NextDaySuggestion> result = workoutsService.getNextDaySuggestion(memberId);
+    Optional<Routine.Day> result = workoutsService.getNextDaySuggestion(memberId);
 
     assertThat(result).isPresent();
-    assertThat(result.get().routineId()).isEqualTo(2);
-    assertThat(result.get().dayNumber()).isEqualTo(1);
+    assertThat(result.get().getDayNumber()).isEqualTo(1);
   }
 
   private Routine createRoutine(Integer id, String name, List<Integer> dayNumbers) {

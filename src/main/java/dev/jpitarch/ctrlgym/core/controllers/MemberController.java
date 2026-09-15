@@ -4,7 +4,6 @@ import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.dto.AccessTokensResponse;
 import dev.jpitarch.ctrlgym.core.dto.InvoiceSummary;
-import dev.jpitarch.ctrlgym.core.dto.NextDaySuggestion;
 import dev.jpitarch.ctrlgym.core.usecases.MemberUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -97,10 +96,10 @@ public class MemberController {
 
   @GetMapping("/{memberId}/next-day-suggestion")
   @PreAuthorize("#memberId.toString() == authentication.name")
-  public ResponseEntity<NextDaySuggestion> getNextDaySuggestion(@PathVariable UUID memberId) {
+  public ResponseEntity<Routine.Day> getNextDaySuggestion(@PathVariable UUID memberId) {
     return memberUseCase.getNextDaySuggestion(memberId)
       .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.noContent().build());
+      .orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{memberId}/routines/{routineId}")

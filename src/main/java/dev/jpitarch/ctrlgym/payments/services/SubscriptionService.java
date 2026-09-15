@@ -36,17 +36,6 @@ public class SubscriptionService {
       .atStartOfDay(ZoneOffset.UTC)
       .toEpochSecond();
 
-    String paymentMethodId = SetupIntent.retrieve(props.get("setupIntentId"), options).getPaymentMethod();
-
-    var customerUpdateParams = CustomerUpdateParams.builder()
-      .setInvoiceSettings(CustomerUpdateParams.InvoiceSettings.builder()
-        .setDefaultPaymentMethod(paymentMethodId)
-        .build()
-      )
-      .build();
-
-    Customer.retrieve(props.get("customerId"), options).update(customerUpdateParams, options);
-
     var subscriptionParams = SubscriptionCreateParams.builder()
       .setCustomer(props.get("customerId"))
       .addItem(SubscriptionCreateParams.Item.builder()
@@ -54,9 +43,13 @@ public class SubscriptionService {
         .build()
       )
       .setApplicationFeePercent(new BigDecimal("0.0"))
+      .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE)
       .setPaymentSettings(
         SubscriptionCreateParams.PaymentSettings.builder()
-          .setPaymentMethodTypes(List.of(SubscriptionCreateParams.PaymentSettings.PaymentMethodType.CARD))
+          .setPaymentMethodTypes(List.of(SubscriptionCreateParams.PaymentSettings.PaymentMethodType.SEPA_DEBIT))
+          .setSaveDefaultPaymentMethod(
+            SubscriptionCreateParams.PaymentSettings.SaveDefaultPaymentMethod.OFF
+          )
           .build()
       )
       .setBillingCycleAnchor(billingAnchorTimestamp)

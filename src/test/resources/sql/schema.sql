@@ -884,6 +884,22 @@ CREATE TABLE member_terms_acceptance (
    revoked_at            TIMESTAMPTZ
 );
 
+CREATE TABLE member_personal_records
+(
+  id          uuid        NOT NULL DEFAULT uuidv7(),
+  member_id   uuid        NOT NULL,
+  exercise_id int4        NOT NULL,
+  weight      numeric(6, 2) NOT NULL,
+  reps        int2        NOT NULL,
+  achieved_at timestamptz NOT NULL DEFAULT now(),
+  workout_id  int4        NULL,
+  CONSTRAINT member_personal_records_pkey PRIMARY KEY (id),
+  CONSTRAINT member_personal_records_member_fk FOREIGN KEY (member_id) REFERENCES users (id),
+  CONSTRAINT member_personal_records_exercise_fk FOREIGN KEY (exercise_id) REFERENCES exercises (id),
+  CONSTRAINT member_personal_records_workout_fk FOREIGN KEY (workout_id) REFERENCES workouts (id)
+);
+CREATE INDEX idx_member_personal_records_member_exercise ON member_personal_records (member_id, exercise_id);
+
 -- DROP FUNCTION public.update_gym_branch_current_occupancy();
 
 CREATE

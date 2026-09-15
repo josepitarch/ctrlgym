@@ -14,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class Workout {
 
+  private Integer id;
+
   @JsonProperty("routine_id")
   private Integer routineId;
 
@@ -53,6 +55,15 @@ public class Workout {
 
     }
 
+  }
+
+  public enum MessageType {
+    PERSONAL_RECORD,
+    STREAK_MILESTONE,
+    FIRST_WORKOUT,
+    COMEBACK,
+    HIGH_VOLUME,
+    STANDARD
   }
 
 }

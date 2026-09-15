@@ -3,7 +3,6 @@ package dev.jpitarch.ctrlgym.core.usecases;
 import com.stripe.exception.StripeException;
 import dev.jpitarch.ctrlgym.core.domain.*;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.CoreBusinessException;
-import dev.jpitarch.ctrlgym.core.domain.exceptions.ExerciseNotFoundException;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.ProductNotFoundException;
 import dev.jpitarch.ctrlgym.core.dto.*;
 import dev.jpitarch.ctrlgym.core.entities.GymScheduleEntity;
@@ -168,47 +167,18 @@ public class GymUseCase {
   }
 
   public List<Exercise> getAll(Integer gymId) {
-    List<Exercise> exercises = exercisesService.getAll(gymId);
-    exercises.forEach(this::resolveExerciseImageUrl);
-    return exercises;
+    return exercisesService.getAll(gymId);
   }
 
   public Exercise createExercise(Integer gymId, Exercise exercise, MultipartFile image) {
-    if (image != null && !image.isEmpty()) {
-      String imageKey = storageService.uploadFile(image, gymId, "exercises", StorageBucket.ASSETS);
-      exercise.setImage(imageKey);
-    }
-    Exercise created = exercisesService.create(exercise, gymId);
-    resolveExerciseImageUrl(created);
-    return created;
+    return exercisesService.create(exercise, gymId, image);
   }
 
   public Exercise updateExercise(Integer exerciseId, Integer gymId, Exercise exercise, MultipartFile image) {
-    Exercise existing = exercisesService.findById(exerciseId)
-      .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
-
-    if (image != null && !image.isEmpty()) {
-      if (existing.getImage() != null && !existing.getImage().isBlank()) {
-        storageService.deleteFile(existing.getImage(), StorageBucket.ASSETS);
-      }
-      String imageKey = storageService.uploadFile(image, gymId, "exercises", StorageBucket.ASSETS);
-      exercise.setImage(imageKey);
-    } else {
-      exercise.setImage(existing.getImage());
-    }
-
-    exercise.setId(exerciseId);
-    Exercise updated = exercisesService.update(exercise);
-    resolveExerciseImageUrl(updated);
-    return updated;
+    return exercisesService.update(exerciseId, gymId, exercise, image);
   }
 
   public void deleteExercise(Integer exerciseId, Integer gymId) {
-    Exercise exercise = exercisesService.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
-
-    if (exercise.getImage() != null && !exercise.getImage().isBlank()) {
-      storageService.deleteFile(exercise.getImage(), StorageBucket.ASSETS);
-    }
     exercisesService.delete(exerciseId, gymId);
   }
 
@@ -406,12 +376,6 @@ public class GymUseCase {
     if (member.getAvatarUrl() != null) {
       String presignedUrl = storageService.generatePresignedUrl(member.getAvatarUrl().toString(), StorageBucket.AVATARS);
       member.setAvatarUrl(URI.create(presignedUrl));
-    }
-  }
-
-  private void resolveExerciseImageUrl(Exercise exercise) {
-    if (exercise.getImage() != null && !exercise.getImage().isBlank()) {
-      exercise.setImage(storageService.resolvePublicUrl(exercise.getImage()));
     }
   }
 

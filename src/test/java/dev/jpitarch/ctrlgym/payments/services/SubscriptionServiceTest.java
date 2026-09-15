@@ -51,7 +51,6 @@ class SubscriptionServiceTest {
       );
 
       SetupIntent mockSetupIntent = mock(SetupIntent.class);
-      when(mockSetupIntent.getPaymentMethod()).thenReturn("pm_test123");
 
       setupIntentMock.when(() -> SetupIntent.retrieve(eq("seti_test123"), any(RequestOptions.class)))
         .thenReturn(mockSetupIntent);
@@ -60,8 +59,6 @@ class SubscriptionServiceTest {
       Subscription mockSubscription = mock(Subscription.class);
 
       customerMock.when(() -> Customer.retrieve(eq("cus_test123"), any(RequestOptions.class)))
-        .thenReturn(mockCustomer);
-      when(mockCustomer.update(any(CustomerUpdateParams.class), any(RequestOptions.class)))
         .thenReturn(mockCustomer);
 
       subscriptionMock.when(() -> Subscription.create(any(SubscriptionCreateParams.class), any(RequestOptions.class)))
@@ -103,7 +100,6 @@ class SubscriptionServiceTest {
       );
 
       SetupIntent mockSetupIntent = mock(SetupIntent.class);
-      when(mockSetupIntent.getPaymentMethod()).thenReturn("pm_test");
 
       setupIntentMock.when(() -> SetupIntent.retrieve(anyString(), any(RequestOptions.class)))
         .thenReturn(mockSetupIntent);
@@ -112,8 +108,6 @@ class SubscriptionServiceTest {
       Subscription mockSubscription = mock(Subscription.class);
 
       customerMock.when(() -> Customer.retrieve(anyString(), any(RequestOptions.class)))
-        .thenReturn(mockCustomer);
-      when(mockCustomer.update(any(CustomerUpdateParams.class), any(RequestOptions.class)))
         .thenReturn(mockCustomer);
 
       subscriptionMock.when(() -> Subscription.create(any(SubscriptionCreateParams.class), any(RequestOptions.class)))

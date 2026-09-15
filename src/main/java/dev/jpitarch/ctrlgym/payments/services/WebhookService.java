@@ -5,6 +5,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
+import com.stripe.param.CustomerUpdateParams;
 import com.stripe.param.SetupIntentRetrieveParams;
 import dev.jpitarch.ctrlgym.core.domain.Member;
 import dev.jpitarch.ctrlgym.core.domain.exceptions.InvoiceNotFoundException;
@@ -100,9 +101,30 @@ public class WebhookService {
 
     PaymentMethod pm = SetupIntent.retrieve(setupIntent.getId(), params, options).getPaymentMethodObject();
 
+    Address billingAddress = pm.getBillingDetails() != null
+      ? pm.getBillingDetails().getAddress()
+      : null;
+
+    if (billingAddress == null) return;
+
     Member member = membersRepository.getById(stripeBridge.getMemberId(setupIntent.getCustomer()));
-    Integer postalCode = Integer.valueOf(pm.getBillingDetails().getAddress().getPostalCode());
+    Integer postalCode = Integer.valueOf(billingAddress.getPostalCode());
     membersRepository.updatePostalCode(member.getId(), postalCode);
+
+    var addressParams = CustomerUpdateParams.Address.builder()
+      .setLine1(billingAddress.getLine1())
+      .setLine2(billingAddress.getLine2())
+      .setCity(billingAddress.getCity())
+      .setState(billingAddress.getState())
+      .setPostalCode(billingAddress.getPostalCode())
+      .setCountry(billingAddress.getCountry())
+      .build();
+
+    var updateParams = CustomerUpdateParams.builder()
+      .setAddress(addressParams)
+      .build();
+
+    Customer.retrieve(setupIntent.getCustomer()).update(updateParams);
   }
 
   private void handleSubscriptionUpdated(Subscription subscription) {
